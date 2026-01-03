@@ -10,7 +10,7 @@ import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { MdDelete } from 'react-icons/md';
 import { FaPlus } from 'react-icons/fa6';
 import Loader from '../components/Loader.jsx';
-import { fetchCreditor } from '../hooks/axiosApis.js';
+import { fetchCreditor, fetchCustomers } from '../hooks/axiosApis.js';
 
 const materialsData = [{ name: 'Cast' }, { name: 'Mix' }, { name: 'Special' }];
 
@@ -22,8 +22,13 @@ const NewCredit = () => {
 		queryKey: ['creditors', id],
 		queryFn: async () => fetchCreditor({ user, id }),
 	});
+	const { data: companies } = useQuery({
+		queryKey: ['customers'],
+		queryFn: async () => fetchCustomers(user),
+	});
 	const [loading, setIsLoading] = useState(false);
 	const [vehicleNumber, setVehicleNumber] = useState('');
+	const [companyId, setCompanyId] = useState('');
 	const [deposits, setDeposits] = useState([
 		{
 			description: '',
@@ -197,6 +202,9 @@ const NewCredit = () => {
 			if (!vehicleNumber.trim()) {
 				return toast.error('Please add vehicel Number');
 			}
+			if (!companyId.trim()) {
+				return toast.error('Please select a company');
+			}
 			setIsLoading(true);
 			// Make API call
 			const data = {
@@ -208,6 +216,7 @@ const NewCredit = () => {
 				accountId: id,
 				deposits,
 				creditorId: id,
+				companyId,
 			};
 			// console.log('data', data);
 			axios
@@ -492,6 +501,19 @@ const NewCredit = () => {
 								Information
 							</h4>
 							<div className="p-2 md:flex justify-between gap-2 items-center w-full">
+								<div className="w-full mb-2">
+									<p className="mb-0 text-base text-black">Select Company</p>
+									<select
+										className="input w-full h-[44px] rounded-md border border-gray px-1 text-base"
+										onChange={(e) => setCompanyId(e.target.value)}
+									>
+										{companies?.map((data) => (
+											<option key={data._id} value={data._id}>
+												{data.name}
+											</option>
+										))}
+									</select>
+								</div>
 								<div className="mb-2 w-full">
 									<label className="mb-0 text-base text-blue-500">
 										Grand Total

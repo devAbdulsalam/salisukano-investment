@@ -2,13 +2,13 @@ import { useState, useContext, useEffect } from 'react';
 import AuthContext from '../context/authContext';
 import toast from 'react-hot-toast';
 import Loader from '../components/Loader';
-import Left from '../components/Left';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { LocalStorage } from '../hooks/LocalStorage';
+import getError from '../hooks/getError';
+import Left from '../components/Left';
 import { FiEye, FiEyeOff } from 'react-icons/fi';
 // import logo from '../assets/download.jfif';
-import getError from '../hooks/getError';
 const Login = () => {
 	const { user, setUser } = useContext(AuthContext);
 	const apiUrl = import.meta.env.VITE_API_URL;
