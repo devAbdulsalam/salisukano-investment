@@ -34,16 +34,16 @@ const navigationList = [
 		link: '/creditors',
 		svg: <ScrollText className="h-4 w-4" />,
 	},
-	{
-		name: 'Invoices',
-		link: '/invoices',
-		svg: <FileText className="h-4 w-4" />,
-	},
-	{
-		name: 'New Invoice',
-		link: '/new-invoice',
-		svg: <FilePlus className="h-4 w-4" />,
-	},
+	// {
+	// 	name: 'Invoices',
+	// 	link: '/invoices',
+	// 	svg: <FileText className="h-4 w-4" />,
+	// },
+	// {
+	// 	name: 'New Invoice',
+	// 	link: '/new-invoice',
+	// 	svg: <FilePlus className="h-4 w-4" />,
+	// },
 	// {
 	// 	name: 'Payment',
 	// 	link: '/payment',

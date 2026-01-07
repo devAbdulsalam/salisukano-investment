@@ -75,6 +75,10 @@ export const getMonthlyCredit = async (req, res) => {
 		const { id } = req.params;
 		console.log('params', id);
 
+		if (!mongoose.Types.ObjectId.isValid(id)) {
+			return res.status(400).json({ error: 'Invalid creditor ID' });
+		}
+
 		// Find the creditor by ID
 		const creditor = await Creditor.findById({ _id: id });
 		if (!creditor) {
@@ -83,7 +87,109 @@ export const getMonthlyCredit = async (req, res) => {
 		const monthlyData = await CreditMonth.find({ creditorId: id }).sort({
 			month: 1,
 		});
-		res.status(200).json({ creditor, monthlyData });
+
+		const companyData = await Credit.aggregate([
+			{
+				$match: {
+					creditorId: new mongoose.Types.ObjectId(id),
+				},
+			},
+
+			// Group unique company + month
+			{
+				$group: {
+					_id: {
+						companyId: '$companyId',
+						monthId: '$monthId',
+					},
+					total: { $sum: '$total' },
+					credit: { $sum: '$credit' },
+					debit: { $sum: '$debit' },
+					balance: { $last: '$balance' },
+					lastTransactionDate: { $max: '$date' },
+				},
+			},
+
+			// Populate company (allow null)
+			{
+				$lookup: {
+					from: 'customers',
+					localField: '_id.companyId',
+					foreignField: '_id',
+					as: 'company',
+				},
+			},
+			{
+				$unwind: {
+					path: '$company',
+					preserveNullAndEmptyArrays: true,
+				},
+			},
+
+			// Populate month (allow null)
+			{
+				$lookup: {
+					from: 'creditmonths',
+					localField: '_id.monthId',
+					foreignField: '_id',
+					as: 'month',
+				},
+			},
+			{
+				$unwind: {
+					path: '$month',
+					preserveNullAndEmptyArrays: true,
+				},
+			},
+
+			// Clean output
+			{
+				$project: {
+					_id: 0,
+					company: {
+						$cond: [
+							{ $ifNull: ['$company', false] },
+							{
+								_id: '$company._id',
+								name: '$company.name',
+								phone: '$company.phone',
+							},
+							null,
+						],
+					},
+					month: {
+						$cond: [
+							{ $ifNull: ['$month', false] },
+							{
+								_id: '$month._id',
+								name: '$month.name',
+								month: '$month.month',
+							},
+							null,
+						],
+					},
+					total: 1,
+					credit: 1,
+					debit: 1,
+					balance: 1,
+					lastTransactionDate: 1,
+				},
+			},
+
+			{
+				$sort: {
+					'company.name': 1,
+					'month.name': 1,
+				},
+			},
+		]);
+
+		res.status(200).json({
+			creditor,
+			companyData,
+			totalData: companyData.length,
+			monthlyData,
+		});
 	} catch (error) {
 		console.error('Error fetching monthly credits:', error);
 		res.status(500).json({ message: 'Internal Server Error' });
@@ -143,11 +249,54 @@ export const getMonthlyCredits = async (req, res) => {
 		const creditInvoices = await CreditInvoice.find({ monthId })
 			.sort({ date: 1 })
 			.populate('credits');
-		res.status(200).json({ creditor, creditMonth, creditInvoices, credits });
+		const totalCompaniesSupplied = await Credit.distinct('companyId', {
+			creditorId: id,
+			companyId: { $ne: null },
+		}).then((ids) => ids.length);
+
+		res.status(200).json({
+			creditor,
+			creditMonth,
+			creditInvoices,
+			credits,
+			totalCompaniesSupplied: totalCompaniesSupplied[0]?.total || 0,
+		});
 	} catch (error) {
 		res.status(404).json({ message: error.message });
 	}
 };
+
+export const getCompanyMonthlyCredits = async (req, res) => {
+	try {
+		const { id, monthId, companyId } = req.params;
+		const creditor = await Creditor.findById({ _id: id });
+		if (!creditor) {
+			return res.status(404).json({ error: 'Creditor not found' });
+		}
+		const creditMonth = await CreditMonth.findById({ _id: monthId });
+		if (!creditMonth) {
+			return res.status(404).json({ error: 'credit Month not found' });
+		}
+		const credits = await Credit.find({ monthId, companyId }).sort({ date: 1 });
+		const creditInvoices = await CreditInvoice.find({ monthId, companyId })
+			.sort({ date: 1 })
+			.populate('credits');
+		const totalCompaniesSupplied = await Credit.distinct('companyId', {
+			companyId: { $ne: null },
+		}).then((ids) => ids.length);
+
+		res.status(200).json({
+			creditor,
+			creditMonth,
+			creditInvoices,
+			credits,
+			totalCompaniesSupplied: totalCompaniesSupplied[0]?.total || 0,
+		});
+	} catch (error) {
+		res.status(404).json({ message: error.message });
+	}
+};
+
 export const getCredit = async (req, res) => {
 	try {
 		const { id } = req.params;
@@ -273,6 +422,7 @@ export const newCredit = async (req, res) => {
 			vehicleNumber,
 			description,
 			deposits = [],
+			companyId,
 		} = req.body;
 
 		// Basic Validation
@@ -367,6 +517,7 @@ export const newCredit = async (req, res) => {
 					quantity: roundedQuantity,
 					vehicleNumber,
 					balance: transactionMonth.balance,
+					companyId,
 				},
 			],
 			{ session }
@@ -632,7 +783,7 @@ export const createDeposit = async (req, res) => {
 				invoice.monthId
 			).session(session);
 
-			const newbal = Number(transactionMonth.balance) - Number(amount)
+			const newbal = Number(transactionMonth.balance) - Number(amount);
 			// Create a new deposit transaction
 			console.log('newbal', newbal);
 			const credit = await Credit.create(

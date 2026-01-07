@@ -333,7 +333,7 @@ export const fetchCreditor = async (prop) => {
 				Authorization: `Bearer ${token}`,
 			},
 		};
-		const { data } = await axios.get(`${apiUrl}/creditors/${id}/month`, config);
+		const { data } = await axios.get(`${apiUrl}/creditors/${id}`, config);
 		return data;
 	} catch (error) {
 		console.log(error.message);
@@ -348,7 +348,26 @@ export const fetchCreditorMonthlyCredit = async (prop) => {
 				Authorization: `Bearer ${token}`,
 			},
 		};
-		const { data } = await axios.get(`${apiUrl}/creditors/${id}/month`, config);
+		const { data } = await axios.get(`${apiUrl}/creditors/${id}`, config);
+		return data;
+	} catch (error) {
+		console.log(error.message);
+		return error;
+	}
+};
+
+export const fetchCompanyMonthlyCredits = async (prop) => {
+	const { token, id, companyId, month } = prop;
+	try {
+		const config = {
+			headers: {
+				Authorization: `Bearer ${token}`,
+			},
+		};
+		const { data } = await axios.get(
+			`${apiUrl}/creditors/${id}/month/${month}/company/${companyId}`,
+			config
+		);
 		return data;
 	} catch (error) {
 		console.log(error.message);

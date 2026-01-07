@@ -2,7 +2,7 @@ import { Routes, Route } from 'react-router-dom';
 import ProtectedRoutes from './hooks/ProtectedRoutes';
 import NotFound from './NotFound';
 import Login from './pages/Login';
-import Index from './pages/Index';
+// import Index from './pages/Index';
 import ForgotPassword from './pages/ForgotPassword';
 import DashboardLayout from './layouts/DashboardLayout';
 import Transactions from './pages/Transactions';
@@ -37,6 +37,7 @@ import EditCredit from './pages/EditCredit';
 import Invoices from './pages/Invoices';
 import NewInvoice from './pages/NewInvoice';
 import EditInvoice from './pages/EditInvoice';
+import CompanyCredits from './pages/CompanyCredits';
 // import Receiptt from './pages/Receipt';
 function App() {
 	const [loading, setLoading] = useState(true);
@@ -70,7 +71,7 @@ function App() {
 							<Route
 								path="/companies/supply/:customerId"
 								element={<CustomerAddSupply />}
-							/>  
+							/>
 							<Route path="/companies/:id" element={<Accounts />} />
 							{/* <Route path="/accounts" element={< />} /> */}
 							<Route path="/accounts/:id" element={<AccountDetail />} />
@@ -93,8 +94,12 @@ function App() {
 							<Route path="/creditors" element={<Creditors />} />
 							<Route path="/creditors/:id" element={<Creditor />} />
 							<Route
-								path="/creditors/:id/:months/:month"
+								path="/creditors/:id/months/:month"
 								element={<MonthlyCredits />}
+							/>
+							<Route
+								path="/creditors/:id/months/:month/:companyId"
+								element={<CompanyCredits />}
 							/>
 							<Route path="/creditors/:id/new-credit" element={<NewCredit />} />
 							<Route

@@ -31,7 +31,7 @@ const Creditor = () => {
 		if (data) {
 			// setBusiness(data);
 			// setTableDate(() => );
-			console.log('Business Creditor', data);
+			console.log('Business companyData Creditors', data?.companyData);
 			// navigate('/');
 		}
 		if (error) {
@@ -44,6 +44,14 @@ const Creditor = () => {
 	const handleExport = () => {
 		console.log('export');
 	};
+	const formatMonth = (month) => {
+if (!month) return '';
+// If month is a string, convert to Date
+const date = typeof month === 'string' ? new Date(month) : month;
+// Check if date is valid
+if (isNaN(date.getTime())) return '';
+return date.toLocaleDateString();
+}
 
 	return (
 		<>
@@ -127,6 +135,55 @@ const Creditor = () => {
 							alt="graph"
 						/>
 					</div>
+				</div>
+				<div className=" mb-4 flex flex-col md:flex-row w-full gap-2 ">
+					{data?.companyData?.length > 0 &&
+						data?.companyData?.map((item, index) => (
+							<Link
+								to={
+									item?.company?._id
+										? `./months/${item?.month._id}/${item?.company?._id}`
+										: `./months/${item?.month._id}`
+								}
+								key={index}
+								className="p-5 mb-4  bg-white flex flex-col justify-end md:max-w-md w-full rounded-xl gap-2 border border-[#E7E7E7] hover:shadow-xl cursor-pointer"
+							>
+								{item?.company ? (
+									<>
+										<div className={`flex justify-between `}>
+											<span className="text-[#637381] text-sm font-medium">
+												Company:
+											</span>
+											<div className="flex gap-1 items-center">
+												<span className="">{item?.company?.name}</span>
+											</div>
+										</div>
+										<div className={`flex justify-between `}>
+											<span className="text-[#637381] text-sm font-medium">
+												Phone:
+											</span>
+											<div className="flex gap-1 items-center">
+												<span className="">{item?.company?.phone}</span>
+											</div>
+										</div>
+									</>
+								) : (
+									<span className="text-red-500">No Company Linked</span>
+								)}
+								<div
+									className={`flex gap-4 justify-between flex-nowrap items-center`}
+								>
+									<span className="text-lg font-semibold whitespace-nowrap">
+										₦ {item.balance?.toLocaleString() || 0}
+									</span>
+								</div>
+								<div className="flex gap-4 justify-between flex-nowrap items-center">
+									<span className="text-lg whitespace-nowrap">
+										Month: {formatMonth(item?.month?.month)}
+									</span>
+								</div>
+							</Link>
+						))}
 				</div>
 				<CreditorTable
 					tableData={data?.monthlyData || []}

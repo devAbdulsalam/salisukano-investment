@@ -36,6 +36,10 @@ const CreditSchema = new mongoose.Schema(
 			ref: 'Creditor',
 			required: true,
 		},
+		companyId: {
+			type: Schema.Types.ObjectId,
+			ref: 'Customer',
+		},
 		monthId: {
 			type: Schema.Types.ObjectId,
 			ref: 'CreditMonth',
@@ -96,7 +100,7 @@ CreditSchema.pre('save', function (next) {
 	if (!this.materials || this.materials.length === 0) {
 		this.total = this.debit || 0;
 		return next();
-	}
+ 	}
 
 	// Ensure each material has cost before calculating
 	this.total = this.materials.reduce((sum, material) => {
