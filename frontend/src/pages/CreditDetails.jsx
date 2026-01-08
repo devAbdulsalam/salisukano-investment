@@ -63,7 +63,7 @@ const TransactionDetail = ({ openSideBar }) => {
 	const receiptData = {
 		shopName: 'Salisu Kano International Limited',
 		shopUrl: 'salisukano.com',
-		email: 'salisuKano@gmail.com',
+		email: 'salisukano2016@gmail.com',
 		address: `Block P5, No.: 1-3 Dalar Gyada Market. /n/ Opp. Hajj Camp. Traffic 🚥 By IBB Way, /n/ Kano State - Nigeria.`,
 		phone: '+2348067237273',
 		whatsapp: '+2348023239018',

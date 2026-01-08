@@ -44,14 +44,16 @@ const Creditor = () => {
 	const handleExport = () => {
 		console.log('export');
 	};
-	const formatMonth = (month) => {
-if (!month) return '';
-// If month is a string, convert to Date
-const date = typeof month === 'string' ? new Date(month) : month;
-// Check if date is valid
-if (isNaN(date.getTime())) return '';
-return date.toLocaleDateString();
-}
+	const formatMonth = (date) => {
+		if (!date) return '';
+		const d = typeof date === 'string' ? new Date(date) : date;
+		if (isNaN(d.getTime())) return '';
+		return d.toLocaleDateString('en-NG', {
+			day: 'numeric',
+			month: 'short',
+			year: 'numeric',
+		});
+	};
 
 	return (
 		<>
@@ -136,7 +138,7 @@ return date.toLocaleDateString();
 						/>
 					</div>
 				</div>
-				<div className=" mb-4 flex flex-col md:flex-row w-full gap-2 ">
+				<div className=" mb-4 flex flex-col md:flex-row w-full md:gap-2 ">
 					{data?.companyData?.length > 0 &&
 						data?.companyData?.map((item, index) => (
 							<Link
@@ -150,7 +152,7 @@ return date.toLocaleDateString();
 							>
 								{item?.company ? (
 									<>
-										<div className={`flex justify-between `}>
+										<div className={`md:flex justify-between `}>
 											<span className="text-[#637381] text-sm font-medium">
 												Company:
 											</span>
@@ -158,7 +160,7 @@ return date.toLocaleDateString();
 												<span className="">{item?.company?.name}</span>
 											</div>
 										</div>
-										<div className={`flex justify-between `}>
+										<div className={`md:flex justify-between `}>
 											<span className="text-[#637381] text-sm font-medium">
 												Phone:
 											</span>

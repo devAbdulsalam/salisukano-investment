@@ -3,6 +3,7 @@ import Creditor from '../models/Creditor.js';
 import Credit from '../models/Credit.js';
 import CreditMonth from '../models/CreditMonth.js';
 import CreditInvoice from '../models/CreditInvoice.js';
+import Customer from '../models/Customer.js';
 import fs from 'fs';
 import { uploader } from '../utils/cloudinary.js';
 // Update creditor balance
@@ -233,6 +234,26 @@ export const getMonthlyCredits = async (req, res) => {
 	}
 };
 
+const getTotalSupplied = async (monthId, companyId) => {
+	try {
+		// Use lean() for plain JavaScript objects (faster)
+		const credits = await Credit.find({
+			monthId,
+			companyId,
+		})
+			.select('total')
+			.lean(); // Returns plain JS objects instead of Mongoose documents
+
+		const total = credits.reduce((sum, credit) => {
+			return sum + (credit.total || 0);
+		}, 0);
+
+		return total;
+	} catch (error) {
+		console.error('Error:', error);
+		throw error;
+	}
+};
 export const getCompanyMonthlyCredits = async (req, res) => {
 	try {
 		const { id, monthId, companyId } = req.params;
@@ -244,19 +265,22 @@ export const getCompanyMonthlyCredits = async (req, res) => {
 		if (!creditMonth) {
 			return res.status(404).json({ error: 'credit Month not found' });
 		}
+		const company = await Customer.findById({ _id: companyId });
 		const credits = await Credit.find({ monthId, companyId }).sort({ date: 1 });
 		const creditInvoices = await CreditInvoice.find({ monthId, companyId })
 			.sort({ date: 1 })
 			.populate('credits');
-		const totalCompaniesSupplied = await Credit.distinct('companyId', {
-			companyId: { $ne: null },
-		}).then((ids) => ids.length);
+		const totalCompaniesSupplied = await Credit.countDocuments({ companyId });
+		const totalSupplied = await getTotalSupplied(monthId, companyId);
 
 		res.status(200).json({
 			creditor,
 			creditMonth,
 			creditInvoices,
+			company,
 			credits,
+			totalSupplied,
+			// totalSupplied: totalSupplied[0]?.total || 0,
 			totalCompaniesSupplied: totalCompaniesSupplied[0]?.total || 0,
 		});
 	} catch (error) {

@@ -128,18 +128,14 @@ const Creditor = () => {
 					<div className="p-5 mb-4  bg-white flex flex-col md:max-w-md w-full rounded-xl gap-2 border border-[#E7E7E7] hover:shadow-xl cursor-pointer">
 						<div className={`flex justify-between `}>
 							<span className="text-[#637381] text-sm font-medium">
-								Company
+								{data?.company?.name}
 							</span>
-							<div className="flex gap-1 items-center">
-								<span className="">100%</span>
-								<img src="/assets/admin/dashboard/uparrow.svg" alt="graph" />
-							</div>
 						</div>
 						<div
 							className={`flex gap-4 justify-between flex-nowrap items-center`}
 						>
 							<span className="text-xl font-bold whitespace-nowrap">
-								₦ {data?.totalCompaniesSupplied || 0}
+								₦ {data?.totalSupplied || 0}
 							</span>
 						</div>
 					</div>
