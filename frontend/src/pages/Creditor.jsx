@@ -142,8 +142,8 @@ return date.toLocaleDateString();
 							<Link
 								to={
 									item?.company?._id
-										? `./months/${item?.month._id}/${item?.company?._id}`
-										: `./months/${item?.month._id}`
+										? `./months/${item?.month?._id}/${item?.company?._id}`
+										: `./months/${item?.month?._id}`
 								}
 								key={index}
 								className="p-5 mb-4  bg-white flex flex-col justify-end md:max-w-md w-full rounded-xl gap-2 border border-[#E7E7E7] hover:shadow-xl cursor-pointer"

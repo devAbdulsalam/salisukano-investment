@@ -70,6 +70,7 @@ export const editCreditor = async (req, res) => {
 		res.status(404).json({ message: error.message });
 	}
 };
+
 export const getMonthlyCredit = async (req, res) => {
 	try {
 		const { id } = req.params;
@@ -143,6 +144,7 @@ export const getMonthlyCredit = async (req, res) => {
 			},
 
 			// Clean output
+
 			{
 				$project: {
 					_id: 0,
@@ -168,6 +170,8 @@ export const getMonthlyCredit = async (req, res) => {
 							null,
 						],
 					},
+
+					//
 					total: 1,
 					credit: 1,
 					debit: 1,
@@ -176,6 +180,7 @@ export const getMonthlyCredit = async (req, res) => {
 				},
 			},
 
+			// return unique _id: '$month._id',
 			{
 				$sort: {
 					'company.name': 1,
@@ -195,44 +200,6 @@ export const getMonthlyCredit = async (req, res) => {
 		res.status(500).json({ message: 'Internal Server Error' });
 	}
 };
-
-// export const getMonthlyCredits = async (req, res) => {
-// 	try {
-// 		const { id, month } = req.params;
-
-// 		console.log(month);
-
-// 		// Validate month input
-// 		if (!month || isNaN(Date.parse(month))) {
-// 			return res.status(400).json({
-// 				error: 'Please provide a valid month in YYYY-MM format.',
-// 			});
-// 		}
-
-// 		// Find the creditor by ID
-// 		const creditor = await Creditor.findById(id);
-// 		if (!creditor) {
-// 			return res.status(404).json({ error: 'Creditor not found' });
-// 		}
-
-// 		// Parse month into a date range (start and end of the month)
-// 		const startOfMonth = new Date(month);
-// 		const endOfMonth = new Date(startOfMonth);
-// 		endOfMonth.setMonth(endOfMonth.getMonth() + 1);
-
-// 		// Fetch credits for the creditor within the month range and sort by date
-// 		const credits = await Credit.find({
-// 			creditorId: id,
-// 			date: { $gte: startOfMonth, $lt: endOfMonth },
-// 		}).sort({ date: 1 });
-
-// 		// Return the creditor and their credits for the month
-// 		res.status(200).json({ creditor, credits });
-// 	} catch (error) {
-// 		console.error('Error fetching monthly credits:', error);
-// 		res.status(500).json({ message: 'Internal Server Error' });
-// 	}
-// };
 
 export const getMonthlyCredits = async (req, res) => {
 	try {
@@ -540,6 +507,7 @@ export const newCredit = async (req, res) => {
 				return {
 					_id,
 					creditorId,
+					companyId,
 					invoiceId: invoice._id,
 					monthId: transactionMonth._id,
 					date,
