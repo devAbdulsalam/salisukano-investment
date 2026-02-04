@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
-const fetchSite = async () => {
+export const fetchSite = async () => {
 	try {
 		const { data } = await axios.get(`${apiUrl}/general`);
 		return data;
@@ -11,7 +11,7 @@ const fetchSite = async () => {
 		return error;
 	}
 };
-const fetchDashboard = async (user) => {
+export const fetchDashboard = async (user) => {
 	try {
 		const config = {
 			headers: {
@@ -25,7 +25,21 @@ const fetchDashboard = async (user) => {
 		return error;
 	}
 };
-const fetchBusiness = async (user) => {
+export const fetchUsers = async (user) => {
+	try {
+		const config = {
+			headers: {
+				Authorization: `Bearer ${user?.token}`,
+			},
+		};
+		const { data } = await axios.get(`${apiUrl}/users`, config);
+		return data;
+	} catch (error) {
+		console.log(error.message);
+		return error;
+	}
+};
+export const fetchBusiness = async (user) => {
 	try {
 		const config = {
 			headers: {
@@ -39,7 +53,7 @@ const fetchBusiness = async (user) => {
 		return error;
 	}
 };
-const fetchBusinessById = async (prop) => {
+export const fetchBusinessById = async (prop) => {
 	const { token, id } = prop;
 	try {
 		const config = {
@@ -54,7 +68,7 @@ const fetchBusinessById = async (prop) => {
 		return error;
 	}
 };
-const fetchSummary = async (prop) => {
+export const fetchSummary = async (prop) => {
 	const { token, parent } = prop;
 	try {
 		const config = {
@@ -69,7 +83,7 @@ const fetchSummary = async (prop) => {
 		return error;
 	}
 };
-const fetchDetailSummary = async (prop) => {
+export const fetchDetailSummary = async (prop) => {
 	const { token, id, parent } = prop;
 	try {
 		const config = {
@@ -87,7 +101,7 @@ const fetchDetailSummary = async (prop) => {
 		return error;
 	}
 };
-const fetchAssets = async (user) => {
+export const fetchAssets = async (user) => {
 	try {
 		const config = {
 			headers: {
@@ -101,7 +115,7 @@ const fetchAssets = async (user) => {
 		return error;
 	}
 };
-const fetchAsset = async (prop) => {
+export const fetchAsset = async (prop) => {
 	const { token, id } = prop;
 	try {
 		const config = {
@@ -116,7 +130,7 @@ const fetchAsset = async (prop) => {
 		return error;
 	}
 };
-const fetchSupply = async (prop) => {
+export const fetchSupply = async (prop) => {
 	const { token, id } = prop;
 	try {
 		const config = {
@@ -174,7 +188,7 @@ export const fetchAccount = async (props) => {
 		return error;
 	}
 };
-const fetchProducts = async (user) => {
+export const fetchProducts = async (user) => {
 	try {
 		const config = {
 			headers: {
@@ -188,7 +202,7 @@ const fetchProducts = async (user) => {
 		return error;
 	}
 };
-const fetchProduct = async (prop) => {
+export const fetchProduct = async (prop) => {
 	try {
 		const config = {
 			headers: {
@@ -202,7 +216,7 @@ const fetchProduct = async (prop) => {
 		return error;
 	}
 };
-const fetchOrders = async (user) => {
+export const fetchOrders = async (user) => {
 	// console.log(user);
 	try {
 		const config = {
@@ -217,7 +231,7 @@ const fetchOrders = async (user) => {
 		return error;
 	}
 };
-const fetchOrder = async (prop) => {
+export const fetchOrder = async (prop) => {
 	const { token, id } = prop;
 	console.log(prop);
 	try {
@@ -234,7 +248,7 @@ const fetchOrder = async (prop) => {
 	}
 };
 
-const fetchCoupons = async (user) => {
+export const fetchCoupons = async (user) => {
 	try {
 		const config = {
 			headers: {
@@ -248,7 +262,7 @@ const fetchCoupons = async (user) => {
 		return error;
 	}
 };
-const fetchCoupon = async (prop) => {
+export const fetchCoupon = async (prop) => {
 	const { token, id } = prop;
 	// console.log(prop);
 	try {
@@ -264,7 +278,7 @@ const fetchCoupon = async (prop) => {
 		return error;
 	}
 };
-const fetchCustomers = async (user) => {
+export const fetchCustomers = async (user) => {
 	try {
 		const config = {
 			headers: {
@@ -406,7 +420,7 @@ export const fetchCreditors = async (user) => {
 		return error;
 	}
 };
-const fetchCustomer = async (prop) => {
+export const fetchCustomer = async (prop) => {
 	const { token, id } = prop;
 	try {
 		const config = {
@@ -421,7 +435,7 @@ const fetchCustomer = async (prop) => {
 		return error;
 	}
 };
-const fetchCustomerReport = async (prop) => {
+export const fetchCustomerReport = async (prop) => {
 	const { user } = prop;
 	try {
 		const config = {
@@ -439,7 +453,7 @@ const fetchCustomerReport = async (prop) => {
 		return error;
 	}
 };
-const fetchCustomerPayments = async (prop) => {
+export const fetchCustomerPayments = async (prop) => {
 	const { user } = prop;
 	try {
 		const config = {
@@ -454,7 +468,7 @@ const fetchCustomerPayments = async (prop) => {
 		return error;
 	}
 };
-const fetchProductCategory = async (prop) => {
+export const fetchProductCategory = async (prop) => {
 	const { user } = prop;
 	try {
 		const config = {
@@ -469,7 +483,7 @@ const fetchProductCategory = async (prop) => {
 		return error;
 	}
 };
-const fetchProductCategoryDetail = async (prop) => {
+export const fetchProductCategoryDetail = async (prop) => {
 	const { token, id } = prop;
 	try {
 		const config = {
@@ -488,7 +502,7 @@ const fetchProductCategoryDetail = async (prop) => {
 	}
 };
 
-const fetchProductCategoryAndSubCategory = async (prop) => {
+export const fetchProductCategoryAndSubCategory = async (prop) => {
 	const { user } = prop;
 	try {
 		const config = {
@@ -506,7 +520,7 @@ const fetchProductCategoryAndSubCategory = async (prop) => {
 		return error;
 	}
 };
-const fetchTransactions = async (prop) => {
+export const fetchTransactions = async (prop) => {
 	try {
 		const config = {
 			headers: {
@@ -520,7 +534,7 @@ const fetchTransactions = async (prop) => {
 		return error;
 	}
 };
-const fetchTransaction = async (prop) => {
+export const fetchTransaction = async (prop) => {
 	try {
 		const config = {
 			headers: {
@@ -601,7 +615,7 @@ export const fetchPayments = async (prop) => {
 		return error;
 	}
 };
-const fetchTransactingCustomers = async (prop) => {
+export const fetchTransactingCustomers = async (prop) => {
 	try {
 		const config = {
 			headers: {
@@ -618,30 +632,4 @@ const fetchTransactingCustomers = async (prop) => {
 		return error;
 	}
 };
-export {
-	fetchSite,
-	fetchDashboard,
-	fetchBusiness,
-	fetchBusinessById,
-	fetchSummary,
-	fetchDetailSummary,
-	fetchAssets,
-	fetchAsset,
-	fetchSupply,
-	fetchProducts,
-	fetchProduct,
-	fetchCoupons,
-	fetchCoupon,
-	fetchOrder,
-	fetchOrders,
-	fetchCustomers,
-	fetchCustomer,
-	fetchTransactingCustomers,
-	fetchCustomerPayments,
-	fetchCustomerReport,
-	fetchProductCategory,
-	fetchProductCategoryDetail,
-	fetchProductCategoryAndSubCategory,
-	fetchTransactions,
-	fetchTransaction,
-};
+ 

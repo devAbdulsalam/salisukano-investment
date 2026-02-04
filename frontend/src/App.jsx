@@ -37,6 +37,7 @@ import EditCredit from './pages/EditCredit';
 import Invoices from './pages/Invoices';
 import NewInvoice from './pages/NewInvoice';
 import EditInvoice from './pages/EditInvoice';
+import Users from './pages/Users';
 import CompanyCredits from './pages/CompanyCredits';
 // import Receiptt from './pages/Receipt';
 function App() {
@@ -111,6 +112,7 @@ function App() {
 								element={<EditCredit />}
 							/>
 							<Route path="/settings" element={<Settings />} />
+							<Route path="/users" element={<Users />} />
 						</Route>
 					</Route>
 				</Route>

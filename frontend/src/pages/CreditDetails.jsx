@@ -299,7 +299,7 @@ const TransactionDetail = ({ openSideBar }) => {
 						</MenuItems>
 					</Menu>
 				</div>
-				<div className="w-full grid sm:grid-cols-2 lg:grid-cols-4 md:gap-3 lg:gap-5 col-span-12">
+				<div className="w-full grid sm:grid-cols-2 lg:grid-cols-4 md:gap-3 gap-2 lg:gap-5 col-span-12">
 					<div className="p-5  bg-white flex flex-col md:max-w-xs 2xl:max-w-none w-full rounded-xl gap-2 border border-[#E7E7E7] hover:shadow-xl cursor-pointer">
 						<div
 							className={`flex justify-between ${

@@ -11,6 +11,7 @@ import {
 	ShoppingBag,
 	FilePlus,
 	ScrollText,
+	Users
 } from 'lucide-react';
 // import Search from '../components/Search';
 const navigationList = [
@@ -18,21 +19,31 @@ const navigationList = [
 		name: 'Dashboard',
 		link: '/dashboard',
 		svg: <Home className="h-4 w-4" />,
+		roles: ['admin', 'finance', 'secretary'],
 	},
 	{
 		name: 'Companies',
 		link: '/companies',
 		svg: <Building2 className="h-4 w-4" />,
+		roles: ['admin', 'secretary'],
 	},
 	{
 		name: 'Debtors',
 		link: '/debtors',
 		svg: <ShoppingBag className="h-4 w-4" />,
+		roles: ['admin', 'finance'],
 	},
 	{
 		name: 'Creditors',
 		link: '/creditors',
 		svg: <ScrollText className="h-4 w-4" />,
+		roles: ['admin', 'finance'],
+	},
+	{
+		name: 'Users',
+		link: '/users',
+		svg: <Users className="h-4 w-4" />,
+		roles: ['admin'],
 	},
 	// {
 	// 	name: 'Invoices',
@@ -106,6 +117,9 @@ const footerNavigation = [
 	},
 ];
 
+
+
+
 const Dashbord = () => {
 	const [showMenu, setShowMenu] = useState(false);
 	const [openSideBar, setOpenSieBar] = useState(true);
@@ -131,6 +145,10 @@ const Dashbord = () => {
 		setShowLogoutModal(true);
 		// handleSideBar();
 	};
+
+	const navItems = navigationList.filter(
+		(item) => !item.roles || item.roles.includes(user?.role),
+	);
 	return (
 		<div className="min-h-[100vh] bg-[#F6F8FA] w-full nourd-text admin-dashboard">
 			<div
@@ -198,7 +216,7 @@ const Dashbord = () => {
 					</div>
 					<div className="flex flex-col gap-2.5 sm:justify-between h-full mt-10 sm:mt-0">
 						<div className="md:max-w-[234px]">
-							{navigationList?.map((data, index) => (
+							{navItems?.map((data, index) => (
 								<Link
 									to={data?.link}
 									key={index}
@@ -225,28 +243,32 @@ const Dashbord = () => {
 						</div>
 						<div className="flex flex-col gap-5 ">
 							<div className="max-w-[234px]">
-								{footerNavigation?.map((data, index) => (
-									<Link
-										to={data?.link}
-										className={`flex gap-2.5 items-center cursor-pointer py-2 rounded-md hover:bg-[#4F80E1]/[12%] group ${
-											openSideBar
-												? ' pl-5 justify-start flex-row'
-												: 'pl-5 sm:pl-0 justify-start sm:justify-center sm:flex-col'
-										}`}
-										key={index}
-									>
-										{data?.svg}
-										<span
-											className={`font-medium text-base group-hover:text-[#4F80E1] text-[#637381] ${
-												openSideBar
-													? ' block'
-													: 'block sm:hidden group-hover:block sm:group-hover:text-xs'
-											}`}
-										>
-											{data?.name}
-										</span>
-									</Link>
-								))}
+								{user?.role === 'admin' && (
+									<>
+										{footerNavigation?.map((data, index) => (
+											<Link
+												to={data?.link}
+												className={`flex gap-2.5 items-center cursor-pointer py-2 rounded-md hover:bg-[#4F80E1]/[12%] group ${
+													openSideBar
+														? ' pl-5 justify-start flex-row'
+														: 'pl-5 sm:pl-0 justify-start sm:justify-center sm:flex-col'
+												}`}
+												key={index}
+											>
+												{data?.svg}
+												<span
+													className={`font-medium text-base group-hover:text-[#4F80E1] text-[#637381] ${
+														openSideBar
+															? ' block'
+															: 'block sm:hidden group-hover:block sm:group-hover:text-xs'
+													}`}
+												>
+													{data?.name}
+												</span>
+											</Link>
+										))}
+									</>
+								)}
 								<button
 									onClick={openLogoutModal}
 									className={`w-full flex gap-2.5 items-center cursor-pointer py-2 rounded-md hover:text-white bg-[#FB4949]/[8%] hover:bg-[#FB4949]/[25%] group ${

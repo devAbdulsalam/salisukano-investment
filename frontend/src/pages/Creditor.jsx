@@ -138,7 +138,7 @@ const Creditor = () => {
 						/>
 					</div>
 				</div>
-				<div className=" mb-4 flex flex-col md:flex-row w-full md:gap-2 ">
+				<div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4 w-full md:gap-2 ">
 					{data?.companyData?.length > 0 &&
 						data?.companyData?.map((item, index) => (
 							<Link

@@ -34,7 +34,7 @@ const EditCredit = () => {
 
 	useEffect(() => {
 		if (!invoiceData) {
-			navigate('/creditors')
+			navigate('/creditors');
 		}
 		// If editing, pre-fill form fields
 		if (invoiceData?.invoice?.credits) {
@@ -48,7 +48,7 @@ const EditCredit = () => {
 			setMaterials(
 				materialData?.length
 					? materialData
-					: [{ product: 'Mix', qty: '', rate: '', cost: 0 }]
+					: [{ product: 'Mix', qty: '', rate: '', cost: 0 }],
 			);
 			setDate(date?.substring(0, 10) || '');
 			setDescription(description || '');
@@ -69,13 +69,13 @@ const EditCredit = () => {
 	const total = useMemo(
 		() =>
 			Math.ceil(
-				materials.reduce((acc, material) => acc + (+material.cost || 0), 0)
+				materials.reduce((acc, material) => acc + (+material.cost || 0), 0),
 			),
-		[materials]
+		[materials],
 	);
 	const amount = useMemo(
 		() => Math.ceil(deposits.reduce((acc, d) => acc + +(d.amount || 0), 0)),
-		[deposits]
+		[deposits],
 	);
 	const grandTotal = useMemo(() => total - amount, [total, amount]);
 
@@ -117,14 +117,14 @@ const EditCredit = () => {
 	};
 	const removeMaterial = (index) =>
 		setMaterials((prev) =>
-			prev.length > 1 ? prev.filter((_, i) => i !== index) : prev
+			prev.length > 1 ? prev.filter((_, i) => i !== index) : prev,
 		);
 	const addDeposit = () => {
 		setDeposits((prev) => [...prev, { description: '', amount: 0 }]);
 	};
 	const removeDeposit = (idx) =>
 		setDeposits((prev) =>
-			prev.length > 1 ? prev.filter((_, i) => i !== idx) : prev
+			prev.length > 1 ? prev.filter((_, i) => i !== idx) : prev,
 		);
 
 	// ------- SUBMIT -------
@@ -223,6 +223,7 @@ const EditCredit = () => {
 					if (res.data) {
 						console.log('Credit updated successfully:', res.data);
 						toast.success(`Credit updated successfully`);
+						queryClient.invalidateQueries({ queryKey: ['creditors'] });
 						queryClient.invalidateQueries({ queryKey: ['creditors', id] });
 						navigate(`/creditors`);
 					}
@@ -418,7 +419,7 @@ const EditCredit = () => {
 														handleDepositChange(
 															idx,
 															'description',
-															e.target.value
+															e.target.value,
 														)
 													}
 												/>
@@ -513,7 +514,11 @@ const EditCredit = () => {
 								className="bg-blue-500 hover:bg-blue-700 text-white font-semibold h-10 py-1 w-full rounded-md"
 								onClick={handleSubmit}
 							>
-								<span>{creditId ? 'Update' : 'Add'} Credit</span>
+								{loading ? (
+									<span>Loading...</span>
+								) : (
+									<span>{creditId ? 'Update' : 'Add'} Credit</span>
+								)}
 							</button>
 						</div>
 					</div>

@@ -69,13 +69,13 @@ const NewCredit = () => {
 
 	const total = useMemo(() => {
 		return Math.ceil(
-			materials.reduce((acc, material) => acc + material.cost, 0)
+			materials.reduce((acc, material) => acc + material.cost, 0),
 		);
 	}, [materials]);
 
 	const amount = useMemo(() => {
 		return Math.ceil(
-			deposits.reduce((acc, deposit) => acc + Math.ceil(deposit.amount), 0)
+			deposits.reduce((acc, deposit) => acc + Math.ceil(deposit.amount), 0),
 		);
 	}, [deposits]);
 	const grandTotal = useMemo(() => {
@@ -115,13 +115,13 @@ const NewCredit = () => {
 	const removeMaterial = (indexToRemove) => {
 		if (materials.length <= 1) return;
 		setMaterials((prevMaterials) =>
-			prevMaterials.filter((_, index) => index !== indexToRemove)
+			prevMaterials.filter((_, index) => index !== indexToRemove),
 		);
 	};
 	const removeDeposit = (indexToRemove) => {
 		if (deposits.length <= 0) return;
 		setDeposits((prevMaterials) =>
-			prevMaterials.filter((_, index) => index !== indexToRemove)
+			prevMaterials.filter((_, index) => index !== indexToRemove),
 		);
 	};
 
@@ -441,7 +441,7 @@ const NewCredit = () => {
 														handleDepositeChange(
 															index,
 															'description',
-															e.target.value
+															e.target.value,
 														)
 													}
 												/>
@@ -556,8 +556,14 @@ const NewCredit = () => {
 								className="bg-blue-500 hover:bg-blue-700 text-white font-semibold h-10 py-1 w-full flex items-center justify-center rounded-md transition-all duration-500 ease-in-out"
 								onClick={handleSubmit}
 							>
-								<span>Add Order</span>
-								<i className="fa-solid fa-delete text-2xl text-primary"></i>
+								{loading ? (
+									<span>Loading...</span>
+								) : (
+									<>
+										<span>Add Order</span>
+										<i className="fa-solid fa-delete text-2xl text-primary"></i>
+									</>
+								)}
 							</button>
 						</div>
 					</div>
