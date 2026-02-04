@@ -70,6 +70,8 @@ const EditModal = ({ show, setShow, setLoading, loading, customer }) => {
 				});
 		} catch (error) {
 			console.log(error);
+			const message = getError(error);
+			toast.error(message);
 			setShow(true);
 		}
 	};

@@ -35,6 +35,9 @@ const EditModal = ({ show, setShow, setLoading, loading, customer }) => {
 		if (!name) {
 			return toast.error('Name is required');
 		}
+		if (!email) {
+			return toast.error('Email is required');
+		}
 		setLoading(true);
 		setShow(false);
 		try {
@@ -67,6 +70,8 @@ const EditModal = ({ show, setShow, setLoading, loading, customer }) => {
 				});
 		} catch (error) {
 			console.log(error);
+						const message = getError(error);
+						toast.error(message);
 			setShow(true);
 		}
 	};

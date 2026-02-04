@@ -34,7 +34,7 @@ const AddModal = ({ show, setShow, setLoading, loading }) => {
 			return toast.error('Email is required');
 		}
 		if (!password || !cPassword) {
-			return toast.error('password is required');
+			return toast.error('Password is required');
 		}
 		if (cPassword !== password) {
 			return toast.error('Password must match');
@@ -60,6 +60,7 @@ const AddModal = ({ show, setShow, setLoading, loading }) => {
 					}
 					setName('');
 					setPhone('');
+					setEmail('');
 					setPassword('');
 					setCPassword('');
 					navigate('/users');
@@ -73,6 +74,8 @@ const AddModal = ({ show, setShow, setLoading, loading }) => {
 				});
 		} catch (error) {
 			console.log(error);
+			const message = getError(error);
+			toast.error(message);
 			setShow(true);
 		}
 	};
