@@ -398,7 +398,6 @@ export const getCredits = async (req, res) => {
 		res.status(404).json({ message: error.message });
 	}
 };
-
 export const newCredit = async (req, res) => {
 	const session = await mongoose.startSession();
 	session.startTransaction();
@@ -407,345 +406,703 @@ export const newCredit = async (req, res) => {
 		const creditorId = req.params.id;
 		const {
 			name,
-			monthId,
 			date,
-			materials,
-			vehicleNumber,
-			description,
+			monthId,
+			materials = [],
 			deposits = [],
+			description,
+			vehicleNumber,
 			companyId,
 		} = req.body;
 
-		// Basic Validation
-		// if (!name || !date || !Array.isArray(materials) || materials.length === 0) {
-		// 	await session.abortTransaction();
-		// 	return res.status(400).json({ message: 'Missing required fields' });
-		// }
+		if (!date || !materials.length) {
+			throw new Error('Date and materials are required');
+		}
 
-		// Calculate total & quantity
-		let total = 0,
-			quantity = 0;
+		/* ----------------------------------------
+		 * Calculate totals
+		 * --------------------------------------*/
+		let totalAmount = 0;
+		let totalQuantity = 0;
+
 		for (const m of materials) {
 			if (!m.qty || !m.rate) {
-				await session.abortTransaction();
-				return res.status(400).json({ message: 'Invalid material entry' });
+				throw new Error('Invalid material entry');
 			}
-			total += Number(m.qty) * Number(m.rate);
-			quantity += Number(m.qty);
+			totalAmount += Number(m.qty) * Number(m.rate);
+			totalQuantity += Number(m.qty);
 		}
-		const roundedTotal = Math.ceil(total);
-		const roundedQuantity = Math.ceil(quantity);
 
-		console.log('roundedTotal', roundedTotal);
+		const creditTotal = Math.ceil(totalAmount);
+		const creditQuantity = Math.ceil(totalQuantity);
 
-		// Fetch creditor
+		/* ----------------------------------------
+		 * Fetch creditor
+		 * --------------------------------------*/
 		const creditor = await Creditor.findById(creditorId).session(session);
-		if (!creditor) {
-			await session.abortTransaction();
-			return res.status(404).json({ message: 'Creditor not found' });
+		if (!creditor) throw new Error('Creditor not found');
+
+		/* ----------------------------------------
+		 * Resolve month
+		 * --------------------------------------*/
+		let creditMonth;
+
+		if (monthId) {
+			creditMonth = await CreditMonth.findById(monthId).session(session);
+			if (!creditMonth) throw new Error('Credit month not found');
+		} else {
+			const monthDate = getFirstDayOfMonth(new Date(date));
+			creditMonth = await CreditMonth.findOne({
+				creditorId,
+				month: monthDate,
+			}).session(session);
+
+			if (!creditMonth) {
+				creditMonth = (
+					await CreditMonth.create(
+						[
+							{
+								creditorId,
+								month: monthDate,
+								balance: 0,
+								quantity: 0,
+							},
+						],
+						{ session },
+					)
+				)[0];
+			}
 		}
 
-		// Find or create month
-		let transactionMonth;
-		if (monthId) {
-			transactionMonth = await CreditMonth.findById(monthId).session(session);
-			if (!transactionMonth) {
-				await session.abortTransaction();
-				return res.status(404).json({ message: 'Credit month not found' });
-			}
-		} else {
-			const firstDayOfMonth = getFirstDayOfMonth(new Date(date));
-			transactionMonth = await CreditMonth.findOne({
-				creditorId,
-				month: firstDayOfMonth,
-			}).session(session);
-			// console.log('transactionMonth', transactionMonth);
-			if (!transactionMonth) {
-				transactionMonth = await CreditMonth.create(
+		/* ----------------------------------------
+		 * Create invoice
+		 * --------------------------------------*/
+		const invoice = (
+			await CreditInvoice.create(
+				[
+					{
+						creditorId,
+						monthId: creditMonth._id,
+						date,
+						total: 0,
+						credits: [],
+					},
+				],
+				{ session },
+			)
+		)[0];
+
+		/* ----------------------------------------
+		 * Ledger processing
+		 * --------------------------------------*/
+		let runningMonthBalance = creditMonth.balance;
+		let netInvoiceTotal = 0;
+
+		/* ---- Credit transaction ---- */
+		runningMonthBalance += creditTotal;
+		netInvoiceTotal += creditTotal;
+
+		const creditTrx = (
+			await Credit.create(
+				[
+					{
+						creditorId,
+						monthId: creditMonth._id,
+						invoiceId: invoice._id,
+						name,
+						date,
+						description,
+						materials,
+						total: creditTotal,
+						credit: creditTotal,
+						quantity: creditQuantity,
+						vehicleNumber,
+						balance: runningMonthBalance,
+						companyId,
+					},
+				],
+				{ session },
+			)
+		)[0];
+
+		invoice.credits.push(creditTrx._id);
+
+		/* ---- Deposit transactions ---- */
+		for (const deposit of deposits) {
+			const amount = Number(deposit.amount);
+			if (!amount || amount <= 0) continue;
+
+			runningMonthBalance -= amount;
+			netInvoiceTotal -= amount;
+
+			const depositTrx = (
+				await Credit.create(
 					[
 						{
 							creditorId,
-							month: firstDayOfMonth,
-							balance: 0,
-							quantity: roundedQuantity,
+							monthId: creditMonth._id,
+							invoiceId: invoice._id,
+							date,
+							total: amount,
+							debit: amount,
+							description: deposit.description || 'Deposit',
+							vehicleNumber,
+							balance: runningMonthBalance,
+							remark: 'Deposit',
+							companyId,
 						},
 					],
-					{ session }
-				).then((docs) => docs[0]);
-			}
+					{ session },
+				)
+			)[0];
+
+			invoice.credits.push(depositTrx._id);
 		}
 
-		// Update month totals
-		transactionMonth.balance += Number(roundedTotal); // Add roundedTotal;
-		transactionMonth.quantity += roundedQuantity;
+		/* ----------------------------------------
+		 * Apply final balances
+		 * --------------------------------------*/
+		creditMonth.balance = runningMonthBalance;
+		creditMonth.quantity += creditQuantity;
 
-		// Create Invoice
-		const invoice = await CreditInvoice.create(
-			[
-				{
-					creditorId,
-					monthId: transactionMonth._id,
-					total: 0,
-					date,
-				},
-			],
-			{ session }
-		).then((docs) => docs[0]);
+		creditor.balance += netInvoiceTotal;
 
-		// Create credit record
-		const credit = await Credit.create(
-			[
-				{
-					creditorId,
-					invoiceId: invoice._id,
-					monthId: transactionMonth._id,
-					name,
-					date,
-					description,
-					materials,
-					total: roundedTotal,
-					credit: roundedTotal,
-					quantity: roundedQuantity,
-					vehicleNumber,
-					balance: transactionMonth.balance,
-					companyId,
-				},
-			],
-			{ session }
-		).then((docs) => docs[0]);
+		invoice.total = netInvoiceTotal;
 
-		// Prepare invoice credits, deposits
-		const creditsArray = [credit._id];
-		let runningBalance = transactionMonth.balance;
-		let totalDeposit = 0;
-
-		if (deposits.length) {
-			totalDeposit = deposits.reduce(
-				(acc, deposit) => acc + Number(deposit.amount),
-				0
-			);
-			const depositDocs = deposits.map((deposit) => {
-				const _id = new mongoose.Types.ObjectId();
-				runningBalance -= Number(deposit.amount);
-				creditsArray.push(_id);
-				return {
-					_id,
-					creditorId,
-					companyId,
-					invoiceId: invoice._id,
-					monthId: transactionMonth._id,
-					date,
-					total: deposit.amount,
-					debit: deposit.amount,
-					description: deposit.description,
-					balance: runningBalance,
-					vehicleNumber,
-					remark: 'Deposits',
-				};
-			});
-			await Credit.insertMany(depositDocs, { session });
-			transactionMonth.balance -= Number(totalDeposit);
-			creditor.balance += Number(roundedTotal) - Number(totalDeposit);
-		} else {
-			creditor.balance += roundedTotal;
-		}
-
-		// Create Invoice
-		const updatedInvoice = await CreditInvoice.findByIdAndUpdate(
-			{ _id: invoice._id },
-			{
-				credits: creditsArray,
-				total: roundedTotal - Number(totalDeposit),
-			},
-			{ new: true, session }
-		);
-
-		// Save everything
-		await transactionMonth.save({ session });
-		await creditor.save({ session });
-		await invoice.save({ session });
+		await Promise.all([
+			creditMonth.save({ session }),
+			creditor.save({ session }),
+			invoice.save({ session }),
+		]);
 
 		await session.commitTransaction();
 
 		res.status(201).json({
-			credit,
-			creditor,
-			invoice: updatedInvoice[0],
-			message: 'Credit and deposits created successfully',
+			invoice,
+			credit: creditTrx,
+			message: 'Credit created successfully',
 		});
 	} catch (error) {
 		await session.abortTransaction();
-		console.error('Error creating credit:', error.stack || error.message);
-		res
-			.status(500)
-			.json({ message: 'Internal server error', error: error.message });
+		console.error(error);
+		res.status(400).json({
+			message: error.message || 'Failed to create credit',
+		});
 	} finally {
 		session.endSession();
 	}
 };
 
+// export const newCredit = async (req, res) => {
+// 	const session = await mongoose.startSession();
+// 	session.startTransaction();
+
+// 	try {
+// 		const creditorId = req.params.id;
+// 		const {
+// 			name,
+// 			monthId,
+// 			date,
+// 			materials,
+// 			vehicleNumber,
+// 			description,
+// 			deposits = [],
+// 			companyId,
+// 		} = req.body;
+
+// 		// Basic Validation
+// 		// if (!name || !date || !Array.isArray(materials) || materials.length === 0) {
+// 		// 	await session.abortTransaction();
+// 		// 	return res.status(400).json({ message: 'Missing required fields' });
+// 		// }
+
+// 		// Calculate total & quantity
+// 		let total = 0,
+// 			quantity = 0;
+// 		for (const m of materials) {
+// 			if (!m.qty || !m.rate) {
+// 				await session.abortTransaction();
+// 				return res.status(400).json({ message: 'Invalid material entry' });
+// 			}
+// 			total += Number(m.qty) * Number(m.rate);
+// 			quantity += Number(m.qty);
+// 		}
+// 		const roundedTotal = Math.ceil(total);
+// 		const roundedQuantity = Math.ceil(quantity);
+
+// 		console.log('roundedTotal', roundedTotal);
+
+// 		// Fetch creditor
+// 		const creditor = await Creditor.findById(creditorId).session(session);
+// 		if (!creditor) {
+// 			await session.abortTransaction();
+// 			return res.status(404).json({ message: 'Creditor not found' });
+// 		}
+
+// 		// Find or create month
+// 		let transactionMonth;
+// 		if (monthId) {
+// 			transactionMonth = await CreditMonth.findById(monthId).session(session);
+// 			if (!transactionMonth) {
+// 				await session.abortTransaction();
+// 				return res.status(404).json({ message: 'Credit month not found' });
+// 			}
+// 		} else {
+// 			const firstDayOfMonth = getFirstDayOfMonth(new Date(date));
+// 			transactionMonth = await CreditMonth.findOne({
+// 				creditorId,
+// 				month: firstDayOfMonth,
+// 			}).session(session);
+// 			// console.log('transactionMonth', transactionMonth);
+// 			if (!transactionMonth) {
+// 				transactionMonth = await CreditMonth.create(
+// 					[
+// 						{
+// 							creditorId,
+// 							month: firstDayOfMonth,
+// 							balance: 0,
+// 							quantity: roundedQuantity,
+// 						},
+// 					],
+// 					{ session }
+// 				).then((docs) => docs[0]);
+// 			}
+// 		}
+
+// 		// Update month totals
+// 		transactionMonth.balance += Number(roundedTotal); // Add roundedTotal;
+// 		transactionMonth.quantity += roundedQuantity;
+
+// 		// Create Invoice
+// 		const invoice = await CreditInvoice.create(
+// 			[
+// 				{
+// 					creditorId,
+// 					monthId: transactionMonth._id,
+// 					total: 0,
+// 					date,
+// 				},
+// 			],
+// 			{ session }
+// 		).then((docs) => docs[0]);
+
+// 		// Create credit record
+// 		const credit = await Credit.create(
+// 			[
+// 				{
+// 					creditorId,
+// 					invoiceId: invoice._id,
+// 					monthId: transactionMonth._id,
+// 					name,
+// 					date,
+// 					description,
+// 					materials,
+// 					total: roundedTotal,
+// 					credit: roundedTotal,
+// 					quantity: roundedQuantity,
+// 					vehicleNumber,
+// 					balance: transactionMonth.balance,
+// 					companyId,
+// 				},
+// 			],
+// 			{ session }
+// 		).then((docs) => docs[0]);
+
+// 		// Prepare invoice credits, deposits
+// 		const creditsArray = [credit._id];
+// 		let runningBalance = transactionMonth.balance;
+// 		let totalDeposit = 0;
+
+// 		if (deposits.length) {
+// 			totalDeposit = deposits.reduce(
+// 				(acc, deposit) => acc + Number(deposit.amount),
+// 				0
+// 			);
+// 			const depositDocs = deposits.map((deposit) => {
+// 				const _id = new mongoose.Types.ObjectId();
+// 				runningBalance -= Number(deposit.amount);
+// 				creditsArray.push(_id);
+// 				return {
+// 					_id,
+// 					creditorId,
+// 					companyId,
+// 					invoiceId: invoice._id,
+// 					monthId: transactionMonth._id,
+// 					date,
+// 					total: deposit.amount,
+// 					debit: deposit.amount,
+// 					description: deposit.description,
+// 					balance: runningBalance,
+// 					vehicleNumber,
+// 					remark: 'Deposits',
+// 				};
+// 			});
+// 			await Credit.insertMany(depositDocs, { session });
+// 			transactionMonth.balance -= Number(totalDeposit);
+// 			creditor.balance += Number(roundedTotal) - Number(totalDeposit);
+// 		} else {
+// 			creditor.balance += roundedTotal;
+// 		}
+
+// 		// Create Invoice
+// 		const updatedInvoice = await CreditInvoice.findByIdAndUpdate(
+// 			{ _id: invoice._id },
+// 			{
+// 				credits: creditsArray,
+// 				total: roundedTotal - Number(totalDeposit),
+// 			},
+// 			{ new: true, session }
+// 		);
+
+// 		// Save everything
+// 		await transactionMonth.save({ session });
+// 		await creditor.save({ session });
+// 		await invoice.save({ session });
+
+// 		await session.commitTransaction();
+
+// 		res.status(201).json({
+// 			credit,
+// 			creditor,
+// 			invoice: updatedInvoice[0],
+// 			message: 'Credit and deposits created successfully',
+// 		});
+// 	} catch (error) {
+// 		await session.abortTransaction();
+// 		console.error('Error creating credit:', error.stack || error.message);
+// 		res
+// 			.status(500)
+// 			.json({ message: 'Internal server error', error: error.message });
+// 	} finally {
+// 		session.endSession();
+// 	}
+// };
 export const updateCreditInvoice = async (req, res) => {
 	const session = await mongoose.startSession();
 	session.startTransaction();
 
 	try {
 		const { invoiceId } = req.body;
-		if (!invoiceId) {
-			await session.abortTransaction();
-			return res.status(404).json({ message: 'Invoice id is reqired!' });
-		}
-		const {
-			date,
-			credits = [],
-			deposits = [],
-			vehicleNumber,
-			description,
-		} = req.body;
-		console.log('invoiceId', invoiceId);
-		// Find invoice
+		const { date, credits = [], deposits = [], vehicleNumber } = req.body;
+
+		if (!invoiceId) throw new Error('Invoice id is required');
+
+		/* ----------------------------------------
+		 * Fetch invoice + base docs
+		 * --------------------------------------*/
 		const invoice = await CreditInvoice.findById(invoiceId).session(session);
-		if (!invoice) {
-			await session.abortTransaction();
-			return res.status(404).json({ message: 'Invoice not found' });
-		}
+		if (!invoice) throw new Error('Invoice not found');
+
 		const creditor = await Creditor.findById(invoice.creditorId).session(
-			session
+			session,
 		);
 		const creditMonth = await CreditMonth.findById(invoice.monthId).session(
-			session
+			session,
 		);
 
-		// Clear existing credits linked to this invoice
-		const existingCredits = await Credit.find({
+		if (!creditor || !creditMonth) {
+			throw new Error('Related creditor or month not found');
+		}
+
+		/* ----------------------------------------
+		 * Reverse previous ledger impact
+		 * --------------------------------------*/
+		const oldTrxs = await Credit.find({
 			_id: { $in: invoice.credits },
 		}).session(session);
 
-		let totalCreditAmount = 0;
-		let totalDebitAmount = 0;
+		let reversalDelta = 0;
 
-		for (const trx of existingCredits) {
-			// Reverse balance effects
-
-			if (trx.credit) {
-				creditor.balance -= trx.credit;
-				creditMonth.balance -= trx.credit;
-			} else if (trx.debit) {
-				creditor.balance += trx.debit;
-				creditMonth.balance += trx.debit;
-			}
-
-			await creditor.save({ session });
-			await creditMonth.save({ session });
+		for (const trx of oldTrxs) {
+			if (trx.credit) reversalDelta -= trx.credit;
+			if (trx.debit) reversalDelta += trx.debit;
 		}
 
-		// Delete previous credits
+		creditor.balance += reversalDelta;
+		creditMonth.balance += reversalDelta;
+
+		/* ----------------------------------------
+		 * Delete old transactions
+		 * --------------------------------------*/
 		await Credit.deleteMany({ _id: { $in: invoice.credits } }).session(session);
+
 		invoice.credits = [];
 
-		// Create new credit transactions
+		/* ----------------------------------------
+		 * Rebuild ledger
+		 * --------------------------------------*/
+		let runningBalance = creditMonth.balance;
+		let invoiceTotal = 0;
+		let monthQuantityDelta = 0;
+
+		/* ---- Credits ---- */
 		for (const credit of credits) {
 			const total = Math.ceil(
-				credit.materials.reduce((sum, m) => sum + m.qty * m.rate, 0)
+				credit.materials.reduce(
+					(sum, m) => sum + Number(m.qty) * Number(m.rate),
+					0,
+				),
 			);
+
 			const quantity = Math.ceil(
-				credit.materials.reduce((sum, m) => sum + m.qty, 0)
+				credit.materials.reduce((sum, m) => sum + Number(m.qty), 0),
 			);
 
-			const creditMonth = await CreditMonth.findById(credit.monthId).session(
-				session
-			);
-			const creditor = await Creditor.findById(credit.creditorId).session(
-				session
-			);
+			runningBalance += total;
+			invoiceTotal += total;
+			monthQuantityDelta += quantity;
 
-			const created = await Credit.create(
-				[
-					{
-						...credit,
-						total,
-						credit: total,
-						quantity,
-						invoiceId: invoice._id,
-						balance: creditMonth.balance + total,
-						date,
-					},
-				],
-				{ session }
-			);
+			const trx = (
+				await Credit.create(
+					[
+						{
+							...credit,
+							creditorId: invoice.creditorId,
+							monthId: invoice.monthId,
+							invoiceId: invoice._id,
+							total,
+							credit: total,
+							quantity,
+							date,
+							vehicleNumber,
+							balance: runningBalance,
+						},
+					],
+					{ session },
+				)
+			)[0];
 
-			invoice.credits.push(created[0]._id);
-			creditor.balance += total;
-			creditMonth.balance += total;
-			totalCreditAmount += total;
-
-			await Promise.all([
-				creditor.save({ session }),
-				creditMonth.save({ session }),
-			]);
+			invoice.credits.push(trx._id);
 		}
 
-		// Create deposit transactions
+		/* ---- Deposits ---- */
 		for (const deposit of deposits) {
 			const amount = Number(deposit.amount);
-			const creditor = await Creditor.findById(deposit.creditorId).session(
-				session
-			);
-			const creditMonth = await CreditMonth.findById(deposit.monthId).session(
-				session
-			);
+			if (!amount || amount <= 0) continue;
 
-			const trx = await Credit.create(
-				[
-					{
-						creditorId: invoice.creditorId,
-						monthId: invoice.monthId,
-						date,
-						total: amount,
-						debit: amount,
-						invoiceId: invoice._id,
-						description: deposit.description || 'Deposit',
-						vehicleNumber,
-						balance: creditMonth.balance - amount,
-					},
-				],
-				{ session }
-			);
+			runningBalance -= amount;
+			invoiceTotal -= amount;
 
-			invoice.credits.push(trx[0]._id);
-			creditor.balance -= amount;
-			creditMonth.balance -= amount;
-			totalDebitAmount += amount;
+			const trx = (
+				await Credit.create(
+					[
+						{
+							creditorId: invoice.creditorId,
+							monthId: invoice.monthId,
+							invoiceId: invoice._id,
+							date,
+							total: amount,
+							debit: amount,
+							description: deposit.description || 'Deposit',
+							vehicleNumber,
+							balance: runningBalance,
+							remark: 'Deposit',
+						},
+					],
+					{ session },
+				)
+			)[0];
 
-			await Promise.all([
-				creditor.save({ session }),
-				creditMonth.save({ session }),
-			]);
+			invoice.credits.push(trx._id);
 		}
 
-		invoice.total = totalCreditAmount - totalDebitAmount;
-		await invoice.save({ session });
+		/* ----------------------------------------
+		 * Apply final balances
+		 * --------------------------------------*/
+		creditMonth.balance = runningBalance;
+		creditMonth.quantity += monthQuantityDelta;
+
+		creditor.balance += invoiceTotal;
+
+		invoice.total = invoiceTotal;
+		invoice.date = date;
+
+		await Promise.all([
+			creditor.save({ session }),
+			creditMonth.save({ session }),
+			invoice.save({ session }),
+		]);
 
 		await session.commitTransaction();
 
 		res.status(200).json({
 			invoice,
-			totalCreditAmount,
-			totalDebitAmount,
 			message: 'Invoice updated successfully',
 		});
 	} catch (error) {
 		await session.abortTransaction();
-		console.error(
-			'Error updating credit invoice:',
-			error.stack || error.message
-		);
-		res
-			.status(500)
-			.json({ message: 'Internal server error', error: error.message });
+		console.error(error);
+		res.status(400).json({
+			message: error.message || 'Failed to update invoice',
+		});
 	} finally {
 		session.endSession();
 	}
 };
+
+
+// export const updateCreditInvoice = async (req, res) => {
+// 	const session = await mongoose.startSession();
+// 	session.startTransaction();
+
+// 	try {
+// 		const { invoiceId } = req.body;
+// 		if (!invoiceId) {
+// 			await session.abortTransaction();
+// 			return res.status(404).json({ message: 'Invoice id is reqired!' });
+// 		}
+// 		const {
+// 			date,
+// 			credits = [],
+// 			deposits = [],
+// 			vehicleNumber,
+// 			description,
+// 		} = req.body;
+// 		console.log('invoiceId', invoiceId);
+// 		// Find invoice
+// 		const invoice = await CreditInvoice.findById(invoiceId).session(session);
+// 		if (!invoice) {
+// 			await session.abortTransaction();
+// 			return res.status(404).json({ message: 'Invoice not found' });
+// 		}
+// 		const creditor = await Creditor.findById(invoice.creditorId).session(
+// 			session
+// 		);
+// 		const creditMonth = await CreditMonth.findById(invoice.monthId).session(
+// 			session
+// 		);
+
+// 		// Clear existing credits linked to this invoice
+// 		const existingCredits = await Credit.find({
+// 			_id: { $in: invoice.credits },
+// 		}).session(session);
+
+// 		let totalCreditAmount = 0;
+// 		let totalDebitAmount = 0;
+
+// 		for (const trx of existingCredits) {
+// 			// Reverse balance effects
+
+// 			if (trx.credit) {
+// 				creditor.balance -= trx.credit;
+// 				creditMonth.balance -= trx.credit;
+// 			} else if (trx.debit) {
+// 				creditor.balance += trx.debit;
+// 				creditMonth.balance += trx.debit;
+// 			}
+
+// 			await creditor.save({ session });
+// 			await creditMonth.save({ session });
+// 		}
+
+// 		// Delete previous credits
+// 		await Credit.deleteMany({ _id: { $in: invoice.credits } }).session(session);
+// 		invoice.credits = [];
+
+// 		// Create new credit transactions
+// 		for (const credit of credits) {
+// 			const total = Math.ceil(
+// 				credit.materials.reduce((sum, m) => sum + m.qty * m.rate, 0)
+// 			);
+// 			const quantity = Math.ceil(
+// 				credit.materials.reduce((sum, m) => sum + m.qty, 0)
+// 			);
+
+// 			const creditMonth = await CreditMonth.findById(credit.monthId).session(
+// 				session
+// 			);
+// 			const creditor = await Creditor.findById(credit.creditorId).session(
+// 				session
+// 			);
+
+// 			const created = await Credit.create(
+// 				[
+// 					{
+// 						...credit,
+// 						total,
+// 						credit: total,
+// 						quantity,
+// 						invoiceId: invoice._id,
+// 						balance: creditMonth.balance + total,
+// 						date,
+// 					},
+// 				],
+// 				{ session }
+// 			);
+
+// 			invoice.credits.push(created[0]._id);
+// 			creditor.balance += total;
+// 			creditMonth.balance += total;
+// 			totalCreditAmount += total;
+
+// 			await Promise.all([
+// 				creditor.save({ session }),
+// 				creditMonth.save({ session }),
+// 			]);
+// 		}
+
+// 		// Create deposit transactions
+// 		for (const deposit of deposits) {
+// 			const amount = Number(deposit.amount);
+// 			const creditor = await Creditor.findById(deposit.creditorId).session(
+// 				session
+// 			);
+// 			const creditMonth = await CreditMonth.findById(deposit.monthId).session(
+// 				session
+// 			);
+
+// 			const trx = await Credit.create(
+// 				[
+// 					{
+// 						creditorId: invoice.creditorId,
+// 						monthId: invoice.monthId,
+// 						date,
+// 						total: amount,
+// 						debit: amount,
+// 						invoiceId: invoice._id,
+// 						description: deposit.description || 'Deposit',
+// 						vehicleNumber,
+// 						balance: creditMonth.balance - amount,
+// 					},
+// 				],
+// 				{ session }
+// 			);
+
+// 			invoice.credits.push(trx[0]._id);
+// 			creditor.balance -= amount;
+// 			creditMonth.balance -= amount;
+// 			totalDebitAmount += amount;
+
+// 			await Promise.all([
+// 				creditor.save({ session }),
+// 				creditMonth.save({ session }),
+// 			]);
+// 		}
+
+// 		invoice.total = totalCreditAmount - totalDebitAmount;
+// 		await invoice.save({ session });
+
+// 		await session.commitTransaction();
+
+// 		res.status(200).json({
+// 			invoice,
+// 			totalCreditAmount,
+// 			totalDebitAmount,
+// 			message: 'Invoice updated successfully',
+// 		});
+// 	} catch (error) {
+// 		await session.abortTransaction();
+// 		console.error(
+// 			'Error updating credit invoice:',
+// 			error.stack || error.message
+// 		);
+// 		res
+// 			.status(500)
+// 			.json({ message: 'Internal server error', error: error.message });
+// 	} finally {
+// 		session.endSession();
+// 	}
+// };
 
 export const createDeposit = async (req, res) => {
 	const session = await mongoose.startSession();

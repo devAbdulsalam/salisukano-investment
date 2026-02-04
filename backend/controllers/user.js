@@ -75,7 +75,8 @@ export const loginUser = async (req, res) => {
 
 export const getUsers = async (req, res) => {
 	try {
-		const users = await User.find().select('-password');
+		const userId = req.user._id;
+		const users = await User.find({ _id: { $ne: userId } }).select('-password');
 		res.status(200).json(users);
 	} catch (error) {
 		res.status(404).json({ message: error.message });
@@ -84,32 +85,32 @@ export const getUsers = async (req, res) => {
 
 // // signinUser
 export const signinUser = async (req, res) => {
-	const { name, email, password } = req.body;
+	const { name, email, password, role = 'user' } = req.body;
 	try {
 		if (!name) {
-			res.status(404).json({ error: 'Name is required' });
+			return res.status(404).json({ error: 'Name is required' });
 		}
 		if (!password) {
-			res.status(404).json({ error: 'Password is required' });
+			return res.status(404).json({ error: 'Password is required' });
 		}
 		if (!email) {
 			res.status(404).json({ error: 'Email Number is required' });
 		}
 
 		if (!(password.length > 4)) {
-			res.status(404).json({ error: 'Input a strong password' });
+			return res.status(404).json({ error: 'Input a strong password' });
 		}
 
 		const emailexists = await User.findOne({ email });
 
 		if (emailexists) {
-			res.status(404).json({ error: 'Email Address already Exists' });
+			return res.status(404).json({ error: 'Email Address already Exists' });
 		}
 
 		const salt = await bcrypt.genSalt(10);
 		const hash = await bcrypt.hash(password, salt);
 
-		const user = await User.create({ name, email, password: hash });
+		const user = await User.create({ name, email, password: hash, role });
 		// create a token
 		const token = createToken(user._id);
 		const refreshToken = createRefreshToken(user._id);
@@ -274,7 +275,7 @@ export const updateProfile = async (req, res) => {
 		if (file) {
 			if (user.image.public_id) {
 				const deleteImage = await cloudinary.uploader.destroy(
-					user.image.public_id
+					user.image.public_id,
 				);
 				console.log(deleteImage);
 			}
@@ -285,15 +286,21 @@ export const updateProfile = async (req, res) => {
 			await user.save();
 			// user = await User.findByIdAndUpdate(user._id, image, { new: true });
 		}
+		const allowedFields = ['name', 'email', 'phone', 'role'];
 
-		user = await User.findByIdAndUpdate(
-			user._id,
-			{ ...user, ...body },
-			{ new: true }
-		);
+		const updateData = {};
+
+		allowedFields.forEach((field) => {
+			if (body[field] !== undefined) updateData[field] = body[field];
+		});
+
+		const updatedUser = await User.findByIdAndUpdate(user._id, updateData, {
+			new: true,
+			runValidators: true,
+		});
 
 		res.status(200).json({
-			user,
+			user: updatedUser,
 			message: 'User profile updated successfully',
 		});
 	} catch (error) {
@@ -334,20 +341,30 @@ export const updateProfileImage = async (req, res) => {
 // update user without image
 export const updateUserProfile = async (req, res) => {
 	const { id } = req.body;
-	const formData = req.body;
 	try {
+		const body = req.body;
 		if (!id || !mongoose.isValidObjectId(id)) {
 			return res.status(404).json({ error: 'Enter a valid user' });
 		}
-		const updateUser = await User.findByIdAndUpdate({ _id: id }, formData, {
-			new: true,
+		const allowedFields = ['name', 'email', 'phone', 'role'];
+		const updateData = {};
+
+		allowedFields.forEach((field) => {
+			if (body[field] !== undefined) updateData[field] = body[field];
 		});
-		if (!updateUser) {
+
+		const updatedUser = await User.findByIdAndUpdate({ _id: id }, updateData, {
+			new: true,
+			runValidators: true,
+		});
+
+		if (!updatedUser) {
 			res.status(404).json({ error: 'User not found' });
 		}
-		res
-			.status(200)
-			.json({ user: updateUser, message: 'Profile updated successfully' });
+		res.status(200).json({
+			user: updatedUser,
+			message: 'User profile updated successfully',
+		});
 	} catch (error) {
 		res.status(404).json({ error: error.message });
 	}
@@ -374,7 +391,44 @@ export const updatePassword = async (req, res) => {
 		let newUser = await User.findByIdAndUpdate(
 			{ _id: user._id },
 			{ password: hash },
-			{ new: true }
+			{ new: true },
+		);
+		res
+			.status(200)
+			.json({ user: newUser, message: 'Password Changed Successfully' });
+	} catch (error) {
+		console.error(error);
+		res.status(404).json({ error: error.message });
+	}
+};
+// // // update user Password
+export const adminUpdatePassword = async (req, res) => {
+	const { newPassword, userId } = req.body;
+	try {
+		if (!req.user._id) {
+			return res.status(401).json({ error: 'User not found' });
+		}
+		if (req.user?.role !== 'admin') {
+			return res.status(403).json({ error: 'Access denied' });
+		}
+		if (!userId || !mongoose.isValidObjectId(userId)) {
+			return res.status(401).json({ error: 'Invalid user account' });
+		}
+		if (!newPassword) {
+			return res.status(401).json({ error: 'New password is required' });
+		}
+
+		const user = await User.findById(userId);
+		if (!user) {
+			return res.status(404).json({ error: 'User account  not found' });
+		}
+		const salt = await bcrypt.genSalt(10);
+		const hash = await bcrypt.hash(newPassword, salt);
+
+		let newUser = await User.findByIdAndUpdate(
+			{ _id: user._id },
+			{ password: hash },
+			{ new: true },
 		);
 		res
 			.status(200)
@@ -463,13 +517,13 @@ export const changePassword = async (req, res) => {
 			const newpassword = await User.changepsw(
 				{ _id: verify._id },
 				password,
-				confirmPassword
+				confirmPassword,
 			);
 
 			let user = await User.findByIdAndUpdate(
 				{ _id: verify._id },
 				{ password: newpassword },
-				{ new: true }
+				{ new: true },
 			);
 			if (!user) {
 				return res.status(401).json({ message: 'something went wrong!' });

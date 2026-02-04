@@ -17,6 +17,7 @@ import {
 	deleteUser,
 	sendOTP,
 	verifyOTP,
+	adminUpdatePassword,
 } from '../controllers/user.js';
 
 // // get user
@@ -44,6 +45,7 @@ router.use(protect);
 
 // // //change Password
 router.post('/change-password', protect, changePassword);
+router.patch('/admin-update-password', protect, adminUpdatePassword);
 
 // // //update Password
 router.patch('/update-password', protect, updatePassword);
