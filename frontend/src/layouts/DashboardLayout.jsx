@@ -49,6 +49,7 @@ const navigationList = [
 		name: 'Registered Invoices',
 		link: '/registered-invoices',
 		svg: <FileText className="h-4 w-4" />,
+		roles: ['admin'],
 	},
 	// {
 	// 	name: 'Payment',
