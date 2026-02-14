@@ -25,6 +25,34 @@ export const fetchDashboard = async (user) => {
 		return error;
 	}
 };
+export const fetchWaybills = async (user) => {
+	try {
+		const config = {
+			headers: {
+				Authorization: `Bearer ${user?.token}`,
+			},
+		};
+		const { data } = await axios.get(`${apiUrl}/waybills`, config);
+		return data;
+	} catch (error) {
+		console.log(error.message);
+		return error;
+	}
+};
+export const fetchWaybill = async (id, user) => {
+	try {
+		const config = {
+			headers: {
+				Authorization: `Bearer ${user?.token}`,
+			},
+		};
+		const { data } = await axios.get(`${apiUrl}/waybills/${id}`, config);
+		return data;
+	} catch (error) {
+		console.log(error.message);
+		return error;
+	}
+};
 export const fetchUsers = async (user) => {
 	try {
 		const config = {

@@ -11,7 +11,7 @@ import {
 	ShoppingBag,
 	FilePlus,
 	ScrollText,
-	Users
+	Users,
 } from 'lucide-react';
 // import Search from '../components/Search';
 const navigationList = [
@@ -45,16 +45,11 @@ const navigationList = [
 		svg: <Users className="h-4 w-4" />,
 		roles: ['admin'],
 	},
-	// {
-	// 	name: 'Invoices',
-	// 	link: '/invoices',
-	// 	svg: <FileText className="h-4 w-4" />,
-	// },
-	// {
-	// 	name: 'New Invoice',
-	// 	link: '/new-invoice',
-	// 	svg: <FilePlus className="h-4 w-4" />,
-	// },
+	{
+		name: 'Registered Invoices',
+		link: '/registered-invoices',
+		svg: <FileText className="h-4 w-4" />,
+	},
 	// {
 	// 	name: 'Payment',
 	// 	link: '/payment',
@@ -116,9 +111,6 @@ const footerNavigation = [
 		),
 	},
 ];
-
-
-
 
 const Dashbord = () => {
 	const [showMenu, setShowMenu] = useState(false);

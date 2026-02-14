@@ -40,6 +40,8 @@ import EditInvoice from './pages/EditInvoice';
 import Users from './pages/Users';
 import CompanyCredits from './pages/CompanyCredits';
 // import Receiptt from './pages/Receipt';
+import Register from './pages/InvoiceRegister';
+import RegisterdInvoices from './pages/RegisterdInvoices';
 function App() {
 	const [loading, setLoading] = useState(true);
 
@@ -113,6 +115,15 @@ function App() {
 							/>
 							<Route path="/settings" element={<Settings />} />
 							<Route path="/users" element={<Users />} />
+							<Route path="/register-invoices" element={<Register />} />
+							<Route
+								path="/registered-invoices"
+								element={<RegisterdInvoices />}
+							/>
+							<Route
+								path="/register-invoices/:id"
+								element={<Register />}
+							/>
 						</Route>
 					</Route>
 				</Route>
