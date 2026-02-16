@@ -19,6 +19,9 @@ const WaybillSchema = new mongoose.Schema(
 		vehicle: {
 			type: String,
 		},
+		note: {
+			type: String,
+		},
 		items: [
 			{
 				sn: {

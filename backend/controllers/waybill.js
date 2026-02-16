@@ -6,8 +6,17 @@ import Waybill from '../models/Waybill.js';
 // @access  Private (adjust as needed)
 export const createWaybill = async (req, res) => {
 	try {
-		const { name, destination, timeIn, timeOut, vehicle, items, total, date } =
-			req.body;
+		const {
+			name,
+			destination,
+			timeIn,
+			timeOut,
+			vehicle,
+			items,
+			total,
+			date,
+			note,
+		} = req.body;
 
 		// Basic validation
 		if (!name) {
@@ -19,6 +28,7 @@ export const createWaybill = async (req, res) => {
 			destination,
 			timeIn,
 			timeOut,
+			note,
 			vehicle,
 			items: items || [],
 			total: total || 0,
@@ -28,6 +38,7 @@ export const createWaybill = async (req, res) => {
 		const savedWaybill = await waybill.save();
 		res.status(201).json(savedWaybill);
 	} catch (error) {
+		console.log('Create waybill error', error);
 		res.status(500).json({ message: error.message });
 	}
 };
@@ -40,6 +51,7 @@ export const getWaybills = async (req, res) => {
 		const waybills = await Waybill.find().sort({ createdAt: -1 });
 		res.status(200).json(waybills);
 	} catch (error) {
+		console.log('Error getting waybills', error);
 		res.status(500).json({ message: error.message });
 	}
 };
@@ -55,6 +67,7 @@ export const getWaybill = async (req, res) => {
 		}
 		res.status(200).json(waybill);
 	} catch (error) {
+		console.log('Error getting waybill', error);
 		res.status(500).json({ message: error.message });
 	}
 };
@@ -64,13 +77,25 @@ export const getWaybill = async (req, res) => {
 // @access  Private
 export const updateWaybill = async (req, res) => {
 	try {
-		const { name, destination, timeIn, timeOut, vehicle, items, total, date } =
-			req.body;
+		const {
+			name,
+			destination,
+			timeIn,
+			timeOut,
+			vehicle,
+			items,
+			total,
+			date,
+			note,
+		} = req.body;
 
 		const waybill = await Waybill.findById(req.params.id);
 		if (!waybill) {
 			return res.status(404).json({ message: 'Waybill not found' });
 		}
+		// if (!name) {
+		// 	return res.status(400).json({ message: 'Customer name is required' });
+		// }
 
 		// Update fields
 		waybill.name = name || waybill.name;
@@ -81,11 +106,13 @@ export const updateWaybill = async (req, res) => {
 		waybill.items = items || waybill.items;
 		waybill.total = total !== undefined ? total : waybill.total;
 		waybill.date = date || waybill.date;
+		waybill.note = note || waybill.note;
 
 		const updatedWaybill = await waybill.save();
 		res.status(200).json(updatedWaybill);
 	} catch (error) {
 		res.status(500).json({ message: error.message });
+		console.log('Error updating waybills', error);
 	}
 };
 
@@ -102,6 +129,7 @@ export const deleteWaybill = async (req, res) => {
 		await waybill.deleteOne();
 		res.status(200).json({ message: 'Waybill deleted successfully' });
 	} catch (error) {
+		console.log('Error deleting waybill', error);
 		res.status(500).json({ message: error.message });
 	}
 };

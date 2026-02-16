@@ -43,7 +43,7 @@ const InvoicesPage = () => {
 			await axios.delete(`${API_URL}/waybills/${id}`, config);
 		},
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['invoices'] });
+			queryClient.invalidateQueries({ queryKey: ['waybills'] });
 			toast.success('Invoice deleted successfully');
 		},
 		onError: (err) => {

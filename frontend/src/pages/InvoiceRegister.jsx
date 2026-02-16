@@ -9,8 +9,8 @@ import axios from 'axios';
 import getError from '../hooks/getError';
 import Loader from '../components/Loader';
 import { fetchWaybill } from '../hooks/axiosApis';
-import logo from '../assets/logo.jpg';
-import seal from '../assets/seal.jpeg';
+import logo from '../assets/logo.png';
+import seal from '../assets/seal.png';
 import AuthContext from '../context/authContext';
 
 // Helper: generate a unique filename suffix
@@ -151,6 +151,12 @@ const InvoiceRegister = () => {
 		{ sn: 2, description: '', qty: '', rate: '', amount: '' },
 		{ sn: 3, description: '', qty: '', rate: '', amount: '' },
 		{ sn: 4, description: '', qty: '', rate: '', amount: '' },
+		{ sn: 5, description: '', qty: '', rate: '', amount: '' },
+		{ sn: 6, description: '', qty: '', rate: '', amount: '' },
+		{ sn: 7, description: '', qty: '', rate: '', amount: '' },
+		{ sn: 8, description: '', qty: '', rate: '', amount: '' },
+		{ sn: 9, description: '', qty: '', rate: '', amount: '' },
+		{ sn: 10, description: '', qty: '', rate: '', amount: '' },
 	]);
 
 	// Loading state for save operation
@@ -161,6 +167,7 @@ const InvoiceRegister = () => {
 		if (fetchedData) {
 			setFormData({
 				name: fetchedData.name || '',
+				note: fetchedData.note || '',
 				vehicle: fetchedData.vehicle || '',
 				destination: fetchedData.destination || '',
 				date: fetchedData.date
@@ -198,6 +205,13 @@ const InvoiceRegister = () => {
 			{ sn: prev.length + 1, description: '', qty: '', rate: '', amount: '' },
 		]);
 	};
+
+	// const removeItem = (sn) => {
+	// 	const item = items.find((item) => item.sn === sn);
+	// 	if (item) {
+	// 		setItems(item);
+	// 	}
+	// }
 
 	// Compute total amount
 	const total = useMemo(() => {
@@ -289,7 +303,7 @@ const InvoiceRegister = () => {
 			// Copy basic styles to preserve layout
 			div.style.width = '100%';
 			div.style.border = 'none';
-			div.style.padding = '8px';
+			div.style.padding = '5px';
 			div.style.boxSizing = 'border-box';
 			div.style.fontFamily = 'inherit';
 			div.style.fontSize = 'inherit';
@@ -347,7 +361,9 @@ const InvoiceRegister = () => {
 						width: '800px',
 						margin: '0 auto',
 						border: '1px solid #000',
+						// borderBottom: 'none',
 						padding: '20px',
+						paddingBottom: '40px',
 						backgroundColor: '#fff',
 						fontSize: '14px',
 						color: '#333',
@@ -373,7 +389,7 @@ const InvoiceRegister = () => {
 							/>
 						</div>
 						<div style={{ flex: 1, textAlign: 'center' }}>
-							<h2 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold' }}>
+							<h2 style={{ margin: 0, fontSize: '25px', fontWeight: 'bold' }}>
 								SALISU KANO INTERNATIONAL LIMITED
 							</h2>
 							<p style={{ margin: 0 }}>
@@ -433,7 +449,7 @@ const InvoiceRegister = () => {
 						style={{
 							display: 'flex',
 							justifyContent: 'space-between',
-							marginBottom: '15px',
+							marginBottom: '5px',
 							gap: '10px',
 						}}
 					>
@@ -494,7 +510,7 @@ const InvoiceRegister = () => {
 						style={{
 							display: 'flex',
 							justifyContent: 'space-between',
-							marginBottom: '15px',
+							marginBottom: '5px',
 							gap: '10px',
 						}}
 					>
@@ -627,10 +643,16 @@ const InvoiceRegister = () => {
 						style={{
 							width: '100%',
 							borderCollapse: 'collapse',
-							marginBottom: '20px',
+							marginBottom: '10px',
 						}}
 					>
-						<thead style={{ color: '#fff', backgroundColor: '#000' }}>
+						<thead
+							style={{
+								color: '#fff',
+								backgroundColor: '#000',
+								border: '1px solid #000',
+							}}
+						>
 							<tr>
 								<th style={{ border: '1px solid #fff', padding: '4px' }}>
 									S/N
@@ -672,7 +694,7 @@ const InvoiceRegister = () => {
 								<tr key={index}>
 									<td
 										style={{
-											border: '1px solid #000',
+											border: '0.5px solid #000',
 											padding: '4px',
 											textAlign: 'center',
 										}}
@@ -680,7 +702,7 @@ const InvoiceRegister = () => {
 										{item.sn}
 									</td>
 									<td
-										style={{ border: '1px solid #000', padding: '8px 8px 0' }}
+										style={{ border: '0.5px solid #000', padding: '8px 8px 0' }}
 									>
 										<input
 											type="text"
@@ -697,7 +719,7 @@ const InvoiceRegister = () => {
 										/>
 									</td>
 									<td
-										style={{ border: '1px solid #000', padding: '8px 8px 0' }}
+										style={{ border: '0.5px solid #000', padding: '8px 8px 0' }}
 									>
 										<input
 											type="text"
@@ -712,7 +734,7 @@ const InvoiceRegister = () => {
 										/>
 									</td>
 									<td
-										style={{ border: '1px solid #000', padding: '8px 8px 0' }}
+										style={{ border: '0.5px solid #000', padding: '8px 8px 0' }}
 									>
 										<input
 											type="text"
@@ -730,7 +752,7 @@ const InvoiceRegister = () => {
 									</td>
 									<td
 										style={{
-											border: '1px solid #000',
+											border: '0.5px solid #000',
 											padding: '8px',
 											textAlign: 'right',
 										}}
@@ -752,75 +774,106 @@ const InvoiceRegister = () => {
 							marginBottom: '20px',
 						}}
 					>
-						<strong style={{ marginRight: '20px' }}>TOTAL #</strong>
+						<strong style={{ marginRight: '10px' }}>TOTAL #</strong>
 						<div
 							style={{
-								// borderBottom: '1px solid #000',
-								width: '150px',
+								minWidth: '100px',
 								textAlign: 'right',
+								borderBottom: '0.2px solid #000',
+								boxSizing: 'border-box',
+								paddingBottom: '5px',
+								fontWeight: 'bold',
 							}}
 						>
 							{total.toLocaleString()}
-							<hr style={{ border: '1px solid #000', marginTop: '5px' }} />
+							{/* <hr style={{ border: '0.2px solid #000', marginTop: '5px' }} /> */}
 						</div>
 					</div>
 
 					{/* Amount in Words */}
-					<div style={{ marginBottom: '15px' }}>
+					<div
+						style={{
+							marginBottom: '15px',
+							borderBottom: '0.2px solid #000',
+							boxSizing: 'border-box',
+							paddingBottom: '5px',
+						}}
+					>
 						<strong>Amount in Words:</strong>{' '}
 						<span>{numberToWords(total)}</span>
-						<hr style={{ border: '1px solid #000', marginTop: '5px' }} />
+						{/* <hr style={{ border: '0.2px solid #000', marginTop: '5px' }} /> */}
 					</div>
 
 					{/* Comments and Signature */}
 					<div
 						style={{
-							display: 'flex',
-							justifyContent: 'space-between',
-							alignItems: 'center',
+							// display: 'flex',
+							// justifyContent: 'space-between',
+							// alignItems: 'center',
+							// flexDirection: 'column',
+							marginBottom: '20px',
 						}}
 					>
-						<div>
-							<strong>Other Comments</strong>{' '}
-							<span>
-								<input
-									type="text"
-									value={formData.note}
-									onChange={(e) => setFormData('note', e.target.value)}
-									style={{
-										width: '100%',
-										border: 'none',
-										outline: 'none',
-										background: 'transparent',
-									}}
-								/>
-							</span>
-						</div>
+						<strong>Other Comments</strong>{' '}
+						<textarea
+							value={formData.note}
+							onChange={(e) => setFormData('note', e.target.value)}
+							style={{
+								width: '100%',
+								outline: 'none',
+								background: 'transparent',
+								border: '1px solid #000',
+								padding: '5px',
+								marginTop: '5px',
+							}}
+						></textarea>
 					</div>
+
 					<div
 						style={{
 							display: 'flex',
 							justifyContent: 'space-between',
-							alignItems: 'center',
+							// alignItems: 'center',
+							// border: '1px solid #000',
+							alignItems: 'flex-end',
+							alignContent: 'flex-end',
 						}}
 					>
-						<div>
+						<div
+							style={{
+								display: 'flex',
+								// border: '1px solid red',
+								flexDirection: 'column',
+							}}
+						>
 							<p>_________________________</p>
-							<strong>Customer's Representative</strong>{' '}
+							<strong>Customer's Representative</strong> <em>.</em>
 						</div>
-						<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+
+						<div
+							style={{
+								display: 'flex',
+								flexDirection: 'column',
+								alignItems: 'center',
+								gap: '5px',
+								// border: '1px solid green',
+							}}
+						>
 							<img
 								src={seal}
 								alt="Salisu Seal"
-								width="50"
-								height="50"
-								style={{ objectFit: 'contain' }}
-								/>
-								<strong>Agent's Sign</strong>
+								width="90"
+								height="90"
+								style={{
+									objectFit: 'cover',
+									marginBottom: '-30px',
+								}}
+							/>
+
+							<p>_________________________</p>
+							<strong>Agent's Sign</strong>
+							<em>For: Salisu Kano Int'l Ltd</em>
 						</div>
-					</div>
-					<div style={{ marginTop: '10px', textAlign: 'right' }}>
-						<em>For: Salisu Kano Int'l Ltd</em>
 					</div>
 				</div>
 
