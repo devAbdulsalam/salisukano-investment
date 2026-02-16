@@ -15,7 +15,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 const InvoicesPage = () => {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
-    const { user } = useContext(AuthContext);
+	const { user } = useContext(AuthContext);
 
 	// State for search and sort
 	const [searchTerm, setSearchTerm] = useState('');
@@ -34,7 +34,7 @@ const InvoicesPage = () => {
 		queryFn: async () => fetchWaybills(user),
 	});
 
-  const config = {
+	const config = {
 		headers: { Authorization: `Bearer ${user.token}` },
 	};
 	// Delete mutation
@@ -126,8 +126,8 @@ const InvoicesPage = () => {
 		<div className="p-6 bg-gray-50 min-h-screen">
 			{/* Header */}
 			<div className="flex justify-between items-center mb-6">
-				<h1 className="text-3xl font-bold text-gray-800">
-					Invoices / Register
+				<h1 className="text-xl md:text-3xl font-bold text-gray-800">
+					Invoice / Register
 				</h1>
 				<button
 					onClick={() => navigate('/register-invoices')}

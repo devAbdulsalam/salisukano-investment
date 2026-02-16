@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import { Phone } from 'lucide-react';
+import { Phone, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 import getError from '../hooks/getError';
@@ -206,12 +206,16 @@ const InvoiceRegister = () => {
 		]);
 	};
 
-	// const removeItem = (sn) => {
-	// 	const item = items.find((item) => item.sn === sn);
-	// 	if (item) {
-	// 		setItems(item);
-	// 	}
-	// }
+	const removeItem = (sn) => {
+		if (items.length <= 1) return; // keep at least one row
+		const newItems = items.filter((item) => item.sn !== sn);
+		// Re-serialize sn to maintain 1-based consecutive numbers
+		const serializedItems = newItems.map((item, index) => ({
+			...item,
+			sn: index + 1,
+		}));
+		setItems(serializedItems);
+	};
 
 	// Compute total amount
 	const total = useMemo(() => {
@@ -291,9 +295,14 @@ const InvoiceRegister = () => {
 	const downloadPDF = () => {
 		const originalElement = document.getElementById('waybill');
 		if (!originalElement) return;
-
 		// Clone the element to avoid modifying the live DOM
 		const clone = originalElement.cloneNode(true);
+		
+		// Remove the action column header and all delete buttons
+		clone
+			.querySelectorAll('.action-col, .delete-cell')
+			.forEach((el) => el.remove());
+
 		// Replace all inputs with divs showing the current value
 		const inputs = clone.querySelectorAll('input, select');
 		inputs.forEach((input) => {
@@ -347,7 +356,7 @@ const InvoiceRegister = () => {
 			.finally(() => {
 				if (document.body.contains(clone)) document.body.removeChild(clone);
 			});
-	};
+	};;
 
 	if (isFetching) return <Loader />;
 
@@ -687,6 +696,12 @@ const InvoiceRegister = () => {
 								>
 									AMOUNT #
 								</th>
+								<th
+									className="action-col"
+									style={{ border: '1px solid #fff', padding: '8px' }}
+								>
+									Action
+								</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -760,6 +775,18 @@ const InvoiceRegister = () => {
 										{item.amount
 											? parseFloat(item.amount).toLocaleString()
 											: ''}
+									</td>
+									<td
+										className="delete-cell"
+										style={{ border: '0.5px solid #000', padding: '8px', textAlign: 'center' }}
+									>
+										<button
+											onClick={() => removeItem(item.sn)}
+											className="text-red-600 hover:text-red-800 mx-auto"
+											title="Delete"
+										>
+											<Trash2 size={18} />
+										</button>
 									</td>
 								</tr>
 							))}
