@@ -136,6 +136,7 @@ const EditModal = ({ show, setShow, setLoading, loading, customer }) => {
 							<option value="admin">Admin</option>
 							<option value="secretary">Secretary</option>
 							<option value="finance">Finance</option>
+							<option value="operation">Operations</option>
 						</select>
 					</div>
 					<button

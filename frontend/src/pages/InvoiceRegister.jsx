@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import { Phone, Trash2 } from 'lucide-react';
+import { Phone, Plus, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 import getError from '../hooks/getError';
@@ -764,10 +764,17 @@ const InvoiceRegister = () => {
 									AMOUNT #
 								</th>
 								<th
-									className="action-col"
+									className="action-col flex items-center justify-center"
 									style={{ border: '1px solid #fff', padding: '8px' }}
 								>
-									Action
+									<span>Action</span>
+									<button
+										onClick={addItem}
+										className="text-green-600 hover:text-green-800 ml-2"
+										title="Delete"
+									>
+										<Plus size={18} />
+									</button>
 								</th>
 							</tr>
 						</thead>
@@ -979,21 +986,6 @@ const InvoiceRegister = () => {
 
 				{/* Action Buttons */}
 				<div style={{ textAlign: 'center', marginTop: '20px' }}>
-					<button
-						onClick={addItem}
-						style={{
-							padding: '8px 16px',
-							backgroundColor: '#28a745',
-							color: '#fff',
-							border: 'none',
-							borderRadius: '4px',
-							cursor: 'pointer',
-							fontSize: '14px',
-							marginRight: '10px',
-						}}
-					>
-						Add Item
-					</button>
 					<button
 						onClick={downloadPDF}
 						style={{

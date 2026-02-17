@@ -143,6 +143,7 @@ const AddModal = ({ show, setShow, setLoading, loading }) => {
 								<option value="admin">Admin</option>
 								<option value="secretary">Secretary</option>
 								<option value="finance">Finance</option>
+								<option value="operation">Operations</option>
 							</select>
 						</div>
 						<div className="mb-5">

@@ -46,10 +46,16 @@ const navigationList = [
 		roles: ['admin'],
 	},
 	{
-		name: 'Invoice/Register',
+		name: 'Invoice',
 		link: '/registered-invoices',
 		svg: <FileText className="h-4 w-4" />,
-		roles: ['admin'],
+		roles: ['admin', 'operation'],
+	},
+	{
+		name: 'Register',
+		link: '/waybills',
+		svg: <FilePlus className="h-4 w-4" />,
+		roles: ['admin', 'operation'],
 	},
 	// {
 	// 	name: 'Payment',

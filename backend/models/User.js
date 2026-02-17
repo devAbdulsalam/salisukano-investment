@@ -43,11 +43,18 @@ const UserSchema = new mongoose.Schema(
 		},
 		role: {
 			type: String,
-			enum: ['user', 'admin', 'superAdmin', 'finance', 'secretary'],
+			enum: [
+				'user',
+				'admin',
+				'superAdmin',
+				'finance',
+				'secretary',
+				'operation',
+			],
 			default: 'admin',
 		},
 	},
-	{ timestamps: true }
+	{ timestamps: true },
 );
 
 // static signup method
