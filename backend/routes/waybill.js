@@ -11,8 +11,8 @@ import {
 
 const router = express.Router();
 // router.use(protect);
-router.route('/').post(createWaybill).get(getWaybills);
 
+router.route('/').post(createWaybill).get(getWaybills);
 router.route('/:id').get(getWaybill).put(updateWaybill).delete(deleteWaybill);
 
 export default router;

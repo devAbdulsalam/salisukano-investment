@@ -25,6 +25,38 @@ export const fetchDashboard = async (user) => {
 		return error;
 	}
 };
+export const fetchRegisteredWaybills = async (user) => {
+	try {
+		const config = {
+			headers: {
+				Authorization: `Bearer ${user?.token}`,
+			},
+		};
+		const { data } = await axios.get(`${apiUrl}/waybill-registers`, config);
+		console.log('waybill-registers', data);
+		return data.data;
+	} catch (error) {
+		console.log(error.message);
+		return error;
+	}
+};
+export const fetchRegisteredWaybill = async (id, user) => {
+	try {
+		const config = {
+			headers: {
+				Authorization: `Bearer ${user?.token}`,
+			},
+		};
+		const { data } = await axios.get(
+			`${apiUrl}/waybill-registers/${id}`,
+			config,
+		);
+		return data;
+	} catch (error) {
+		console.log(error.message);
+		return error;
+	}
+};
 export const fetchWaybills = async (user) => {
 	try {
 		const config = {
@@ -121,7 +153,7 @@ export const fetchDetailSummary = async (prop) => {
 		};
 		const { data } = await axios.get(
 			`${apiUrl}/${parent}/${id}/summary`,
-			config
+			config,
 		);
 		return data;
 	} catch (error) {
@@ -359,7 +391,7 @@ export const fetchCredit = async (prop) => {
 		};
 		const { data } = await axios.get(
 			`${apiUrl}/creditors/${creditId}/credit`,
-			config
+			config,
 		);
 		return data;
 	} catch (error) {
@@ -408,7 +440,7 @@ export const fetchCompanyMonthlyCredits = async (prop) => {
 		};
 		const { data } = await axios.get(
 			`${apiUrl}/creditors/${id}/month/${month}/company/${companyId}`,
-			config
+			config,
 		);
 		return data;
 	} catch (error) {
@@ -426,7 +458,7 @@ export const fetchCreditorMonthlyCredits = async (prop) => {
 		};
 		const { data } = await axios.get(
 			`${apiUrl}/creditors/${id}/month/${month}`,
-			config
+			config,
 		);
 		return data;
 	} catch (error) {
@@ -473,7 +505,7 @@ export const fetchCustomerReport = async (prop) => {
 		};
 		const { data } = await axios.get(
 			`${apiUrl}/customers/${prop.id}/report`,
-			config
+			config,
 		);
 		return data;
 	} catch (error) {
@@ -521,7 +553,7 @@ export const fetchProductCategoryDetail = async (prop) => {
 		};
 		const { data } = await axios.get(
 			`${apiUrl}/products/category/${id}`,
-			config
+			config,
 		);
 		return data;
 	} catch (error) {
@@ -540,7 +572,7 @@ export const fetchProductCategoryAndSubCategory = async (prop) => {
 		};
 		const { data } = await axios.get(
 			`${apiUrl}/products/category/sub-category`,
-			config
+			config,
 		);
 		return data;
 	} catch (error) {
@@ -571,7 +603,7 @@ export const fetchTransaction = async (prop) => {
 		};
 		const { data } = await axios.get(
 			`${apiUrl}/transactions/${prop.id}`,
-			config
+			config,
 		);
 		return data;
 	} catch (error) {
@@ -589,7 +621,7 @@ export const fetchCurrentAccount = async (prop) => {
 		console.log(prop);
 		const { data } = await axios.get(
 			`${apiUrl}/accounts/active/${prop.id}`,
-			config
+			config,
 		);
 		return data;
 	} catch (error) {
@@ -607,7 +639,7 @@ export const fetchAccountCommmission = async (prop) => {
 
 		const { data } = await axios.get(
 			`${apiUrl}/accounts/commission/${prop.id}`,
-			config
+			config,
 		);
 		return data;
 	} catch (error) {
@@ -652,7 +684,7 @@ export const fetchTransactingCustomers = async (prop) => {
 		};
 		const { data } = await axios.get(
 			`${apiUrl}/customers/transacting-customers`,
-			config
+			config,
 		);
 		return data;
 	} catch (error) {
@@ -660,4 +692,3 @@ export const fetchTransactingCustomers = async (prop) => {
 		return error;
 	}
 };
- 

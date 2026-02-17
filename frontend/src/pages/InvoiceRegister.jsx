@@ -146,7 +146,7 @@ const InvoiceRegister = () => {
 		note: '',
 		date: new Date().toISOString().split('T')[0], // YYYY-MM-DD for input[type=date]
 		timeIn: TIME_SLOTS[0],
-		timeOut: TIME_SLOTS[0],
+		timeOut: TIME_SLOTS[1],
 	});
 
 	// Items state
@@ -453,7 +453,7 @@ const InvoiceRegister = () => {
 								display: 'inline-block',
 							}}
 						>
-							WAYBILL/RECEIPT
+							INOVICE/RECEIPT
 						</h3>
 					</div>
 
@@ -915,7 +915,9 @@ const InvoiceRegister = () => {
 						<strong>Other Comments</strong>{' '}
 						<textarea
 							value={formData.note}
-							onChange={(e) => setFormData('note', e.target.value)}
+							onChange={(e) =>
+								setFormData({ ...formData, note: e.target.value })
+							}
 							style={{
 								width: '100%',
 								outline: 'none',

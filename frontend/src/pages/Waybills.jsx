@@ -8,7 +8,7 @@ import { Eye, Pencil, Trash2, Search, ArrowUpDown } from 'lucide-react';
 import Loader from '../components/Loader';
 import getError from '../hooks/getError';
 import AuthContext from '../context/authContext';
-import { fetchWaybills } from '../hooks/axiosApis';
+import { fetchRegisteredWaybills } from '../hooks/axiosApis';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -26,12 +26,12 @@ const InvoicesPage = () => {
 
 	// Fetch invoices
 	const {
-		data: invoices = [],
+		data: waybills = [],
 		isLoading,
 		error,
 	} = useQuery({
-		queryKey: ['waybills'],
-		queryFn: async () => fetchWaybills(user),
+		queryKey: ['waybill-registers'],
+		queryFn: async () => fetchRegisteredWaybills(user),
 	});
 
 	const config = {
@@ -40,10 +40,10 @@ const InvoicesPage = () => {
 	// Delete mutation
 	const deleteMutation = useMutation({
 		mutationFn: async (id) => {
-			await axios.delete(`${API_URL}/waybills/${id}`, config);
+			await axios.delete(`${API_URL}/waybill-registers/${id}`, config);
 		},
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['waybills'] });
+			queryClient.invalidateQueries({ queryKey: ['waybill-registers'] });
 			toast.success('Invoice deleted successfully');
 		},
 		onError: (err) => {
@@ -59,8 +59,8 @@ const InvoicesPage = () => {
 	};
 
 	// Filter and sort data
-	const filteredAndSortedInvoices = useMemo(() => {
-		let filtered = [...invoices];
+	const filteredAndSortedWaybills = useMemo(() => {
+		let filtered = [...waybills];
 
 		// Apply search filter
 		if (searchTerm) {
@@ -85,8 +85,8 @@ const InvoicesPage = () => {
 					bVal = new Date(bVal).getTime();
 				}
 
-				// Handle numbers (total)
-				if (sortConfig.key === 'total') {
+				// Handle numbers (net)
+				if (sortConfig.key === 'net') {
 					aVal = aVal || 0;
 					bVal = bVal || 0;
 				}
@@ -98,7 +98,7 @@ const InvoicesPage = () => {
 		}
 
 		return filtered;
-	}, [invoices, searchTerm, sortConfig]);
+	}, [waybills, searchTerm, sortConfig]);
 
 	// Toggle sort direction
 	const requestSort = (key) => {
@@ -127,13 +127,11 @@ const InvoicesPage = () => {
 			{/* Header */}
 			<div className="flex justify-between items-center mb-6">
 				<h1 className="text-xl md:text-3xl font-bold text-gray-800">
-					<span
-						className="text-blue-600"
-						onClick={() => navigate(`/registered-invoices`)}
-					>
-						Invoice
-					</span>{' '}
-					/ <span onClick={() => navigate(`/waybills`)}>Waybill</span>
+					<span onClick={() => navigate(`/registered-invoices`)}>Invoice</span>{' '}
+					/{' '}
+					<span className="text-blue-600" onClick={() => navigate(`/waybills`)}>
+						Waybill
+					</span>
 				</h1>
 				<div className="flex gap-2 flex-col md:flex-row">
 					<button
@@ -182,18 +180,6 @@ const InvoicesPage = () => {
 							</th>
 							<th
 								className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-								onClick={() => requestSort('vehicle')}
-							>
-								<div className="flex items-center gap-1">
-									Vehicle
-									<ArrowUpDown size={14} />
-								</div>
-							</th>
-							<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-								Destination
-							</th>
-							<th
-								className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
 								onClick={() => requestSort('date')}
 							>
 								<div className="flex items-center gap-1">
@@ -203,10 +189,46 @@ const InvoicesPage = () => {
 							</th>
 							<th
 								className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-								onClick={() => requestSort('total')}
+								onClick={() => requestSort('vehicle')}
 							>
 								<div className="flex items-center gap-1">
-									Total (₦)
+									Vehicle
+									<ArrowUpDown size={14} />
+								</div>
+							</th>
+							<th
+								className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+								onClick={() => requestSort('gross')}
+							>
+								<div className="flex items-center gap-1">
+									Gross (KG)
+									<ArrowUpDown size={14} />
+								</div>
+							</th>
+							<th
+								className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+								onClick={() => requestSort('tare')}
+							>
+								<div className="flex items-center gap-1">
+									Tare (KG)
+									<ArrowUpDown size={14} />
+								</div>
+							</th>
+							<th
+								className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+								onClick={() => requestSort('dust')}
+							>
+								<div className="flex items-center gap-1">
+									Dust (KG)
+									<ArrowUpDown size={14} />
+								</div>
+							</th>
+							<th
+								className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+								onClick={() => requestSort('net')}
+							>
+								<div className="flex items-center gap-1">
+									Net (KG)
 									<ArrowUpDown size={14} />
 								</div>
 							</th>
@@ -216,14 +238,14 @@ const InvoicesPage = () => {
 						</tr>
 					</thead>
 					<tbody className="bg-white divide-y divide-gray-200">
-						{filteredAndSortedInvoices.length === 0 ? (
+						{filteredAndSortedWaybills.length === 0 ? (
 							<tr>
 								<td colSpan="7" className="px-6 py-4 text-center text-gray-500">
 									No invoices found.
 								</td>
 							</tr>
 						) : (
-							filteredAndSortedInvoices.map((invoice, index) => (
+							filteredAndSortedWaybills.map((invoice, index) => (
 								<tr key={invoice._id} className="hover:bg-gray-50">
 									<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
 										{index + 1}
@@ -232,23 +254,27 @@ const InvoicesPage = () => {
 										{invoice.name}
 									</td>
 									<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+										{formatDate(invoice.date)}
+									</td>
+									<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
 										{invoice.vehicle}
 									</td>
 									<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-										{invoice.destination}
+										{invoice.gross?.toLocaleString()}
 									</td>
 									<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-										{formatDate(invoice.date)}
+										{invoice.tare?.toLocaleString()}
+									</td>
+									<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+										{invoice.dust?.toLocaleString()}
 									</td>
 									<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-										₦{invoice.total?.toLocaleString()}
+										₦{invoice.net?.toLocaleString()}
 									</td>
 									<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
 										<div className="flex items-center gap-3">
 											<button
-												onClick={() =>
-													navigate(`/register-invoices/${invoice._id}`)
-												}
+												onClick={() => navigate(`/waybill/${invoice._id}`)}
 												className="text-blue-600 hover:text-blue-800"
 												title="View/Edit"
 											>
