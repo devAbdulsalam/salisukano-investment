@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 import axios from 'axios';
 import getError from '../hooks/getError';
 import Loader from '../components/Loader';
-import { fetchWaybill } from '../hooks/axiosApis';
+import { fetchWaybill, fetchCustomers } from '../hooks/axiosApis';
 import logo from '../assets/logo.png';
 import seal from '../assets/seal.png';
 import AuthContext from '../context/authContext';
@@ -127,13 +127,17 @@ const InvoiceRegister = () => {
 	const apiUrl = import.meta.env.VITE_API_URL;
 	const isEdit = Boolean(id);
 	const { user } = useContext(AuthContext);
+	const [customerMode, setCustomerMode] = useState('new'); // 'new' or 'existing'
 	// Fetch invoice data if editing
 	const { data: fetchedData, isLoading: isFetching } = useQuery({
 		queryKey: ['waybills', id],
 		queryFn: () => fetchWaybill(id, user),
 		enabled: isEdit,
 	});
-
+	const { data: companies } = useQuery({
+		queryKey: ['customers'],
+		queryFn: async () => fetchCustomers(user),
+	});
 	// Local state for the form
 	const [formData, setFormData] = useState({
 		name: '',
@@ -297,7 +301,7 @@ const InvoiceRegister = () => {
 		if (!originalElement) return;
 		// Clone the element to avoid modifying the live DOM
 		const clone = originalElement.cloneNode(true);
-		
+
 		// Remove the action column header and all delete buttons
 		clone
 			.querySelectorAll('.action-col, .delete-cell')
@@ -356,7 +360,7 @@ const InvoiceRegister = () => {
 			.finally(() => {
 				if (document.body.contains(clone)) document.body.removeChild(clone);
 			});
-	};;
+	};
 
 	if (isFetching) return <Loader />;
 
@@ -454,6 +458,27 @@ const InvoiceRegister = () => {
 					</div>
 
 					{/* Customer Details */}
+					{/* Toggle between new and existing customer */}
+					<div className="action-col" style={{ marginBottom: '8px' }}>
+						<label>
+							<input
+								type="radio"
+								value="new"
+								checked={customerMode === 'new'}
+								onChange={() => setCustomerMode('new')}
+							/>
+							<span style={{ paddingLeft: '5px' }}>New customer</span>
+						</label>
+						<label style={{ marginLeft: '12px' }}>
+							<input
+								type="radio"
+								value="existing"
+								checked={customerMode === 'existing'}
+								onChange={() => setCustomerMode('existing')}
+							/>
+							<span style={{ paddingLeft: '5px' }}>Select existing</span>
+						</label>
+					</div>
 					<div
 						style={{
 							display: 'flex',
@@ -462,27 +487,69 @@ const InvoiceRegister = () => {
 							gap: '10px',
 						}}
 					>
-						<div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
-							<strong
-								style={{
-									whiteSpace: 'nowrap',
-								}}
-							>
-								CUSTOMER NAME:
-							</strong>
-							<input
-								type="text"
-								value={formData.name}
-								onChange={(e) =>
-									setFormData({ ...formData, name: e.target.value })
-								}
-								style={{
-									width: '100%',
-									marginLeft: '5px',
-									border: '1px solid #000',
-									padding: '2px',
-								}}
-							/>
+						<div
+							style={{
+								flex: 1,
+								display: 'flex',
+								justifyContent: 'space-between',
+							}}
+						>
+							{/* Conditionally render input or select */}
+							{customerMode === 'new' ? (
+								<>
+									<strong
+										style={{
+											whiteSpace: 'nowrap',
+										}}
+									>
+										CUSTOMER NAME:
+									</strong>
+									<input
+										id="newCustomer"
+										type="text"
+										value={formData.name}
+										onChange={(e) =>
+											setFormData({ ...formData, name: e.target.value })
+										}
+										style={{
+											width: '100%',
+											border: '1px solid #000',
+											padding: '2px',
+											marginLeft: '5px',
+										}}
+									/>
+								</>
+							) : (
+								<>
+									<strong
+										style={{
+											whiteSpace: 'nowrap',
+										}}
+									>
+										CUSTOMER NAME:
+									</strong>
+									<select
+										id="existingCustomer"
+										style={{
+											border: '1px solid #000',
+											width: '100%',
+											padding: '2px',
+											marginLeft: '5px',
+										}}
+										value={formData.name}
+										onChange={(e) =>
+											setFormData({ ...formData, name: e.target.value })
+										}
+									>
+										<option value="">-- Select a customer --</option>
+										{companies.map((data) => (
+											<option key={data._id} value={data.name}>
+												{data.name}
+											</option>
+										))}
+									</select>
+								</>
+							)}
 						</div>
 						<div
 							style={{
@@ -778,7 +845,11 @@ const InvoiceRegister = () => {
 									</td>
 									<td
 										className="delete-cell"
-										style={{ border: '0.5px solid #000', padding: '8px', textAlign: 'center' }}
+										style={{
+											border: '0.5px solid #000',
+											padding: '8px',
+											textAlign: 'center',
+										}}
 									>
 										<button
 											onClick={() => removeItem(item.sn)}
