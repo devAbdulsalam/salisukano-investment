@@ -134,7 +134,7 @@ const InvoiceRegister = () => {
 		queryFn: () => fetchWaybill(id, user),
 		enabled: isEdit,
 	});
-	const { data: companies } = useQuery({
+	const { data: companies, isLoading } = useQuery({
 		queryKey: ['customers'],
 		queryFn: async () => fetchCustomers(user),
 	});
@@ -453,12 +453,13 @@ const InvoiceRegister = () => {
 								display: 'inline-block',
 							}}
 						>
-							INOVICE/RECEIPT
+							INVOICE/RECEIPT
 						</h3>
 					</div>
 
 					{/* Customer Details */}
 					{/* Toggle between new and existing customer */}
+					{/* 
 					<div className="action-col" style={{ marginBottom: '8px' }}>
 						<label>
 							<input
@@ -478,7 +479,8 @@ const InvoiceRegister = () => {
 							/>
 							<span style={{ paddingLeft: '5px' }}>Select existing</span>
 						</label>
-					</div>
+					</div> 
+					*/}
 					<div
 						style={{
 							display: 'flex',
@@ -494,62 +496,27 @@ const InvoiceRegister = () => {
 								justifyContent: 'space-between',
 							}}
 						>
-							{/* Conditionally render input or select */}
-							{customerMode === 'new' ? (
-								<>
-									<strong
-										style={{
-											whiteSpace: 'nowrap',
-										}}
-									>
-										CUSTOMER NAME:
-									</strong>
-									<input
-										id="newCustomer"
-										type="text"
-										value={formData.name}
-										onChange={(e) =>
-											setFormData({ ...formData, name: e.target.value })
-										}
-										style={{
-											width: '100%',
-											border: '1px solid #000',
-											padding: '2px',
-											marginLeft: '5px',
-										}}
-									/>
-								</>
-							) : (
-								<>
-									<strong
-										style={{
-											whiteSpace: 'nowrap',
-										}}
-									>
-										CUSTOMER NAME:
-									</strong>
-									<select
-										id="existingCustomer"
-										style={{
-											border: '1px solid #000',
-											width: '100%',
-											padding: '2px',
-											marginLeft: '5px',
-										}}
-										value={formData.name}
-										onChange={(e) =>
-											setFormData({ ...formData, name: e.target.value })
-										}
-									>
-										<option value="">-- Select a customer --</option>
-										{companies.map((data) => (
-											<option key={data._id} value={data.name}>
-												{data.name}
-											</option>
-										))}
-									</select>
-								</>
-							)}
+							<strong
+								style={{
+									whiteSpace: 'nowrap',
+								}}
+							>
+								CUSTOMER NAME:
+							</strong>
+							<input
+								id="newCustomer"
+								type="text"
+								value={formData.name}
+								onChange={(e) =>
+									setFormData({ ...formData, name: e.target.value })
+								}
+								style={{
+									width: '100%',
+									border: '1px solid #000',
+									padding: '2px',
+									marginLeft: '5px',
+								}}
+							/>
 						</div>
 						<div
 							style={{
@@ -664,19 +631,26 @@ const InvoiceRegister = () => {
 							>
 								DESTINATION:
 							</strong>
-							<input
-								type="text"
+
+							<select
+								id="existingCustomer"
+								style={{
+									border: '1px solid #000',
+									width: '100%',
+									padding: '2px',
+									marginLeft: '5px',
+								}}
 								value={formData.destination}
 								onChange={(e) =>
 									setFormData({ ...formData, destination: e.target.value })
 								}
-								style={{
-									width: '100%',
-									marginLeft: '5px',
-									border: '1px solid #000',
-									padding: '2px',
-								}}
-							/>
+							>
+								{companies?.map((data) => (
+									<option key={data._id} value={data.name}>
+										{data.name}
+									</option>
+								))}
+							</select>
 						</div>
 						<div
 							style={{
@@ -779,7 +753,7 @@ const InvoiceRegister = () => {
 							</tr>
 						</thead>
 						<tbody>
-							{items.map((item, index) => (
+							{items?.map((item, index) => (
 								<tr key={index}>
 									<td
 										style={{
@@ -1018,7 +992,7 @@ const InvoiceRegister = () => {
 					</button>
 				</div>
 			</div>
-			{(isFetching || saving) && <Loader />}
+			{(isFetching || isLoading || saving) && <Loader />}
 		</>
 	);
 };
