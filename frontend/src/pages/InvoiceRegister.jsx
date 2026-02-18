@@ -129,7 +129,6 @@ const InvoiceRegister = () => {
 	const isEdit = Boolean(id);
 	const { user } = useContext(AuthContext);
 	const [loading, setLoading] = useState(false);
-	const [loadingText, setLoadingText] = useState('Saving invoice...');
 	const [logoBase64, setLogoBase64] = useState('');
 	const [sealBase64, setSealBase64] = useState('');
 	const [phoneBase64, setPhoneBase64] = useState('new'); // 'new' or 'existing'
@@ -339,9 +338,7 @@ const InvoiceRegister = () => {
 
 	// Generate PDF from the waybill preview
 	const downloadPDF = async () => {
-		// const generateWaybillPDF = async () => {
 		setLoading(true);
-		setLoadingText('Generating Waybill...');
 
 		try {
 			const doc = new jsPDF('p', 'mm', 'a4');
@@ -391,7 +388,7 @@ const InvoiceRegister = () => {
 					phoneBase64,
 					'PNG',
 					phoneX - 30, // move left from right margin
-					20, // slightly above 23 for vertical center
+					18, // slightly above 23 for vertical center
 					10, // width (small)
 					10, // height
 				);
@@ -1237,7 +1234,7 @@ const InvoiceRegister = () => {
 							marginRight: '10px',
 						}}
 					>
-						Download Waybill as PDF
+						{loading ? 'Loading...' : '	Download Waybill'}
 					</button>
 					<button
 						onClick={handleSave}
@@ -1256,7 +1253,7 @@ const InvoiceRegister = () => {
 					</button>
 				</div>
 			</div>
-			{(isFetching || isLoading || saving) && <Loader />}
+			{(isFetching || saving) && <Loader />}
 		</>
 	);
 };

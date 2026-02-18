@@ -279,7 +279,7 @@ const InvoicesPage = () => {
 										{invoice.dust?.toLocaleString()}
 									</td>
 									<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-										₦{invoice.net?.toLocaleString()}
+										{invoice.net?.toLocaleString()}
 									</td>
 									<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
 										<div className="flex items-center gap-3">
