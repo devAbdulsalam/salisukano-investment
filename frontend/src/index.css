@@ -14,6 +14,15 @@
 	background-image: url(/download.jfif) !important;
 }
 
+.pdf-mode input,
+.pdf-mode select,
+.pdf-mode textarea {
+	border: none !important;
+	outline: none !important;
+	background: transparent !important;
+	pointer-events: none !important;
+}
+
 /* main {
 	background: #7aa52e;
 	background: -moz-linear-gradient(-45deg, #96c93d 1%, #00b09b 100%);
@@ -108,27 +117,26 @@ tr th:first-child {
 	border: 1px red solid;
 }
 
-
 /* body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
 } */
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+	width: 8px;
+	height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
+	background: #f1f1f1;
+	border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 4px;
+	background: #888;
+	border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+	background: #555;
 }

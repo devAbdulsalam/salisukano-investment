@@ -12,7 +12,6 @@ import autoTable from 'jspdf-autotable';
 import { fetchWaybill, fetchCustomers } from '../hooks/axiosApis';
 import logo from '../assets/logo.png';
 import seal from '../assets/seal.png';
-import phone from '../assets/call.png';
 import AuthContext from '../context/authContext';
 
 // Helper: generate a unique filename suffix
@@ -133,7 +132,7 @@ const InvoiceRegister = () => {
 	const [loadingText, setLoadingText] = useState('Saving invoice...');
 	const [logoBase64, setLogoBase64] = useState('');
 	const [sealBase64, setSealBase64] = useState('');
-	const [phoneBase64, setPhoneBase64] = useState('new'); // 'new' or 'existing'
+	const [customerMode, setCustomerMode] = useState('new'); // 'new' or 'existing'
 	// Fetch invoice data if editing
 	const { data: fetchedData, isLoading: isFetching } = useQuery({
 		queryKey: ['waybills', id],
@@ -301,6 +300,11 @@ const InvoiceRegister = () => {
 		}
 	};
 
+	const handleChange = (e) => {
+		const { name, value } = e.target;
+		console.log(name, value);
+		setFormData((prev) => ({ ...prev, [name]: value }));
+	};
 	// Load logo as base64
 	useEffect(() => {
 		const img = new Image();
@@ -328,296 +332,91 @@ const InvoiceRegister = () => {
 			setSealBase64(canvas.toDataURL('image/png'));
 		};
 	}, []);
-	useEffect(() => {
-		const img = new Image();
-		img.crossOrigin = 'anonymous';
-		img.src = phone;
-		img.onload = () => {
-			const canvas = document.createElement('canvas');
-			canvas.width = img.width;
-			canvas.height = img.height;
-			const ctx = canvas.getContext('2d');
-			ctx?.drawImage(img, 0, 0);
-			setPhoneBase64(canvas.toDataURL('image/png'));
-		};
-	}, []);
 
-	// Generate PDF from the waybill preview
 	const downloadPDF = async () => {
-		// const generateWaybillPDF = async () => {
 		setLoading(true);
-		setLoadingText('Generating Waybill...');
-
+		setLoadingText('Generating invoice...');
 		try {
-			const doc = new jsPDF('p', 'mm', 'a4');
+			const doc = new jsPDF();
 			const pageWidth = doc.internal.pageSize.getWidth();
-			const pageHeight = doc.internal.pageSize.getHeight();
 
-			// ===============================
-			// HEADER SECTION
-			// ===============================
-
+			// Add logo
 			if (logoBase64) {
-				doc.addImage(logoBase64, 'PNG', 14, 10, 25, 25);
+				doc.addImage(logoBase64, 'PNG', 14, 10, 30, 22);
 			}
-
-			doc.setFont('helvetica', 'bold');
-			doc.setFontSize(16);
-			doc.text('SALISU KANO INTERNATIONAL LIMITED', pageWidth / 2, 18, {
-				align: 'center',
-			});
-
-			doc.setFontSize(10);
-			doc.setFont('helvetica', 'normal');
-			doc.text(
-				"Scrap Materials' Suppliers and General Contractors",
-				pageWidth / 2,
-				24,
-				{ align: 'center' },
-			);
-
-			doc.text(
-				'No. 2 & 3 Block P, Dalar Gyade Market, Kano State',
-				pageWidth / 2,
-				29,
-				{ align: 'center' },
-			);
-			// Phone Numbers
-			const phoneX = pageWidth - 14;
-
-			doc.text('08067237273', phoneX, 18, { align: 'right' });
-
-			// Second number with icon
-			doc.text('08030675636', phoneX, 23, { align: 'right' });
-
-			// Small phone icon before second number
-			if (phoneBase64) {
-				doc.addImage(
-					phoneBase64,
-					'PNG',
-					phoneX - 30, // move left from right margin
-					20, // slightly above 23 for vertical center
-					10, // width (small)
-					10, // height
-				);
-			}
-
-			doc.text('08164927179', phoneX, 28, { align: 'right' });
-
-			// Title
-			doc.setFont('helvetica', 'bold');
-			doc.setFontSize(14);
-			doc.setFillColor(0);
-			doc.rect(pageWidth / 2 - 30, 35, 60, 10, 'F');
-			doc.setTextColor(255);
-
-			doc.setLineWidth(0.4);
-			doc.line(14, 40, pageWidth - 14, 40);
-
-			doc.text('WAYBILL / RECEIPT', pageWidth / 2, 42, { align: 'center' });
-			doc.setTextColor(0);
-
-			// ===============================
-			// CUSTOMER INFO SECTION
-			// ===============================
-
-			let infoY = 55;
-
-			doc.setFontSize(10);
-
-			doc.setFont('helvetica', 'bold');
-			doc.text('Customer Name:', 14, infoY);
-			doc.text('Date:', pageWidth - 60, infoY);
-
-			doc.setFont('helvetica', 'normal');
-			doc.text(formData.name || '-', 45, infoY);
-			doc.text(formData.date || '-', pageWidth - 40, infoY);
-
-			infoY += 8;
-
-			doc.setFont('helvetica', 'bold');
-			doc.text('Vehicle Reg. No:', 14, infoY);
-			doc.text('Time In:', pageWidth - 60, infoY);
-
-			doc.setFont('helvetica', 'normal');
-			doc.text(formData.vehicle || '-', 45, infoY);
-			doc.text(formData.timeIn || '-', pageWidth - 40, infoY);
-
-			infoY += 8;
-
-			doc.setFont('helvetica', 'bold');
-			doc.text('Deliver To:', 14, infoY);
-			doc.text('Time Out:', pageWidth - 60, infoY);
-
-			doc.setFont('helvetica', 'normal');
-			doc.text(formData.destination || '-', 45, infoY);
-			doc.text(formData.timeOut || '-', pageWidth - 40, infoY);
-
-			// doc.setLineWidth(0.4);
-			// doc.line(14, infoY + 5, pageWidth - 14, infoY + 5);
-
-			// ===============================
-			// TABLE SECTION
-			// ===============================
-
-			const tableStartY = infoY + 10;
-
-			// Prepare filled rows
-			const filledRows = items
-				.filter(
-					(item) => item.description || item.qty || item.rate || item.amount,
-				)
-				.map((item, index) => [
-					index + 1,
-					item.description || '',
-					item.qty || '',
-					item.rate ? parseFloat(item.rate).toLocaleString() : '',
-					item.amount ? parseFloat(item.amount).toLocaleString() : '',
-				]);
-
-			// Ensure minimum 10 rows
-			while (filledRows.length < 10) {
-				filledRows.push(['', '', '', '', '']);
-			}
-
-			autoTable(doc, {
-				startY: tableStartY,
-				head: [
-					[
-						'S/N',
-						'Description of Goods',
-						'Qty/Tonnage',
-						'Rate/KG',
-						'Amount (#)',
-					],
-				],
-				body: filledRows,
-				theme: 'grid',
-				styles: {
-					fontSize: 9,
-					cellPadding: 3,
-					lineColor: [0, 0, 0],
-					lineWidth: 0.3,
-				},
-				headStyles: {
-					fillColor: [0, 0, 0],
-					textColor: 255,
-					fontStyle: 'bold',
-					lineWidth: 0.5,
-				},
-				columnStyles: {
-					0: { cellWidth: 12, halign: 'center' },
-					1: { cellWidth: 'auto' },
-					2: { cellWidth: 25, halign: 'right' },
-					3: { cellWidth: 25, halign: 'right' },
-					4: { cellWidth: 30, halign: 'right' },
-				},
-			});
-
-			let finalY = doc.lastAutoTable.finalY;
-
-			// ===============================
-			// TOTAL SECTION
-			// ===============================
-
-			const totalY = finalY + 6;
-
-			doc.setFont('helvetica', 'bold');
-			doc.setFontSize(11);
-
-			const amountText = `# ${total.toLocaleString()}`;
-			const labelText = 'TOTAL:';
-
-			// Measure widths
-			const amountWidth = doc.getTextWidth(amountText);
-			const labelWidth = doc.getTextWidth(labelText);
-
-			// Right margin
-			const rightMargin = 14;
-
-			// Position amount (always right aligned)
-			const amountX = pageWidth - rightMargin;
-
-			// Add amount
-			doc.text(amountText, amountX, totalY, { align: 'right' });
-
-			// Calculate label position dynamically
-			const spacing = 6; // space between label and amount
-			const labelX = amountX - amountWidth - spacing - labelWidth;
-
-			// Add label
-			doc.text(labelText, labelX, totalY);
-			doc.setLineWidth(0.4);
-			doc.line(pageWidth - 60, totalY + 2, pageWidth - 14, totalY + 2);
-
-			// ===============================
-			// AMOUNT IN WORDS
-			// ===============================
-
-			const wordsY = totalY + 12;
-
-			doc.setFont('helvetica', 'bold');
-			doc.text('Amount in Words:', 14, wordsY);
-
-			doc.setLineWidth(0.4);
-			doc.rect(14, wordsY + 3, pageWidth - 28, 15);
-
-			doc.setFont('helvetica', 'normal');
-			doc.setFontSize(9);
-
-			const words = numberToWords(total);
-			const splitWords = doc.splitTextToSize(words, pageWidth - 32);
-			doc.text(splitWords, 16, wordsY + 9);
-
-			// ===============================
-			// OTHER COMMENTS
-			// ===============================
-
-			const commentY = wordsY + 25;
-
-			doc.setFont('helvetica', 'bold');
-			doc.text('Other Comments:', 14, commentY);
-
-			doc.rect(14, commentY + 3, pageWidth - 28, 20);
-
-			doc.setFont('helvetica', 'normal');
-			doc.setFontSize(9);
-
-			if (formData.note) {
-				const noteLines = doc.splitTextToSize(formData.note, pageWidth - 32);
-				doc.text(noteLines, 16, commentY + 9);
-			}
-
-			// ===============================
-			// SIGNATURE SECTION
-			// ===============================
-
-			const footerY = pageHeight - 30;
-
-			doc.setLineWidth(0.4);
-
-			doc.line(14, footerY, 80, footerY);
-			doc.text("Customer's Representative", 14, footerY + 5);
-
-			doc.line(pageWidth - 80, footerY, pageWidth - 14, footerY);
-			doc.text("Agent's Signature", pageWidth - 80, footerY + 5);
-			doc.text("For: Salisu Kano Int'l Ltd", pageWidth - 80, footerY + 10);
-
-			if (sealBase64) {
-				doc.addImage(sealBase64, 'PNG', pageWidth - 60, footerY - 20, 30, 30);
-			}
-
-			// ===============================
-			// SAVE FILE
-			// ===============================
-
-			doc.save(`Waybill-${generateFileSuffix()}.pdf`);
 		} catch (error) {
-			console.error(error);
-			toast.error('Failed to generate PDF');
+			console.error('Error generating PDF:', error);
 		} finally {
 			setLoading(false);
 		}
+	};
+
+	// Generate PDF from the waybill preview
+	const downloadPDF = async () => {
+		console.log('downloading formdata', formData);
+		const originalElement = document.getElementById('waybill');
+		if (!originalElement) return;
+		// Clone the element to avoid modifying the live DOM
+		const clone = originalElement.cloneNode(true);
+
+		// Remove the action column header and all delete buttons
+		clone
+			.querySelectorAll('.action-col, .delete-cell')
+			.forEach((el) => el.remove());
+
+		// Replace all inputs with divs showing the current value
+		const inputs = clone.querySelectorAll('input, select');
+		inputs.forEach((input) => {
+			const div = document.createElement('div');
+			div.textContent =
+				input.value || input.options?.[input.selectedIndex]?.text || '';
+			// Copy basic styles to preserve layout
+			div.style.width = '100%';
+			div.style.border = 'none';
+			div.style.padding = '5px';
+			div.style.boxSizing = 'border-box';
+			div.style.fontFamily = 'inherit';
+			div.style.fontSize = 'inherit';
+			input.parentNode.replaceChild(div, input);
+		});
+
+		// Hide clone off-screen for capture
+		clone.style.position = 'absolute';
+		clone.style.left = '-9999px';
+		clone.style.top = '0';
+		document.body.appendChild(clone);
+
+		html2canvas(clone, { scale: 2, backgroundColor: '#ffffff' })
+			.then((canvas) => {
+				const imgData = canvas.toDataURL('image/png');
+				const pdf = new jsPDF('p', 'pt', 'a4');
+				const pageWidth = pdf.internal.pageSize.getWidth();
+				const pageHeight = pdf.internal.pageSize.getHeight();
+				const imgWidth = pageWidth;
+				const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+				let heightLeft = imgHeight;
+				let position = 0;
+				pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+				heightLeft -= pageHeight;
+
+				while (heightLeft > 0) {
+					position = heightLeft - imgHeight;
+					pdf.addPage();
+					pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+					heightLeft -= pageHeight;
+				}
+
+				const suffix = generateFileSuffix();
+				pdf.save(`waybill-${suffix}.pdf`);
+			})
+			.catch((error) => {
+				console.error('PDF generation error:', error);
+				toast.error('Failed to generate PDF');
+			})
+			.finally(() => {
+				if (document.body.contains(clone)) document.body.removeChild(clone);
+			});
 	};
 
 	if (isFetching) return <Loader />;
@@ -771,8 +570,8 @@ const InvoiceRegister = () => {
 								style={{
 									width: '100%',
 									border: '1px solid #000',
-									marginLeft: '5px',
 									padding: '2px',
+									marginLeft: '5px',
 								}}
 							/>
 						</div>
@@ -887,7 +686,7 @@ const InvoiceRegister = () => {
 									whiteSpace: 'nowrap',
 								}}
 							>
-								DELIVER TO:
+								DESTINATION:
 							</strong>
 
 							<select
@@ -898,12 +697,8 @@ const InvoiceRegister = () => {
 									padding: '2px',
 									marginLeft: '5px',
 								}}
-								value={formData.destination}
-								onChange={(e) =>
-									setFormData({ ...formData, destination: e.target.value })
-								}
+								onChange={handleChange}
 							>
-								<option value="">Select Destination</option>
 								{companies?.map((data) => (
 									<option key={data._id} value={data.name}>
 										{data.name}
@@ -1032,20 +827,11 @@ const InvoiceRegister = () => {
 											onChange={(e) =>
 												updateItem(index, 'description', e.target.value)
 											}
-											// style={{
-											// 	width: '100%',
-											// 	border: 'none',
-											// 	outline: 'none',
-											// 	background: 'transparent',
-											// }}
 											style={{
-												marginLeft: '5px',
 												width: '100%',
 												border: 'none',
 												outline: 'none',
-												backgroundColor: '#fff',
-												fontSize: '14px',
-												padding: '2px 0',
+												background: 'transparent',
 											}}
 										/>
 									</td>
@@ -1056,20 +842,11 @@ const InvoiceRegister = () => {
 											type="text"
 											value={item.qty}
 											onChange={(e) => updateItem(index, 'qty', e.target.value)}
-											// style={{
-											// 	width: '100%',
-											// 	border: 'none',
-											// 	outline: 'none',
-											// 	background: 'transparent',
-											// }}
 											style={{
-												marginLeft: '5px',
 												width: '100%',
 												border: 'none',
 												outline: 'none',
-												backgroundColor: '#fff',
-												fontSize: '14px',
-												padding: '2px 0',
+												background: 'transparent',
 											}}
 										/>
 									</td>

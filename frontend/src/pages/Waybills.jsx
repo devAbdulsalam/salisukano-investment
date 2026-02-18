@@ -4,7 +4,14 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
-import { Eye, Pencil, Trash2, Search, ArrowUpDown } from 'lucide-react';
+import {
+	Eye,
+	Pencil,
+	Trash2,
+	Search,
+	ArrowUpDown,
+	Download,
+} from 'lucide-react';
 import Loader from '../components/Loader';
 import getError from '../hooks/getError';
 import AuthContext from '../context/authContext';
@@ -112,6 +119,9 @@ const InvoicesPage = () => {
 	const formatDate = (dateString) => {
 		if (!dateString) return '';
 		return format(new Date(dateString), 'dd/MM/yyyy');
+	};
+	const handleDownloadPDF = async (item) => {
+		console.log(item);
 	};
 
 	if (isLoading) return <Loader />;
@@ -274,6 +284,13 @@ const InvoicesPage = () => {
 									<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
 										<div className="flex items-center gap-3">
 											<button
+												onClick={() => handleDownloadPDF(invoice)}
+												className="text-blue-600 hover:text-blue-800"
+												title="View/Edit"
+											>
+												<Download size={18} />
+											</button>
+											<button
 												onClick={() => navigate(`/waybill/${invoice._id}`)}
 												className="text-blue-600 hover:text-blue-800"
 												title="View/Edit"
@@ -295,9 +312,6 @@ const InvoicesPage = () => {
 					</tbody>
 				</table>
 			</div>
-
-			{/* Optional: Add pagination if needed */}
-			{/* <Pagination /> */}
 		</div>
 	);
 };

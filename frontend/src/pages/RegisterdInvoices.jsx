@@ -17,6 +17,9 @@ const InvoicesPage = () => {
 	const queryClient = useQueryClient();
 	const { user } = useContext(AuthContext);
 
+	const [loading, setLoading] = useState(false);
+	const [loadingText, setLoadingText] = useState('Saving invoice...');
+	const [logoBase64, setLogoBase64] = useState('');
 	// State for search and sort
 	const [searchTerm, setSearchTerm] = useState('');
 	const [sortConfig, setSortConfig] = useState({
