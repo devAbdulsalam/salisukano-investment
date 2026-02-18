@@ -170,7 +170,38 @@ const Waybill = () => {
 			const doc = new jsPDF('p', 'mm', 'a4');
 			const pageWidth = doc.internal.pageSize.getWidth();
 			const pageHeight = doc.internal.pageSize.getHeight();
+			// ===============================
+			// WATERMARK (CENTER BACKGROUND)
+			// ===============================
 
+			if (logoBase64) {
+				// const watermarkWidth = 90; // mini size
+				// const watermarkHeight = 90;
+				const watermarkWidth = 120; // large size
+				const watermarkHeight = 120;
+
+				const centerX = (pageWidth - watermarkWidth) / 2;
+				const centerY = (pageHeight - watermarkHeight) / 2;
+
+				// Set low opacity (requires jsPDF v2+)
+				if (doc.setGState) {
+					doc.setGState(new doc.GState({ opacity: 0.04 }));
+				}
+
+				doc.addImage(
+					logoBase64,
+					'PNG',
+					centerX,
+					centerY,
+					watermarkWidth,
+					watermarkHeight,
+				);
+
+				// Reset opacity
+				if (doc.setGState) {
+					doc.setGState(new doc.GState({ opacity: 1 }));
+				}
+			}
 			// ===============================
 			// CALCULATIONS
 			// ===============================
