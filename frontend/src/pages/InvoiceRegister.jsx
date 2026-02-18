@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import { Phone, Plus, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import axios from 'axios';
@@ -139,10 +138,6 @@ const InvoiceRegister = () => {
 		queryKey: ['waybills', id],
 		queryFn: () => fetchWaybill(id, user),
 		enabled: isEdit,
-	});
-	const { data: companies, isLoading } = useQuery({
-		queryKey: ['customers'],
-		queryFn: async () => fetchCustomers(user),
 	});
 	// Local state for the form
 	const [formData, setFormData] = useState({
@@ -889,27 +884,19 @@ const InvoiceRegister = () => {
 							>
 								DELIVER TO:
 							</strong>
-
-							<select
-								id="existingCustomer"
-								style={{
-									border: '1px solid #000',
-									width: '100%',
-									padding: '2px',
-									marginLeft: '5px',
-								}}
+							<input
+								type="text"
 								value={formData.destination}
 								onChange={(e) =>
 									setFormData({ ...formData, destination: e.target.value })
 								}
-							>
-								<option value="">Select Destination</option>
-								{companies?.map((data) => (
-									<option key={data._id} value={data.name}>
-										{data.name}
-									</option>
-								))}
-							</select>
+								style={{
+									width: '100%',
+									marginLeft: '5px',
+									border: '1px solid #000',
+									padding: '2px',
+								}}
+							/>
 						</div>
 						<div
 							style={{
