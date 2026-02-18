@@ -135,19 +135,13 @@ const InvoicesPage = () => {
 					</span>{' '}
 					/ <span onClick={() => navigate(`/waybills`)}>Register</span>
 				</h1>
-				<div className="flex gap-2 flex-col md:flex-row">
+				{/* <div className="flex gap-2 flex-col md:flex-row"> */}
 					<button
 						onClick={() => navigate('/register-invoices')}
 						className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-					>Invoice
-					</button>
-					<button
-						onClick={() => navigate('/waybill')}
-						className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
 					>
-						Waybill
+						Invoice
 					</button>
-				</div>
 			</div>
 
 			{/* Search Bar */}

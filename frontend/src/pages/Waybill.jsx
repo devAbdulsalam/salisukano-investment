@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 import axios from 'axios';
 import getError from '../hooks/getError';
 import Loader from '../components/Loader';
-import { fetchWaybill, fetchCustomers } from '../hooks/axiosApis';
+import { fetchRegisteredWaybill, fetchCustomers } from '../hooks/axiosApis';
 import logo from '../assets/logo.png';
 import seal from '../assets/seal.png';
 import AuthContext from '../context/authContext';
@@ -27,7 +27,7 @@ const Waybill = () => {
 	// Fetch invoice data if editing
 	const { data: fetchedData, isLoading: isFetching } = useQuery({
 		queryKey: ['waybill-registers', id],
-		queryFn: () => fetchWaybill(id, user),
+		queryFn: () => fetchRegisteredWaybill(id, user),
 		enabled: isEdit,
 	});
 	// Local state for the form

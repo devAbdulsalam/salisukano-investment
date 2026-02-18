@@ -51,7 +51,7 @@ export const fetchRegisteredWaybill = async (id, user) => {
 			`${apiUrl}/waybill-registers/${id}`,
 			config,
 		);
-		return data;
+		return data?.data;
 	} catch (error) {
 		console.log(error.message);
 		return error;

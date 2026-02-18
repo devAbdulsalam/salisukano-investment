@@ -108,6 +108,7 @@ export const getWaybill = async (req, res) => {
 			data: waybill,
 		});
 	} catch (error) {
+		console.log('Error getting waybill', error);
 		res.status(500).json({
 			success: false,
 			message: error.message,
