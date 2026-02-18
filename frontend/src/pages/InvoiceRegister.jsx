@@ -8,7 +8,7 @@ import axios from 'axios';
 import getError from '../hooks/getError';
 import Loader from '../components/Loader';
 import autoTable from 'jspdf-autotable';
-import { fetchWaybill, fetchCustomers } from '../hooks/axiosApis';
+import { fetchWaybill } from '../hooks/axiosApis';
 import logo from '../assets/logo.png';
 import seal from '../assets/seal.png';
 import phone from '../assets/call.png';
@@ -131,7 +131,7 @@ const InvoiceRegister = () => {
 	const [loading, setLoading] = useState(false);
 	const [logoBase64, setLogoBase64] = useState('');
 	const [sealBase64, setSealBase64] = useState('');
-	const [phoneBase64, setPhoneBase64] = useState('new'); // 'new' or 'existing'
+	const [phoneBase64, setPhoneBase64] = useState('');
 	// Fetch invoice data if editing
 	const { data: fetchedData, isLoading: isFetching } = useQuery({
 		queryKey: ['waybills', id],
@@ -406,7 +406,7 @@ const InvoiceRegister = () => {
 			doc.setLineWidth(0.4);
 			doc.line(14, 40, pageWidth - 14, 40);
 
-			doc.text('WAYBILL / RECEIPT', pageWidth / 2, 42, { align: 'center' });
+			doc.text('INVOICE / RECEIPT', pageWidth / 2, 42, { align: 'center' });
 			doc.setTextColor(0);
 
 			// ===============================

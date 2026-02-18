@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useMemo, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import logo from '../assets/logo.png';
+import seal from '../assets/seal.png';
+import phone from '../assets/call.png';
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import { Phone, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 import getError from '../hooks/getError';
 import Loader from '../components/Loader';
 import { fetchRegisteredWaybill, fetchCustomers } from '../hooks/axiosApis';
-import logo from '../assets/logo.png';
-import seal from '../assets/seal.png';
 import AuthContext from '../context/authContext';
 
 // Helper: generate a unique filename suffix
@@ -30,6 +30,10 @@ const Waybill = () => {
 		queryFn: () => fetchRegisteredWaybill(id, user),
 		enabled: isEdit,
 	});
+	const [loading, setLoading] = useState(false);
+	const [logoBase64, setLogoBase64] = useState('');
+	const [sealBase64, setSealBase64] = useState('');
+	const [phoneBase64, setPhoneBase64] = useState('');
 	// Local state for the form
 	// gross = net + dust + tare
 	const [formData, setFormData] = useState({
@@ -41,7 +45,46 @@ const Waybill = () => {
 		date: new Date().toISOString().split('T')[0], // YYYY-MM-DD for input[type=date]
 		note: '',
 	});
-
+	// Load logo as base64
+	useEffect(() => {
+		const img = new Image();
+		img.crossOrigin = 'anonymous';
+		img.src = logo;
+		img.onload = () => {
+			const canvas = document.createElement('canvas');
+			canvas.width = img.width;
+			canvas.height = img.height;
+			const ctx = canvas.getContext('2d');
+			ctx?.drawImage(img, 0, 0);
+			setLogoBase64(canvas.toDataURL('image/png'));
+		};
+	}, []);
+	useEffect(() => {
+		const img = new Image();
+		img.crossOrigin = 'anonymous';
+		img.src = seal;
+		img.onload = () => {
+			const canvas = document.createElement('canvas');
+			canvas.width = img.width;
+			canvas.height = img.height;
+			const ctx = canvas.getContext('2d');
+			ctx?.drawImage(img, 0, 0);
+			setSealBase64(canvas.toDataURL('image/png'));
+		};
+	}, []);
+	useEffect(() => {
+		const img = new Image();
+		img.crossOrigin = 'anonymous';
+		img.src = phone;
+		img.onload = () => {
+			const canvas = document.createElement('canvas');
+			canvas.width = img.width;
+			canvas.height = img.height;
+			const ctx = canvas.getContext('2d');
+			ctx?.drawImage(img, 0, 0);
+			setPhoneBase64(canvas.toDataURL('image/png'));
+		};
+	}, []);
 	// Loading state for save operation
 	const [saving, setSaving] = useState(false);
 
@@ -119,69 +162,202 @@ const Waybill = () => {
 		}
 	};
 
-	// Generate PDF from the waybill preview
-	const downloadPDF = () => {
-		const originalElement = document.getElementById('waybill');
-		if (!originalElement) return;
-		// Clone the element to avoid modifying the live DOM
-		const clone = originalElement.cloneNode(true);
+	// Generate PDF from the waybill preview, half pdf
+	const downloadPDF = async () => {
+		setLoading(true);
 
-		// Remove the action column header and all delete buttons
-		clone.querySelectorAll('.delete-el').forEach((el) => el.remove());
+		try {
+			const doc = new jsPDF('p', 'mm', 'a4');
+			const pageWidth = doc.internal.pageSize.getWidth();
+			const pageHeight = doc.internal.pageSize.getHeight();
 
-		// Replace all inputs with divs showing the current value
-		const inputs = clone.querySelectorAll('input, select');
-		inputs.forEach((input) => {
-			const div = document.createElement('div');
-			div.textContent =
-				input.value || input.options?.[input.selectedIndex]?.text || '';
-			// Copy basic styles to preserve layout
-			div.style.width = '100%';
-			div.style.border = 'none';
-			div.style.padding = '5px';
-			div.style.boxSizing = 'border-box';
-			div.style.fontFamily = 'inherit';
-			div.style.fontSize = 'inherit';
-			input.parentNode.replaceChild(div, input);
-		});
+			// ===============================
+			// CALCULATIONS
+			// ===============================
+			const tare = Number(formData.tare) || 0;
+			const gross = Number(formData.gross) || 0;
+			const dust = Number(formData.dust) || 0;
 
-		// Hide clone off-screen for capture
-		clone.style.position = 'absolute';
-		clone.style.left = '-9999px';
-		clone.style.top = '0';
-		document.body.appendChild(clone);
+			const net = gross - tare - dust;
+			// ===============================
+			// HEADER SECTION
+			// ===============================
 
-		html2canvas(clone, { scale: 2, backgroundColor: '#ffffff' })
-			.then((canvas) => {
-				const imgData = canvas.toDataURL('image/png');
-				const pdf = new jsPDF('p', 'pt', 'a4');
-				const pageWidth = pdf.internal.pageSize.getWidth();
-				const pageHeight = pdf.internal.pageSize.getHeight();
-				const imgWidth = pageWidth;
-				const imgHeight = (canvas.height * imgWidth) / canvas.width;
+			if (logoBase64) {
+				doc.addImage(logoBase64, 'PNG', 14, 10, 25, 25);
+			}
 
-				let heightLeft = imgHeight;
-				let position = 0;
-				pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-				heightLeft -= pageHeight;
-
-				while (heightLeft > 0) {
-					position = heightLeft - imgHeight;
-					pdf.addPage();
-					pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-					heightLeft -= pageHeight;
-				}
-
-				const suffix = generateFileSuffix();
-				pdf.save(`Register-${suffix}.pdf`);
-			})
-			.catch((error) => {
-				console.error('PDF generation error:', error);
-				toast.error('Failed to generate PDF');
-			})
-			.finally(() => {
-				if (document.body.contains(clone)) document.body.removeChild(clone);
+			doc.setFont('helvetica', 'bold');
+			doc.setFontSize(16);
+			doc.text('SALISU KANO INTERNATIONAL LIMITED', pageWidth / 2, 18, {
+				align: 'center',
 			});
+
+			doc.setFontSize(10);
+			doc.setFont('helvetica', 'normal');
+			doc.text(
+				"Scrap Materials' Suppliers and General Contractors",
+				pageWidth / 2,
+				24,
+				{ align: 'center' },
+			);
+
+			doc.text(
+				'No. 2 & 3 Block P, Dalar Gyade Market, Kano State',
+				pageWidth / 2,
+				29,
+				{ align: 'center' },
+			);
+			// Phone Numbers
+			const phoneX = pageWidth - 14;
+
+			doc.text('08067237273', phoneX, 18, { align: 'right' });
+
+			// Second number with icon
+			doc.text('08030675636', phoneX, 23, { align: 'right' });
+
+			// Small phone icon before second number
+			if (phoneBase64) {
+				doc.addImage(
+					phoneBase64,
+					'PNG',
+					phoneX - 30, // move left from right margin
+					18, // slightly above 23 for vertical center
+					10, // width (small)
+					10, // height
+				);
+			}
+
+			doc.text('08164927179', phoneX, 28, { align: 'right' });
+
+			// Title
+			doc.setFont('helvetica', 'bold');
+			doc.setFontSize(14);
+			doc.setFillColor(0);
+			doc.rect(pageWidth / 2 - 30, 35, 60, 10, 'F');
+			doc.setTextColor(255);
+
+			doc.setLineWidth(0.4);
+			doc.line(14, 40, pageWidth - 14, 40);
+
+			doc.text('WAYBILL / RECEIPT', pageWidth / 2, 42, { align: 'center' });
+			doc.setTextColor(0);
+			// Divider line
+			// doc.setLineWidth(0.6);
+			// doc.line(14, 32, pageWidth - 14, 32);
+
+			// ===============================
+			// MAIN CONTENT BOX
+			// ===============================
+
+			let startY = 55;
+
+			// doc.setLineWidth(0.4);
+			// doc.rect(14, startY - 8, pageWidth - 28, 70);
+
+			doc.setFontSize(11);
+
+			// Row spacing
+			const gap = 10;
+
+			// Row 1
+			doc.setFont('helvetica', 'bold');
+			doc.text('Customer Name:', 20, startY);
+			doc.setFont('helvetica', 'normal');
+			doc.text(formData.name || '-', 55, startY);
+
+			doc.setFont('helvetica', 'bold');
+			doc.text('Date:', pageWidth - 90, startY);
+			doc.setFont('helvetica', 'normal');
+			doc.text(
+				new Date(formData.date).toISOString().split('T')[0] || '-',
+				pageWidth - 75,
+				startY,
+			);
+
+			startY += gap;
+
+			// Row 2
+			doc.setFont('helvetica', 'bold');
+			doc.text('Vehicle No:', 20, startY);
+			doc.setFont('helvetica', 'normal');
+			doc.text(formData.vehicle || '-', 55, startY);
+
+			startY += gap;
+
+			// Row 3
+			doc.setFont('helvetica', 'bold');
+			doc.text('Gross Weight:', 20, startY);
+			doc.setFont('helvetica', 'normal');
+			doc.text(`${gross.toLocaleString()} kg`, 55, startY);
+
+			doc.setFont('helvetica', 'bold');
+			doc.text('Tare Weight:', pageWidth - 90, startY);
+			doc.setFont('helvetica', 'normal');
+			doc.text(`${tare.toLocaleString()} kg`, pageWidth - 65, startY);
+
+			startY += gap;
+
+			// Row 4
+			doc.setFont('helvetica', 'bold');
+			doc.text('Dust:', 20, startY);
+			doc.setFont('helvetica', 'normal');
+			doc.text(`${dust.toLocaleString()} kg`, 55, startY);
+
+			doc.setFont('helvetica', 'bold');
+			doc.text('Net Weight:', pageWidth - 90, startY);
+			doc.setFont('helvetica', 'bold');
+			doc.text(`${net.toLocaleString()} kg`, pageWidth - 65, startY);
+
+			startY += gap;
+
+			// ===============================
+			// NOTE SECTION
+			// ===============================
+
+			doc.setFont('helvetica', 'bold');
+			doc.text('Note:', 20, startY);
+
+			doc.setLineWidth(0.3);
+			doc.rect(20, startY + 3, pageWidth - 40, 20);
+
+			if (formData.note) {
+				doc.setFont('helvetica', 'normal');
+				doc.setFontSize(9);
+				const noteLines = doc.splitTextToSize(formData.note, pageWidth - 44);
+				doc.text(noteLines, 22, startY + 10);
+			}
+
+			// ===============================
+			// SIGNATURE SECTION
+			// ===============================
+
+			const footerY = startY + 35;
+
+			doc.setLineWidth(0.4);
+
+			doc.line(20, footerY, 80, footerY);
+			doc.text("Customer's Signature", 20, footerY + 5);
+
+			doc.line(pageWidth - 80, footerY, pageWidth - 20, footerY);
+			doc.text('Authorized Signature', pageWidth - 80, footerY + 5);
+			doc.text("For: Salisu Kano Int'l Ltd", pageWidth - 80, footerY + 10);
+
+			if (sealBase64) {
+				doc.addImage(sealBase64, 'PNG', pageWidth - 75, footerY - 20, 30, 30);
+			}
+
+			// ===============================
+			// SAVE
+			// ===============================
+
+			doc.save(`Waybill-${formData.name || 'Customer'}.pdf`);
+		} catch (error) {
+			console.error(error);
+			toast.error('Failed to generate PDF');
+		} finally {
+			setLoading(false);
+		}
 	};
 
 	if (isFetching) return <Loader />;
@@ -572,7 +748,7 @@ const Waybill = () => {
 				</div>
 
 				{/* Action Buttons */}
-				<div style={{ textAlign: 'center', marginTop: '20px' }}>
+				<div className='flex flex-col md:flex-row gap-2 justify-center mt-5 md:mt-8'>
 					<button
 						onClick={downloadPDF}
 						style={{
@@ -586,7 +762,7 @@ const Waybill = () => {
 							marginRight: '10px',
 						}}
 					>
-						Download Waybill as PDF
+						{loading ? 'Downloading...' : 'Download Waybill as PDF'}
 					</button>
 					<button
 						onClick={handleSave}

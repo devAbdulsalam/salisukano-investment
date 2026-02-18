@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useContext } from 'react';
+import React, { useEffect, useState, useMemo, useContext } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -15,6 +15,10 @@ import {
 import Loader from '../components/Loader';
 import getError from '../hooks/getError';
 import AuthContext from '../context/authContext';
+import logo from '../assets/logo.png';
+import seal from '../assets/seal.png';
+import phone from '../assets/call.png';
+import jsPDF from 'jspdf';
 import { fetchRegisteredWaybills } from '../hooks/axiosApis';
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -23,6 +27,10 @@ const InvoicesPage = () => {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 	const { user } = useContext(AuthContext);
+	const [loading, setLoading] = useState(false);
+	const [logoBase64, setLogoBase64] = useState('');
+	const [sealBase64, setSealBase64] = useState('');
+	const [phoneBase64, setPhoneBase64] = useState('');
 
 	// State for search and sort
 	const [searchTerm, setSearchTerm] = useState('');
@@ -120,10 +128,245 @@ const InvoicesPage = () => {
 		if (!dateString) return '';
 		return format(new Date(dateString), 'dd/MM/yyyy');
 	};
-	const handleDownloadPDF = async (item) => {
-		console.log(item);
-	};
 
+	// Load logo as base64
+	useEffect(() => {
+		const img = new Image();
+		img.crossOrigin = 'anonymous';
+		img.src = logo;
+		img.onload = () => {
+			const canvas = document.createElement('canvas');
+			canvas.width = img.width;
+			canvas.height = img.height;
+			const ctx = canvas.getContext('2d');
+			ctx?.drawImage(img, 0, 0);
+			setLogoBase64(canvas.toDataURL('image/png'));
+		};
+	}, []);
+	useEffect(() => {
+		const img = new Image();
+		img.crossOrigin = 'anonymous';
+		img.src = seal;
+		img.onload = () => {
+			const canvas = document.createElement('canvas');
+			canvas.width = img.width;
+			canvas.height = img.height;
+			const ctx = canvas.getContext('2d');
+			ctx?.drawImage(img, 0, 0);
+			setSealBase64(canvas.toDataURL('image/png'));
+		};
+	}, []);
+	useEffect(() => {
+		const img = new Image();
+		img.crossOrigin = 'anonymous';
+		img.src = phone;
+		img.onload = () => {
+			const canvas = document.createElement('canvas');
+			canvas.width = img.width;
+			canvas.height = img.height;
+			const ctx = canvas.getContext('2d');
+			ctx?.drawImage(img, 0, 0);
+			setPhoneBase64(canvas.toDataURL('image/png'));
+		};
+	}, []);
+
+	// Handle PDF download
+	const handleDownloadPDF = async (formData) => {
+		setLoading(true);
+
+		try {
+			const doc = new jsPDF('p', 'mm', 'a4');
+			const pageWidth = doc.internal.pageSize.getWidth();
+			const pageHeight = doc.internal.pageSize.getHeight();
+
+			// ===============================
+			// CALCULATIONS
+			// ===============================
+			const tare = Number(formData.tare) || 0;
+			const gross = Number(formData.gross) || 0;
+			const dust = Number(formData.dust) || 0;
+
+			const net = gross - tare - dust;
+			// ===============================
+			// HEADER SECTION
+			// ===============================
+
+			if (logoBase64) {
+				doc.addImage(logoBase64, 'PNG', 14, 10, 25, 25);
+			}
+
+			doc.setFont('helvetica', 'bold');
+			doc.setFontSize(16);
+			doc.text('SALISU KANO INTERNATIONAL LIMITED', pageWidth / 2, 18, {
+				align: 'center',
+			});
+
+			doc.setFontSize(10);
+			doc.setFont('helvetica', 'normal');
+			doc.text(
+				"Scrap Materials' Suppliers and General Contractors",
+				pageWidth / 2,
+				24,
+				{ align: 'center' },
+			);
+
+			doc.text(
+				'No. 2 & 3 Block P, Dalar Gyade Market, Kano State',
+				pageWidth / 2,
+				29,
+				{ align: 'center' },
+			);
+			// Phone Numbers
+			const phoneX = pageWidth - 14;
+
+			doc.text('08067237273', phoneX, 18, { align: 'right' });
+
+			// Second number with icon
+			doc.text('08030675636', phoneX, 23, { align: 'right' });
+
+			// Small phone icon before second number
+			if (phoneBase64) {
+				doc.addImage(
+					phoneBase64,
+					'PNG',
+					phoneX - 30, // move left from right margin
+					18, // slightly above 23 for vertical center
+					10, // width (small)
+					10, // height
+				);
+			}
+
+			doc.text('08164927179', phoneX, 28, { align: 'right' });
+
+			// Title
+			doc.setFont('helvetica', 'bold');
+			doc.setFontSize(14);
+			doc.setFillColor(0);
+			doc.rect(pageWidth / 2 - 30, 35, 60, 10, 'F');
+			doc.setTextColor(255);
+
+			doc.setLineWidth(0.4);
+			doc.line(14, 40, pageWidth - 14, 40);
+
+			doc.text('WAYBILL / RECEIPT', pageWidth / 2, 42, { align: 'center' });
+			doc.setTextColor(0);
+			// Divider line
+			// doc.setLineWidth(0.6);
+			// doc.line(14, 32, pageWidth - 14, 32);
+
+			// ===============================
+			// MAIN CONTENT BOX
+			// ===============================
+
+			let startY = 55;
+
+			// doc.setLineWidth(0.4);
+			// doc.rect(14, startY - 8, pageWidth - 28, 70);
+
+			doc.setFontSize(11);
+
+			// Row spacing
+			const gap = 10;
+
+			// Row 1
+			doc.setFont('helvetica', 'bold');
+			doc.text('Customer Name:', 20, startY);
+			doc.setFont('helvetica', 'normal');
+			doc.text(formData.name || '-', 55, startY);
+
+			doc.setFont('helvetica', 'bold');
+			doc.text('Date:', pageWidth - 90, startY);
+			doc.setFont('helvetica', 'normal');
+			doc.text(
+				new Date(formData.date).toISOString().split('T')[0] || '-',
+				pageWidth - 75,
+				startY,
+			);
+
+			startY += gap;
+
+			// Row 2
+			doc.setFont('helvetica', 'bold');
+			doc.text('Vehicle No:', 20, startY);
+			doc.setFont('helvetica', 'normal');
+			doc.text(formData.vehicle || '-', 55, startY);
+
+			startY += gap;
+
+			// Row 3
+			doc.setFont('helvetica', 'bold');
+			doc.text('Gross Weight:', 20, startY);
+			doc.setFont('helvetica', 'normal');
+			doc.text(`${gross.toLocaleString()} kg`, 55, startY);
+
+			doc.setFont('helvetica', 'bold');
+			doc.text('Tare Weight:', pageWidth - 90, startY);
+			doc.setFont('helvetica', 'normal');
+			doc.text(`${tare.toLocaleString()} kg`, pageWidth - 65, startY);
+
+			startY += gap;
+
+			// Row 4
+			doc.setFont('helvetica', 'bold');
+			doc.text('Dust:', 20, startY);
+			doc.setFont('helvetica', 'normal');
+			doc.text(`${dust.toLocaleString()} kg`, 55, startY);
+
+			doc.setFont('helvetica', 'bold');
+			doc.text('Net Weight:', pageWidth - 90, startY);
+			doc.setFont('helvetica', 'bold');
+			doc.text(`${net.toLocaleString()} kg`, pageWidth - 65, startY);
+
+			startY += gap;
+
+			// ===============================
+			// NOTE SECTION
+			// ===============================
+
+			doc.setFont('helvetica', 'bold');
+			doc.text('Note:', 20, startY);
+
+			doc.setLineWidth(0.3);
+			doc.rect(20, startY + 3, pageWidth - 40, 20);
+
+			if (formData.note) {
+				doc.setFont('helvetica', 'normal');
+				doc.setFontSize(9);
+				const noteLines = doc.splitTextToSize(formData.note, pageWidth - 44);
+				doc.text(noteLines, 22, startY + 10);
+			}
+
+			// ===============================
+			// SIGNATURE SECTION
+			// ===============================
+
+			const footerY = startY + 35;
+
+			doc.setLineWidth(0.4);
+
+			doc.line(20, footerY, 80, footerY);
+			doc.text("Customer's Signature", 20, footerY + 5);
+
+			doc.line(pageWidth - 80, footerY, pageWidth - 20, footerY);
+			doc.text('Authorized Signature', pageWidth - 80, footerY + 5);
+			doc.text("For: Salisu Kano Int'l Ltd", pageWidth - 80, footerY + 10);
+
+			if (sealBase64) {
+				doc.addImage(sealBase64, 'PNG', pageWidth - 75, footerY - 20, 30, 30);
+			}
+
+			// ===============================
+			// SAVE
+			// ===============================
+
+			doc.save(`Waybill-${formData.name || 'Customer'}.pdf`);
+		} catch (error) {
+			console.error(error);
+			toast.error('Failed to generate PDF');
+		} finally {
+			setLoading(false);
+		}
+	};
 	if (isLoading) return <Loader />;
 	if (error)
 		return (
