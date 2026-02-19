@@ -649,23 +649,9 @@ const InvoiceRegister = () => {
 
 	return (
 		<>
-			<div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
+			<div className="w-full flex flex-col p-4 justify-center">
 				{/* Waybill Preview */}
-				<div
-					id="waybill"
-					style={{
-						width: '800px',
-						margin: '0 auto',
-						border: '1px solid #000',
-						// borderBottom: 'none',
-						padding: '20px',
-						paddingBottom: '40px',
-						backgroundColor: '#fff',
-						fontSize: '14px',
-						color: '#333',
-						boxSizing: 'border-box',
-					}}
-				>
+				<div className="w-full mx-auto md:w-[800px] bg-white border border-[#E7E7E7] rounded-lg p-4 md:px-8 flex flex-col gap-3">
 					{/* Header */}
 					<div
 						style={{
@@ -697,15 +683,12 @@ const InvoiceRegister = () => {
 								<strong>Address:</strong> No. 2 & 3 Block P, Dalar Gyade Market,
 								Kano State
 							</p>
+							<div className="md:hidden flex items-center gap-1">
+								<Phone size={20} />
+								<p>08067237273, 08030675636, 08164927179</p>
+							</div>
 						</div>
-						<div
-							style={{
-								flexShrink: 0,
-								display: 'flex',
-								alignItems: 'center',
-								gap: '5px',
-							}}
-						>
+						<div className="hidden md:flex items-center gap-3">
 							<Phone size={20} />
 							<div>
 								<p style={{ margin: 0 }}>08067237273</p>
@@ -741,44 +724,9 @@ const InvoiceRegister = () => {
 					</div>
 
 					{/* Customer Details */}
-					{/* Toggle between new and existing customer */}
-					{/* 
-					<div className="action-col" style={{ marginBottom: '8px' }}>
-						<label>
-							<input
-								type="radio"
-								value="new"
-								checked={customerMode === 'new'}
-								onChange={() => setCustomerMode('new')}
-							/>
-							<span style={{ paddingLeft: '5px' }}>New customer</span>
-						</label>
-						<label style={{ marginLeft: '12px' }}>
-							<input
-								type="radio"
-								value="existing"
-								checked={customerMode === 'existing'}
-								onChange={() => setCustomerMode('existing')}
-							/>
-							<span style={{ paddingLeft: '5px' }}>Select existing</span>
-						</label>
-					</div> 
-					*/}
-					<div
-						style={{
-							display: 'flex',
-							justifyContent: 'space-between',
-							marginBottom: '5px',
-							gap: '10px',
-						}}
-					>
-						<div
-							style={{
-								flex: 1,
-								display: 'flex',
-								justifyContent: 'space-between',
-							}}
-						>
+
+					<div className="md:flex justify-between mb-2 gap-3">
+						<div className="flex-1 md:flex justify-between items-center gap-1 ">
 							<strong
 								style={{
 									whiteSpace: 'nowrap',
@@ -793,22 +741,10 @@ const InvoiceRegister = () => {
 								onChange={(e) =>
 									setFormData({ ...formData, name: e.target.value })
 								}
-								style={{
-									width: '100%',
-									border: '1px solid #000',
-									marginLeft: '5px',
-									padding: '2px',
-								}}
+								className="input w-full h-[44px] rounded-md border border-gray6 px-2 text-base md:ml-2"
 							/>
 						</div>
-						<div
-							style={{
-								flex: 1,
-								// textAlign: 'right',
-								display: 'flex',
-								alignItems: 'center',
-							}}
-						>
+						<div className="flex-1 md:flex justify-between items-center gap-1 mt-4 md:mt-0">
 							<strong
 								style={{
 									whiteSpace: 'nowrap',
@@ -822,25 +758,13 @@ const InvoiceRegister = () => {
 								onChange={(e) =>
 									setFormData({ ...formData, date: e.target.value })
 								}
-								style={{
-									width: '100%',
-									marginLeft: '5px',
-									border: '1px solid #000',
-									padding: '2px',
-								}}
+								className="input w-full h-[44px] rounded-md border border-gray6 px-2 text-base md:ml-2"
 							/>
 						</div>
 					</div>
 
-					<div
-						style={{
-							display: 'flex',
-							justifyContent: 'space-between',
-							marginBottom: '5px',
-							gap: '10px',
-						}}
-					>
-						<div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+					<div className="md:flex justify-between mb-2 gap-3">
+						<div className="flex-1 md:flex justify-between items-center gap-1 ">
 							<strong
 								style={{
 									whiteSpace: 'nowrap',
@@ -854,22 +778,10 @@ const InvoiceRegister = () => {
 								onChange={(e) =>
 									setFormData({ ...formData, vehicle: e.target.value })
 								}
-								style={{
-									width: '100%',
-									marginLeft: '5px',
-									border: '1px solid #000',
-									padding: '2px',
-								}}
+								className="input w-full h-[44px] rounded-md border border-gray6 px-2 text-base md:ml-2"
 							/>
 						</div>
-						<div
-							style={{
-								flex: 1,
-								// textAlign: 'right',
-								display: 'flex',
-								alignItems: 'center',
-							}}
-						>
+						<div className="flex-1 md:flex justify-between items-center gap-1 mt-4 md:mt-0">
 							<strong
 								style={{
 									whiteSpace: 'nowrap',
@@ -882,12 +794,7 @@ const InvoiceRegister = () => {
 								onChange={(e) =>
 									setFormData({ ...formData, timeIn: e.target.value })
 								}
-								style={{
-									width: '100%',
-									marginLeft: '5px',
-									border: '1px solid #000',
-									padding: '2px',
-								}}
+								className="input w-full h-[44px] rounded-md border border-gray6 px-2 text-base md:ml-2"
 							>
 								{TIME_SLOTS.map((slot) => (
 									<option key={slot} value={slot}>
@@ -898,15 +805,8 @@ const InvoiceRegister = () => {
 						</div>
 					</div>
 
-					<div
-						style={{
-							display: 'flex',
-							justifyContent: 'space-between',
-							marginBottom: '20px',
-							gap: '10px',
-						}}
-					>
-						<div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+					<div className="md:flex justify-between mb-2 gap-3">
+						<div className="flex-1 md:flex justify-between items-center gap-1 ">
 							<strong
 								style={{
 									whiteSpace: 'nowrap',
@@ -920,22 +820,10 @@ const InvoiceRegister = () => {
 								onChange={(e) =>
 									setFormData({ ...formData, destination: e.target.value })
 								}
-								style={{
-									width: '100%',
-									marginLeft: '5px',
-									border: '1px solid #000',
-									padding: '2px',
-								}}
+								className="input w-full h-[44px] rounded-md border border-gray6 px-2 text-base md:ml-2"
 							/>
 						</div>
-						<div
-							style={{
-								flex: 1,
-								// textAlign: 'right',
-								display: 'flex',
-								alignItems: 'center',
-							}}
-						>
+						<div className="flex-1 md:flex justify-between items-center gap-1 mt-4 md:mt-0">
 							<strong
 								style={{
 									whiteSpace: 'nowrap',
@@ -948,12 +836,7 @@ const InvoiceRegister = () => {
 								onChange={(e) =>
 									setFormData({ ...formData, timeOut: e.target.value })
 								}
-								style={{
-									width: '100%',
-									marginLeft: '5px',
-									border: '1px solid #000',
-									padding: '2px',
-								}}
+								className="input w-full h-[44px] rounded-md border border-gray6 px-2 text-base md:ml-2"
 							>
 								{TIME_SLOTS.map((slot) => (
 									<option key={slot} value={slot}>
@@ -963,181 +846,200 @@ const InvoiceRegister = () => {
 							</select>
 						</div>
 					</div>
-
-					{/* Items Table */}
-					<table
-						style={{
-							width: '100%',
-							borderCollapse: 'collapse',
-							marginBottom: '10px',
-						}}
-					>
-						<thead
+					<div className="w-full overflow-x-auto">
+						{/* Items Table */}
+						<table
 							style={{
-								color: '#fff',
-								backgroundColor: '#000',
-								border: '1px solid #000',
+								width: '100%',
+								borderCollapse: 'collapse',
+								marginBottom: '10px',
 							}}
 						>
-							<tr>
-								<th style={{ border: '1px solid #fff', padding: '4px' }}>
-									S/N
-								</th>
-								<th style={{ border: '1px solid #fff', padding: '8px' }}>
-									DESCRIPTION OF GOODS
-								</th>
-								<th
-									style={{
-										border: '1px solid #fff',
-										padding: '8px',
-										width: '100px',
-									}}
-								>
-									QTY/TONNAGE
-								</th>
-								<th
-									style={{
-										border: '1px solid #fff',
-										padding: '8px',
-										width: '100px',
-									}}
-								>
-									RATE/KG
-								</th>
-								<th
-									style={{
-										border: '1px solid #fff',
-										padding: '8px',
-										width: '100px',
-									}}
-								>
-									AMOUNT #
-								</th>
-								<th
-									className="action-col flex items-center justify-center"
-									style={{ border: '1px solid #fff', padding: '8px' }}
-								>
-									<span>Action</span>
-									<button
-										onClick={addItem}
-										className="text-green-600 hover:text-green-800 ml-2"
-										title="Delete"
-									>
-										<Plus size={18} />
-									</button>
-								</th>
-							</tr>
-						</thead>
-						<tbody>
-							{items?.map((item, index) => (
-								<tr key={index}>
-									<td
+							<thead
+								style={{
+									color: '#fff',
+									backgroundColor: '#000',
+									border: '1px solid #000',
+								}}
+							>
+								<tr>
+									<th style={{ border: '1px solid #fff', padding: '4px' }}>
+										S/N
+									</th>
+									<th
 										style={{
-											border: '0.5px solid #000',
-											padding: '4px',
-											textAlign: 'center',
-										}}
-									>
-										{item.sn}
-									</td>
-									<td
-										style={{ border: '0.5px solid #000', padding: '8px 8px 0' }}
-									>
-										<input
-											type="text"
-											value={item.description}
-											onChange={(e) =>
-												updateItem(index, 'description', e.target.value)
-											}
-											// style={{
-											// 	width: '100%',
-											// 	border: 'none',
-											// 	outline: 'none',
-											// 	background: 'transparent',
-											// }}
-											style={{
-												marginLeft: '5px',
-												width: '100%',
-												border: 'none',
-												outline: 'none',
-												backgroundColor: '#fff',
-												fontSize: '14px',
-												padding: '2px 0',
-											}}
-										/>
-									</td>
-									<td
-										style={{ border: '0.5px solid #000', padding: '8px 8px 0' }}
-									>
-										<input
-											type="text"
-											value={item.qty}
-											onChange={(e) => updateItem(index, 'qty', e.target.value)}
-											// style={{
-											// 	width: '100%',
-											// 	border: 'none',
-											// 	outline: 'none',
-											// 	background: 'transparent',
-											// }}
-											style={{
-												marginLeft: '5px',
-												width: '100%',
-												border: 'none',
-												outline: 'none',
-												backgroundColor: '#fff',
-												fontSize: '14px',
-												padding: '2px 0',
-											}}
-										/>
-									</td>
-									<td
-										style={{ border: '0.5px solid #000', padding: '8px 8px 0' }}
-									>
-										<input
-											type="text"
-											value={item.rate}
-											onChange={(e) =>
-												updateItem(index, 'rate', e.target.value)
-											}
-											style={{
-												width: '100%',
-												border: 'none',
-												outline: 'none',
-												background: 'transparent',
-											}}
-										/>
-									</td>
-									<td
-										style={{
-											border: '0.5px solid #000',
+											border: '1px solid #fff',
 											padding: '8px',
-											textAlign: 'right',
+											whiteSpace: 'nowrap',
 										}}
 									>
-										{item.amount
-											? parseFloat(item.amount).toLocaleString()
-											: ''}
-									</td>
-									<td
-										className="delete-cell"
+										DESCRIPTION OF GOODS
+									</th>
+									<th
 										style={{
-											border: '0.5px solid #000',
+											border: '1px solid #fff',
 											padding: '8px',
-											textAlign: 'center',
+											width: '100px',
 										}}
 									>
+										QTY/TONNAGE
+									</th>
+									<th
+										style={{
+											border: '1px solid #fff',
+											padding: '8px',
+											width: '100px',
+										}}
+									>
+										RATE/KG
+									</th>
+									<th
+										style={{
+											border: '1px solid #fff',
+											padding: '8px',
+											width: '100px',
+											whiteSpace: 'nowrap',
+										}}
+									>
+										AMOUNT #
+									</th>
+									<th
+										className="action-col flex items-center justify-center"
+										style={{ border: '1px solid #fff', padding: '8px' }}
+									>
+										<span>Action</span>
 										<button
-											onClick={() => removeItem(item.sn)}
-											className="text-red-600 hover:text-red-800 mx-auto"
+											onClick={addItem}
+											className="text-white hover:text-green-800 ml-2"
 											title="Delete"
 										>
-											<Trash2 size={18} />
+											<Plus size={18} />
 										</button>
-									</td>
+									</th>
 								</tr>
-							))}
-						</tbody>
-					</table>
+							</thead>
+							<tbody>
+								{items?.map((item, index) => (
+									<tr key={index}>
+										<td
+											style={{
+												border: '0.5px solid #000',
+												padding: '4px',
+												textAlign: 'center',
+											}}
+										>
+											{item.sn}
+										</td>
+										<td
+											style={{
+												border: '0.5px solid #000',
+												padding: '8px 8px 0',
+											}}
+										>
+											<input
+												type="text"
+												value={item.description}
+												onChange={(e) =>
+													updateItem(index, 'description', e.target.value)
+												}
+												// style={{
+												// 	width: '100%',
+												// 	border: 'none',
+												// 	outline: 'none',
+												// 	background: 'transparent',
+												// }}
+												style={{
+													marginLeft: '5px',
+													width: '100%',
+													border: 'none',
+													outline: 'none',
+													backgroundColor: '#fff',
+													fontSize: '14px',
+													padding: '2px 0',
+												}}
+											/>
+										</td>
+										<td
+											style={{
+												border: '0.5px solid #000',
+												padding: '8px 8px 0',
+											}}
+										>
+											<input
+												type="text"
+												value={item.qty}
+												onChange={(e) =>
+													updateItem(index, 'qty', e.target.value)
+												}
+												// style={{
+												// 	width: '100%',
+												// 	border: 'none',
+												// 	outline: 'none',
+												// 	background: 'transparent',
+												// }}
+												style={{
+													marginLeft: '5px',
+													width: '100%',
+													border: 'none',
+													outline: 'none',
+													backgroundColor: '#fff',
+													fontSize: '14px',
+													padding: '2px 0',
+												}}
+											/>
+										</td>
+										<td
+											style={{
+												border: '0.5px solid #000',
+												padding: '8px 8px 0',
+											}}
+										>
+											<input
+												type="text"
+												value={item.rate}
+												onChange={(e) =>
+													updateItem(index, 'rate', e.target.value)
+												}
+												style={{
+													width: '100%',
+													border: 'none',
+													outline: 'none',
+													background: 'transparent',
+												}}
+											/>
+										</td>
+										<td
+											style={{
+												border: '0.5px solid #000',
+												padding: '8px',
+												textAlign: 'right',
+											}}
+										>
+											{item.amount
+												? parseFloat(item.amount).toLocaleString()
+												: ''}
+										</td>
+										<td
+											className="delete-cell"
+											style={{
+												border: '0.5px solid #000',
+												padding: '8px',
+												textAlign: 'center',
+											}}
+										>
+											<button
+												onClick={() => removeItem(item.sn)}
+												className="text-red-600 hover:text-red-800 mx-auto"
+												title="Delete"
+											>
+												<Trash2 size={18} />
+											</button>
+										</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+					</div>
 
 					{/* Total */}
 					<div
@@ -1193,14 +1095,8 @@ const InvoiceRegister = () => {
 							onChange={(e) =>
 								setFormData({ ...formData, note: e.target.value })
 							}
-							style={{
-								width: '100%',
-								outline: 'none',
-								background: 'transparent',
-								border: '1px solid #000',
-								padding: '5px',
-								marginTop: '5px',
-							}}
+							rows={5}
+							className=" w-full rounded-md border border-gray6 px-2 text-base"
 						></textarea>
 					</div>
 

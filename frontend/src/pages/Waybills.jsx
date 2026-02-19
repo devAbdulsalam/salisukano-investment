@@ -486,7 +486,7 @@ const InvoicesPage = () => {
 								className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
 								onClick={() => requestSort('gross')}
 							>
-								<div className="flex items-center gap-1">
+								<div className="flex items-center gap-1 whitespace-nowrap">
 									Gross (KG)
 									<ArrowUpDown size={14} />
 								</div>
@@ -495,7 +495,7 @@ const InvoicesPage = () => {
 								className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
 								onClick={() => requestSort('tare')}
 							>
-								<div className="flex items-center gap-1">
+								<div className="flex items-center gap-1 whitespace-nowrap ">
 									Tare (KG)
 									<ArrowUpDown size={14} />
 								</div>
@@ -504,7 +504,7 @@ const InvoicesPage = () => {
 								className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
 								onClick={() => requestSort('dust')}
 							>
-								<div className="flex items-center gap-1">
+								<div className="flex items-center gap-1 whitespace-nowrap ">
 									Dust (KG)
 									<ArrowUpDown size={14} />
 								</div>
@@ -513,7 +513,7 @@ const InvoicesPage = () => {
 								className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
 								onClick={() => requestSort('net')}
 							>
-								<div className="flex items-center gap-1">
+								<div className="flex items-center gap-1 whitespace-nowrap ">
 									Net (KG)
 									<ArrowUpDown size={14} />
 								</div>

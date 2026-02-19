@@ -395,21 +395,10 @@ const Waybill = () => {
 
 	return (
 		<>
-			<div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
+			<div className='w-full flex flex-col p-4 justify-center'>
 				{/* Waybill Preview */}
 				<div
-					id="waybill"
-					style={{
-						width: '800px',
-						margin: '0 auto',
-						border: '1px solid #000',
-						padding: '20px',
-						paddingBottom: '40px',
-						backgroundColor: '#fff',
-						fontSize: '14px',
-						color: '#333',
-						boxSizing: 'border-box',
-					}}
+					className="w-full mx-auto md:w-[800px] bg-white border border-[#E7E7E7] rounded-lg p-4 md:px-8 flex flex-col gap-3"
 				>
 					{/* Header */}
 					<div
@@ -430,7 +419,8 @@ const Waybill = () => {
 							/>
 						</div>
 						<div style={{ flex: 1, textAlign: 'center' }}>
-							<h2 style={{ margin: 0, fontSize: '25px', fontWeight: 'bold' }}>
+							<h2 style={{ margin: 0, fontSize: '25px', fontWeight: 'bold' }}
+							>
 								SALISU KANO INTERNATIONAL LIMITED
 							</h2>
 							<p style={{ margin: 0 }}>
@@ -442,15 +432,13 @@ const Waybill = () => {
 								<strong>Address:</strong> No. 2 & 3 Block P, Dalar Gyade Market,
 								Kano State
 							</p>
+							<div className="flex gap-2 md:hidden justify-center">
+								<Phone size={20} className="text-black whitespace-nowrap" />
+								<p>08067237273, 08030675636, 08164927179
+								</p>
+							</div>
 						</div>
-						<div
-							style={{
-								flexShrink: 0,
-								display: 'flex',
-								alignItems: 'center',
-								gap: '5px',
-							}}
-						>
+						<div className="hidden md:flex justify-center items-center gap-1 ">
 							<Phone size={20} />
 							<div>
 								<p style={{ margin: 0 }}>08067237273</p>
@@ -484,21 +472,8 @@ const Waybill = () => {
 							WAYBILL/RECEIPT
 						</h3>
 					</div>
-					<div
-						style={{
-							display: 'flex',
-							justifyContent: 'space-between',
-							marginBottom: '5px',
-							gap: '10px',
-						}}
-					>
-						<div
-							style={{
-								flex: 1,
-								display: 'flex',
-								justifyContent: 'space-between',
-							}}
-						>
+					<div className="md:flex justify-between mb-2 gap-3">
+						<div className="flex-1 md:flex justify-between items-center gap-1 ">
 							<strong
 								style={{
 									whiteSpace: 'nowrap',
@@ -513,22 +488,10 @@ const Waybill = () => {
 								onChange={(e) =>
 									setFormData({ ...formData, name: e.target.value })
 								}
-								style={{
-									width: '100%',
-									border: '1px solid #000',
-									padding: '2px',
-									marginLeft: '5px',
-								}}
+								className="input w-full h-[44px] rounded-md border border-gray6 px-2 text-base md:ml-2"
 							/>
 						</div>
-						<div
-							style={{
-								flex: 1,
-								// textAlign: 'right',
-								display: 'flex',
-								alignItems: 'center',
-							}}
-						>
+						<div className="flex-1 md:flex justify-between items-center gap-1 mt-4 md:mt-0">
 							<strong
 								style={{
 									whiteSpace: 'nowrap',
@@ -542,56 +505,30 @@ const Waybill = () => {
 								onChange={(e) =>
 									setFormData({ ...formData, date: e.target.value })
 								}
-								style={{
-									width: '100%',
-									marginLeft: '5px',
-									border: '1px solid #000',
-									padding: '2px',
-								}}
+								className="input w-full h-[44px] rounded-md border border-gray6 px-2 text-base md:ml-2"
 							/>
 						</div>
+					</div>
+					<div className=" md:flex justify-between items-center gap-1 ">
+						<strong
+							style={{
+								whiteSpace: 'nowrap',
+							}}
+						>
+							VEHICLE REG. NO.:
+						</strong>
+						<input
+							type="text"
+							value={formData.vehicle}
+							onChange={(e) =>
+								setFormData({ ...formData, vehicle: e.target.value })
+							}
+							className="input w-full h-[44px] rounded-md border border-gray6 px-2 text-base md:ml-2"
+						/>
 					</div>
 
-					<div
-						style={{
-							display: 'flex',
-							justifyContent: 'space-between',
-							marginBottom: '5px',
-							gap: '10px',
-						}}
-					>
-						<div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
-							<strong
-								style={{
-									whiteSpace: 'nowrap',
-								}}
-							>
-								VEHICLE REG. NO.:
-							</strong>
-							<input
-								type="text"
-								value={formData.vehicle}
-								onChange={(e) =>
-									setFormData({ ...formData, vehicle: e.target.value })
-								}
-								style={{
-									width: '100%',
-									marginLeft: '5px',
-									border: '1px solid #000',
-									padding: '2px',
-								}}
-							/>
-						</div>
-					</div>
-					<div
-						style={{
-							display: 'flex',
-							justifyContent: 'space-between',
-							marginBottom: '5px',
-							gap: '10px',
-						}}
-					>
-						<div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+					<div className="md:flex justify-between mb-2 gap-3">
+						<div className="flex-1 md:flex justify-between items-center gap-1 ">
 							<strong
 								style={{
 									whiteSpace: 'nowrap',
@@ -605,22 +542,11 @@ const Waybill = () => {
 								onChange={(e) =>
 									setFormData({ ...formData, gross: e.target.value })
 								}
-								style={{
-									width: '100%',
-									marginLeft: '5px',
-									border: '1px solid #000',
-									padding: '2px',
-								}}
+
+								className="input w-full h-[44px] rounded-md border border-gray6 px-2 text-base md:ml-2"
 							/>
 						</div>
-						<div
-							style={{
-								flex: 1,
-								// textAlign: 'right',
-								display: 'flex',
-								alignItems: 'center',
-							}}
-						>
+						<div className="flex-1 md:flex justify-between items-center gap-1 mt-4 md:mt-0">
 							<strong
 								style={{
 									whiteSpace: 'nowrap',
@@ -634,32 +560,13 @@ const Waybill = () => {
 								onChange={(e) =>
 									setFormData({ ...formData, tare: e.target.value })
 								}
-								style={{
-									width: '100%',
-									marginLeft: '5px',
-									border: '1px solid #000',
-									padding: '2px',
-								}}
+								className="input w-full h-[44px] rounded-md border border-gray6 px-2 text-base md:ml-2"
 							/>
 						</div>
 					</div>
 
-					<div
-						style={{
-							display: 'flex',
-							justifyContent: 'space-between',
-							marginBottom: '20px',
-							gap: '10px',
-						}}
-					>
-						<div
-							style={{
-								flex: 1,
-								// textAlign: 'right',
-								display: 'flex',
-								alignItems: 'center',
-							}}
-						>
+					<div className="md:flex justify-between mb-2 gap-3">
+						<div className="flex-1 md:flex justify-between items-center gap-1 ">
 							<strong
 								style={{
 									whiteSpace: 'nowrap',
@@ -673,15 +580,10 @@ const Waybill = () => {
 								onChange={(e) =>
 									setFormData({ ...formData, dust: e.target.value })
 								}
-								style={{
-									width: '100%',
-									marginLeft: '5px',
-									border: '1px solid #000',
-									padding: '2px',
-								}}
+								className="input w-full h-[44px] rounded-md border border-gray6 px-2 text-base md:ml-2"
 							/>
 						</div>
-						<div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+						<div className="flex-1 md:flex justify-between items-center gap-1 mt-4 md:mt-0">
 							<strong
 								style={{
 									whiteSpace: 'nowrap',
@@ -693,53 +595,25 @@ const Waybill = () => {
 								type="text"
 								value={net}
 								disabled
-								style={{
-									width: '100%',
-									marginLeft: '5px',
-									border: '1px solid #000',
-									padding: '2px',
-								}}
+								className="input w-full h-[44px] rounded-md border border-gray6 px-2 text-base md:ml-2"
 							/>
 						</div>
 					</div>
 
 					{/* Comments and Signature */}
-					<div
-						style={{
-							// display: 'flex',
-							// justifyContent: 'space-between',
-							// alignItems: 'center',
-							// flexDirection: 'column',
-							marginBottom: '20px',
-						}}
-					>
+					<div className="mt-4">
 						<strong>Comments</strong>{' '}
 						<textarea
 							value={formData.note}
 							onChange={(e) =>
 								setFormData({ ...formData, note: e.target.value })
 							}
-							style={{
-								width: '100%',
-								outline: 'none',
-								background: 'transparent',
-								border: '1px solid #000',
-								padding: '5px',
-								marginTop: '5px',
-							}}
+							rows={5}
+							className=" w-full rounded-md border border-gray6 px-2 text-base"
 						></textarea>
 					</div>
 
-					<div
-						style={{
-							display: 'flex',
-							justifyContent: 'space-between',
-							// alignItems: 'center',
-							// border: '1px solid #000',
-							alignItems: 'flex-end',
-							alignContent: 'flex-end',
-						}}
-					>
+					<div className="flex justify-between flex-end items-end">
 						<div
 							style={{
 								display: 'flex',
@@ -759,6 +633,7 @@ const Waybill = () => {
 								gap: '5px',
 								// border: '1px solid green',
 							}}
+							className="flex-1 md:flex justify-between items-center gap-1 "
 						>
 							<img
 								src={seal}
@@ -779,34 +654,17 @@ const Waybill = () => {
 				</div>
 
 				{/* Action Buttons */}
-				<div className='flex flex-col md:flex-row gap-2 justify-center mt-5 md:mt-8'>
+				<div className="flex flex-col md:flex-row gap-2 justify-center mt-5 md:mt-8">
 					<button
 						onClick={downloadPDF}
-						style={{
-							padding: '10px 20px',
-							fontSize: '16px',
-							backgroundColor: '#007bff',
-							color: '#fff',
-							border: 'none',
-							borderRadius: '5px',
-							cursor: 'pointer',
-							marginRight: '10px',
-						}}
+						className="w-full md:w-auto bg-[#007bff] hover:bg-[#0056b3] text-white font-bold py-2 px-4 rounded cursor-pointer"
 					>
 						{loading ? 'Downloading...' : 'Download Waybill as PDF'}
 					</button>
 					<button
 						onClick={handleSave}
 						disabled={saving}
-						style={{
-							padding: '10px 20px',
-							fontSize: '16px',
-							backgroundColor: '#ffc107',
-							color: '#000',
-							border: 'none',
-							borderRadius: '5px',
-							cursor: 'pointer',
-						}}
+						className="w-full md:w-auto bg-[#ffc107] hover:bg-[#ffc107]/[60%] text-black font-bold py-2 px-4 rounded cursor-pointer"
 					>
 						{saving ? 'Saving...' : isEdit ? 'Update Invoice' : 'Save Invoice'}
 					</button>

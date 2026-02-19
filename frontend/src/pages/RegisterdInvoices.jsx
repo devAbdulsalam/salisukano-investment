@@ -139,12 +139,12 @@ const InvoicesPage = () => {
 					/ <span onClick={() => navigate(`/waybills`)}>Register</span>
 				</h1>
 				{/* <div className="flex gap-2 flex-col md:flex-row"> */}
-					<button
-						onClick={() => navigate('/register-invoices')}
-						className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-					>
-						Invoice
-					</button>
+				<button
+					onClick={() => navigate('/register-invoices')}
+					className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+				>
+					Invoice
+				</button>
 			</div>
 
 			{/* Search Bar */}
@@ -201,7 +201,7 @@ const InvoicesPage = () => {
 								className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
 								onClick={() => requestSort('total')}
 							>
-								<div className="flex items-center gap-1">
+								<div className="flex items-center gap-1 whitespace-nowrap ">
 									Total (₦)
 									<ArrowUpDown size={14} />
 								</div>
