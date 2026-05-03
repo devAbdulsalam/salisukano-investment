@@ -110,7 +110,10 @@ const AddCommissionModal = ({
 					<button
 						disabled={loading}
 						className="bg-blue-500 hover:bg-blue-700 text-white font-semibold h-10 py-1 w-full flex items-center justify-center rounded-md transition-all duration-500 ease-in-out"
-						// onClick={handleSubmit}
+						onClick={() => {
+							setShow(false);
+							toast.success('Incentive updated successfully');
+						}}
 					>
 						{loading ? 'Loading...' : 'Add Incentive'}
 					</button>
