@@ -410,10 +410,10 @@ const InvoiceRegister = () => {
 			// Phone Numbers
 			const phoneX = pageWidth - 14;
 
-			doc.text('08067237273', phoneX, 18, { align: 'right' });
+			doc.text('08023239018', phoneX, 22, { align: 'right' });
 
 			// Second number with icon
-			doc.text('08030675636', phoneX, 23, { align: 'right' });
+			doc.text('08067237273', phoneX, 26, { align: 'right' });
 
 			// Small phone icon before second number
 			if (phoneBase64) {
@@ -426,8 +426,6 @@ const InvoiceRegister = () => {
 					10, // height
 				);
 			}
-
-			doc.text('08164927179', phoneX, 28, { align: 'right' });
 
 			// Title
 			doc.setFont('helvetica', 'bold');
@@ -631,7 +629,7 @@ const InvoiceRegister = () => {
 			if (sealBase64) {
 				doc.addImage(sealBase64, 'PNG', pageWidth - 76, footerY - 32, 50, 50);
 			}
-			
+
 			// ===============================
 			// SAVE FILE
 			// ===============================
@@ -685,15 +683,14 @@ const InvoiceRegister = () => {
 							</p>
 							<div className="md:hidden flex items-center gap-1">
 								<Phone size={20} />
-								<p>08067237273, 08030675636, 08164927179</p>
+								<p>08023239018, 08067237273</p>
 							</div>
 						</div>
 						<div className="hidden md:flex items-center gap-3">
 							<Phone size={20} />
 							<div>
+								<p style={{ margin: 0 }}>08023239018</p>
 								<p style={{ margin: 0 }}>08067237273</p>
-								<p style={{ margin: 0 }}>08030675636</p>
-								<p style={{ margin: 0 }}>08164927179</p>
 							</div>
 						</div>
 					</div>

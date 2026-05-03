@@ -1,6 +1,6 @@
 // import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import Image1 from '../assets/unsplash.jpg';
+import Image1 from '../assets/metal.jpeg';
 import { motion } from 'framer-motion';
 import { TypeAnimation } from 'react-type-animation';
 
@@ -30,7 +30,9 @@ const Left = () => {
 							y: 0,
 							transition: { delay: 0.2, duration: 0.5 },
 						}}
-						viewport={{ once: false, amount: 0.5 }} className="text-balance text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+						viewport={{ once: false, amount: 0.5 }}
+						className="text-balance text-4xl font-semibold tracking-tight text-white sm:text-5xl"
+					>
 						Salisu <span className="text-[#BBF7D0]"> Kano </span>
 						<span className="text-white">International Limited </span>
 					</motion.h1>

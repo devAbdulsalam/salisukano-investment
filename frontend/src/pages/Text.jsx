@@ -482,9 +482,8 @@ const InvoiceRegister = () => {
 						>
 							<Phone size={20} />
 							<div>
+								<p style={{ margin: 0 }}>08023239018</p>
 								<p style={{ margin: 0 }}>08067237273</p>
-								<p style={{ margin: 0 }}>08030675636</p>
-								<p style={{ margin: 0 }}>08164927179</p>
 							</div>
 						</div>
 					</div>

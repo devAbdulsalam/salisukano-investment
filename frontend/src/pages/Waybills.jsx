@@ -11,6 +11,8 @@ import {
 	Search,
 	ArrowUpDown,
 	Download,
+	Info,
+	Plus,
 } from 'lucide-react';
 import Loader from '../components/Loader';
 import getError from '../hooks/getError';
@@ -21,6 +23,7 @@ import phone from '../assets/call.png';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { fetchRegisteredWaybills } from '../hooks/axiosApis';
+import AddCommissionModal from '../components/modals/AddIncentiveModal';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -29,6 +32,9 @@ const InvoicesPage = () => {
 	const queryClient = useQueryClient();
 	const { user } = useContext(AuthContext);
 	const [loading, setLoading] = useState(false);
+	const [isCommissioned, setIsCommissioned] = useState(false);
+	const [isCommissionModal, setIsCommissionModal] = useState(false);
+	const [commission, setCommission] = useState(1);
 	const [logoBase64, setLogoBase64] = useState('');
 	const [sealBase64, setSealBase64] = useState('');
 	const [phoneBase64, setPhoneBase64] = useState('');
@@ -166,6 +172,12 @@ const InvoicesPage = () => {
 		return filtered;
 	}, [waybills, searchTerm, date, endDate, sortConfig]);
 
+	useEffect(() => {
+		if (searchTerm && date && endDate && filteredAndSortedWaybills.length > 0) {
+			// Do something
+			setIsCommissioned(true);
+		}
+	}, [searchTerm, date, endDate, filteredAndSortedWaybills]);
 	// calculate stats from filtered and sorted waybills
 	const gross = filteredAndSortedWaybills.reduce(
 		(acc, inv) => acc + inv.gross,
@@ -279,9 +291,14 @@ const InvoicesPage = () => {
 
 				currentDoc.setFont('helvetica', 'bold');
 				currentDoc.setFontSize(16);
-				currentDoc.text('SALISU KANO INTERNATIONAL LIMITED', pageWidth / 2, 18, {
-					align: 'center',
-				});
+				currentDoc.text(
+					'SALISU KANO INTERNATIONAL LIMITED',
+					pageWidth / 2,
+					18,
+					{
+						align: 'center',
+					},
+				);
 
 				currentDoc.setFontSize(10);
 				currentDoc.setFont('helvetica', 'normal');
@@ -301,10 +318,10 @@ const InvoicesPage = () => {
 				// Phone Numbers
 				const phoneX = pageWidth - 14;
 
-				currentDoc.text('08067237273', phoneX, 18, { align: 'right' });
+				currentDoc.text('08023239018', phoneX, 22, { align: 'right' });
 
 				// Second number with icon
-				currentDoc.text('08030675636', phoneX, 23, { align: 'right' });
+				currentDoc.text('08067237273', phoneX, 26, { align: 'right' });
 
 				// Small phone icon before second number
 				if (phoneBase64) {
@@ -318,8 +335,6 @@ const InvoicesPage = () => {
 					);
 				}
 
-				currentDoc.text('08164927179', phoneX, 28, { align: 'right' });
-
 				// Title
 				currentDoc.setFont('helvetica', 'bold');
 				currentDoc.setFontSize(14);
@@ -330,7 +345,7 @@ const InvoicesPage = () => {
 				currentDoc.setLineWidth(0.4);
 				currentDoc.line(14, 40, pageWidth - 14, 40);
 
-				currentDoc.text('WAYBILLS', pageWidth / 2, 42, { align: 'center' });
+				currentDoc.text('INCENTIVES', pageWidth / 2, 42, { align: 'center' });
 				currentDoc.setTextColor(0);
 				// Divider line
 				// currentDoc.setLineWidth(0.6);
@@ -350,6 +365,7 @@ const InvoicesPage = () => {
 			const _dust = Number(dust) || 0;
 
 			const _net = _gross - _tare - _dust;
+			const totalCommission = commission * _net;
 
 			// ===============================
 			// TABLE SECTION
@@ -357,18 +373,17 @@ const InvoicesPage = () => {
 			const tableStartY = 50;
 
 			// Prepare filled rows
-			const filledRows = filteredAndSortedWaybills
-				.map((item, index) => [
-					index + 1,
-					item.name,
-					item.date ? new Date(item.date).toISOString().split('T')[0] : '',
-					item.vehicle || '',
-					item?.gross?.toLocaleString() || '',
-					item?.tare?.toLocaleString() || '',
-					item?.dust?.toLocaleString() || '',
-					item?.net?.toLocaleString() || '',
-				]);
-			
+			const filledRows = filteredAndSortedWaybills.map((item, index) => [
+				index + 1,
+				item.name,
+				item.date ? new Date(item.date).toISOString().split('T')[0] : '',
+				item.vehicle || '',
+				item?.gross?.toLocaleString() || '',
+				item?.tare?.toLocaleString() || '',
+				item?.dust?.toLocaleString() || '',
+				item?.net?.toLocaleString() || '',
+			]);
+
 			autoTable(doc, {
 				startY: tableStartY,
 				head: [
@@ -450,6 +465,16 @@ const InvoicesPage = () => {
 			doc.text('Net Weight:', pageWidth - 90, currentY);
 			doc.setFont('helvetica', 'bold');
 			doc.text(`${_net.toLocaleString()} kg`, pageWidth - 65, currentY);
+
+			currentY += gap;
+			doc.setFont('helvetica', 'bold');
+			doc.text('Commission:', pageWidth - 90, currentY);
+			doc.setFont('helvetica', 'bold');
+			doc.text(
+				`NGN ${totalCommission.toLocaleString()}`,
+				pageWidth - 65,
+				currentY,
+			);
 
 			currentY += gap;
 
@@ -577,10 +602,10 @@ const InvoicesPage = () => {
 			// Phone Numbers
 			const phoneX = pageWidth - 14;
 
-			doc.text('08067237273', phoneX, 18, { align: 'right' });
+			doc.text('08023239018', phoneX, 22, { align: 'right' });
 
 			// Second number with icon
-			doc.text('08030675636', phoneX, 23, { align: 'right' });
+			doc.text('08067237273', phoneX, 26, { align: 'right' });
 
 			// Small phone icon before second number
 			if (phoneBase64) {
@@ -593,8 +618,6 @@ const InvoicesPage = () => {
 					10, // height
 				);
 			}
-
-			doc.text('08164927179', phoneX, 28, { align: 'right' });
 
 			// Title
 			doc.setFont('helvetica', 'bold');
@@ -760,8 +783,8 @@ const InvoicesPage = () => {
 				{/* </div> */}
 			</div>
 
-			<div className="w-full grid sm:grid-cols-2 md:grid-cols-4 gap-5 col-span-12">
-				<div className="p-5 mb-4  bg-white flex flex-col md:max-w-md w-full rounded-xl gap-2 border border-[#E7E7E7] hover:shadow-xl cursor-pointer">
+			<div className="w-full grid sm:grid-cols-2 md:grid-cols-4 gap-4  col-span-12 mb-2">
+				<div className="p-5  bg-white flex flex-col md:max-w-md w-full rounded-xl gap-2 border border-[#E7E7E7] hover:shadow-xl cursor-pointer">
 					<div className={`flex justify-between `}>
 						<span className="text-[#637381] text-sm font-medium">
 							Gross (KG)
@@ -815,6 +838,25 @@ const InvoicesPage = () => {
 						</span>
 					</div>
 				</div>
+				{isCommissioned && (
+					<div className="p-5 mb-4  bg-white flex flex-col md:max-w-md w-full rounded-xl gap-2 border border-[#E7E7E7] hover:shadow-xl cursor-pointer">
+						<div className={`flex justify-between `}>
+							<span className="text-[#637381] text-sm font-medium">
+								Commission ({commission})
+							</span>
+							<button onClick={() => setIsCommissionModal(true)}>
+								<Plus size={24} />
+							</button>
+						</div>
+						<div
+							className={`flex gap-4 justify-between flex-nowrap items-center`}
+						>
+							<span className="text-xl font-bold whitespace-nowrap">
+								₦ {net * commission}
+							</span>
+						</div>
+					</div>
+				)}
 			</div>
 
 			{/* Search Bar */}
@@ -1007,6 +1049,13 @@ const InvoicesPage = () => {
 					</tbody>
 				</table>
 			</div>
+			<AddCommissionModal
+				net={net}
+				show={isCommissionModal}
+				setShow={setIsCommissionModal}
+				commission={commission}
+				setCommission={setCommission}
+			/>
 		</div>
 	);
 };

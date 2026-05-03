@@ -242,10 +242,10 @@ const Waybill = () => {
 			// Phone Numbers
 			const phoneX = pageWidth - 14;
 
-			doc.text('08067237273', phoneX, 18, { align: 'right' });
+			doc.text('08023239018', phoneX, 22, { align: 'right' });
 
 			// Second number with icon
-			doc.text('08030675636', phoneX, 23, { align: 'right' });
+			doc.text('08067237273', phoneX, 26, { align: 'right' });
 
 			// Small phone icon before second number
 			if (phoneBase64) {
@@ -258,9 +258,6 @@ const Waybill = () => {
 					10, // height
 				);
 			}
-
-			doc.text('08164927179', phoneX, 28, { align: 'right' });
-
 			// Title
 			doc.setFont('helvetica', 'bold');
 			doc.setFontSize(14);
@@ -431,15 +428,14 @@ const Waybill = () => {
 							</p>
 							<div className="flex gap-2 md:hidden justify-center">
 								<Phone size={20} className="text-black whitespace-nowrap" />
-								<p>08067237273, 08030675636, 08164927179</p>
+								<p>08023239018, 08067237273</p>
 							</div>
 						</div>
 						<div className="hidden md:flex justify-center items-center gap-1 ">
 							<Phone size={20} />
 							<div>
+								<p style={{ margin: 0 }}>08023239018</p>
 								<p style={{ margin: 0 }}>08067237273</p>
-								<p style={{ margin: 0 }}>08030675636</p>
-								<p style={{ margin: 0 }}>08164927179</p>
 							</div>
 						</div>
 					</div>
