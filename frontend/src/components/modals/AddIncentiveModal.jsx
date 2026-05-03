@@ -26,37 +26,37 @@ const AddCommissionModal = ({
 	};
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
-	const handleSubmit = (e) => {
-		e.preventDefault();
-		if (!commission) {
-			return toast.error('Commission is required');
-		}
-		setLoading(true);
-		setShow(false);
-		try {
-			axios
-				.post(`${apiUrl}/waybills/commission`, { net, commission }, config)
-				.then((res) => {
-					if (res.data) {
-						queryClient.invalidateQueries({
-							queryKey: ['dashboard', 'waybills', 'customers'],
-						});
-						toast.success('Account created successfully');
-					}
-					navigate('/waybills');
-				})
-				.catch((error) => {
-					const message = getError(error);
-					toast.error(message);
-				})
-				.finally(() => {
-					setLoading(false);
-				});
-		} catch (error) {
-			console.log(error);
-			setShow(true);
-		}
-	};
+	// const handleSubmit = (e) => {
+	// 	e.preventDefault();
+	// 	if (!commission) {
+	// 		return toast.error('Commission is required');
+	// 	}
+	// 	setLoading(true);
+	// 	setShow(false);
+	// 	try {
+	// 		axios
+	// 			.post(`${apiUrl}/waybills/commission`, { net, commission }, config)
+	// 			.then((res) => {
+	// 				if (res.data) {
+	// 					queryClient.invalidateQueries({
+	// 						queryKey: ['dashboard', 'waybills', 'customers'],
+	// 					});
+	// 					toast.success('Account created successfully');
+	// 				}
+	// 				navigate('/waybills');
+	// 			})
+	// 			.catch((error) => {
+	// 				const message = getError(error);
+	// 				toast.error(message);
+	// 			})
+	// 			.finally(() => {
+	// 				setLoading(false);
+	// 			});
+	// 	} catch (error) {
+	// 		console.log(error);
+	// 		setShow(true);
+	// 	}
+	// };
 
 	return (
 		<Modal show={show}>
