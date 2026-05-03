@@ -407,9 +407,10 @@ const InvoiceRegister = () => {
 				29,
 				{ align: 'center' },
 			);
+
 			// Phone Numbers
 			const phoneX = pageWidth - 14;
-
+			// First number with icon
 			doc.text('08023239018', phoneX, 22, { align: 'right' });
 
 			// Second number with icon
