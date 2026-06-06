@@ -43,6 +43,7 @@ import Waybill from './pages/Waybill';
 import Waybills from './pages/Waybills';
 import InvoiceRegister from './pages/InvoiceRegister';
 import RegisterdInvoices from './pages/RegisterdInvoices';
+import Expences from './pages/Expences';
 function App() {
 	const [loading, setLoading] = useState(true);
 
@@ -114,6 +115,7 @@ function App() {
 								path="/creditors/:id/edit/:creditId"
 								element={<EditCredit />}
 							/>
+							<Route path="/expenses" element={<Expences />} />
 							<Route path="/settings" element={<Settings />} />
 							<Route path="/users" element={<Users />} />
 							<Route path="/waybills" element={<Waybills />} />
@@ -124,7 +126,10 @@ function App() {
 								path="/registered-invoices"
 								element={<RegisterdInvoices />}
 							/>
-							<Route path="/register-invoices/:id" element={<InvoiceRegister />} />
+							<Route
+								path="/register-invoices/:id"
+								element={<InvoiceRegister />}
+							/>
 						</Route>
 					</Route>
 				</Route>

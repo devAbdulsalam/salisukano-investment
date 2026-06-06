@@ -28,6 +28,7 @@ import receiptRoutes from './routes/receipt.js';
 import invoiceRoutes from './routes/invoice.js';
 import waybillRoutes from './routes/waybill.js';
 import waybillRegisterRoutes from './routes/waybillregister.js';
+import expenseRoutes from './routes/expense.js';
 // import errorHandler from './middleware/errorHandler.js';
 
 /* CONFIGURATION */
@@ -91,6 +92,7 @@ app.use('/receipt', receiptRoutes);
 app.use('/invoices', invoiceRoutes);
 app.use('/waybill-registers', waybillRegisterRoutes);
 app.use('/waybills', waybillRoutes);
+app.use('/expenses', expenseRoutes);
 // app.use(errorHandler);
 
 /* MONGOOSE SETUP */

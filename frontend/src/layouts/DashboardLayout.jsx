@@ -12,6 +12,7 @@ import {
 	FilePlus,
 	ScrollText,
 	Users,
+	HandCoins,
 } from 'lucide-react';
 // import Search from '../components/Search';
 const navigationList = [
@@ -51,6 +52,12 @@ const navigationList = [
 		link: '/waybills',
 		svg: <FilePlus className="h-4 w-4" />,
 		roles: ['admin', 'operation'],
+	},
+	{
+		name: 'Expenses',
+		link: '/expenses',
+		svg: <HandCoins className="h-4 w-4" />,
+		roles: ['admin'],
 	},
 	{
 		name: 'Users',

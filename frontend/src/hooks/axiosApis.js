@@ -692,3 +692,18 @@ export const fetchTransactingCustomers = async (prop) => {
 		return error;
 	}
 };
+
+export const fetchExpenses = async (prop) => {
+	try {
+		const config = {
+			headers: {
+				Authorization: `Bearer ${prop?.token}`,
+			},
+		};
+		const { data } = await axios.get(`${apiUrl}/expenses`, config);
+		return data;
+	} catch (error) {
+		console.log(error.message);
+		return error;
+	}
+};
