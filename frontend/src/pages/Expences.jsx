@@ -1,4 +1,4 @@
-import { useContext, useState, useMemo } from 'react';
+import { useContext, useState, useMemo, useEffect } from 'react';
 import Loader from '../components/Loader.jsx';
 import AddExpenceModal from '../components/modals/AddExpenseModal.jsx';
 import EditExpenceModal from '../components/modals/EditExpenceModal.jsx';
@@ -6,11 +6,17 @@ import AuthContext from '../context/authContext.jsx';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { fetchExpenses } from '../hooks/axiosApis.js';
+import logo from '../assets/logo.png';
+import seal from '../assets/seal.png';
+import phone from '../assets/call.png';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import getError from '../hooks/getError.js';
 import toast from 'react-hot-toast';
-import { Pencil, Trash2, Search, ArrowUpDown } from 'lucide-react';
+import { Pencil, Trash2, Search, ArrowUpDown, Download } from 'lucide-react';
 import formatDate from '../hooks/formatDate.js';
 import DeleteConfirmationModal from '../components/modals/DeleteConfirmationModal.jsx';
+import moment from 'moment';
 
 const Expences = () => {
 	const queryClient = useQueryClient();
@@ -20,8 +26,13 @@ const Expences = () => {
 	const [isAddModal, setIsAddModal] = useState(false);
 	const [isEditModal, setIsEditModal] = useState(false);
 	const [selectedExpense, setSelectedExpense] = useState(null);
+	const [selectedExpenses, setSelectedExpenses] = useState([]);
 	const [deleteLoading, setDeleteLoading] = useState(false);
 	const [deleteModal, setDeleteModal] = useState(false);
+	const [loading, setLoading] = useState(false);
+	const [logoBase64, setLogoBase64] = useState('');
+	const [sealBase64, setSealBase64] = useState('');
+	const [phoneBase64, setPhoneBase64] = useState('');
 	// Filter & sort states
 	const [searchTerm, setSearchTerm] = useState('');
 	const [startDate, setStartDate] = useState('');
@@ -84,9 +95,13 @@ const Expences = () => {
 	const filteredExpenses = useMemo(() => {
 		if (!data) return [];
 		return data.filter((expense) => {
-			const matchesSearch = expense.description
-				?.toLowerCase()
-				.includes(searchTerm.toLowerCase());
+			const matchesSearch =
+				expense.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+				expense.serialNumber
+					?.toLowerCase()
+					.includes(searchTerm.toLowerCase()) ||
+				expense?.amount?.toString().includes(searchTerm) ||
+				moment(expense?.createdAt).format('DD-MM-YYYY').includes(searchTerm);
 			const matchesDate =
 				!startDate || new Date(expense.date) >= new Date(startDate);
 			return matchesSearch && matchesDate;
@@ -119,6 +134,302 @@ const Expences = () => {
 	const handleEdit = (expense) => {
 		setSelectedExpense(expense);
 		setIsEditModal(true);
+	};
+
+	const toggleSelect = (id) => {
+		setSelectedExpenses((prev) =>
+			prev.includes(id)
+				? prev.filter((selectedId) => selectedId !== id)
+				: [...prev, id],
+		);
+	};
+
+	const toggleSelectAll = () => {
+		if (!filteredExpenses?.length) return;
+
+		const allIds = filteredExpenses.map((expense) => expense._id);
+		const allSelected = allIds.every((id) => selectedExpenses.includes(id));
+
+		setSelectedExpenses(allSelected ? [] : allIds);
+	};
+
+	// Compute header checkbox state
+	const isAllSelected =
+		filteredExpenses?.length > 0 &&
+		filteredExpenses.every((expense) => selectedExpenses.includes(expense._id));
+
+	const isSomeSelected = selectedExpenses.length > 0 && !isAllSelected;
+	// Load logo as base64
+	useEffect(() => {
+		const img = new Image();
+		img.crossOrigin = 'anonymous';
+		img.src = logo;
+		img.onload = () => {
+			const canvas = document.createElement('canvas');
+			canvas.width = img.width;
+			canvas.height = img.height;
+			const ctx = canvas.getContext('2d');
+			ctx?.drawImage(img, 0, 0);
+			setLogoBase64(canvas.toDataURL('image/png'));
+		};
+	}, []);
+	useEffect(() => {
+		const img = new Image();
+		img.crossOrigin = 'anonymous';
+		img.src = seal;
+		img.onload = () => {
+			const canvas = document.createElement('canvas');
+			canvas.width = img.width;
+			canvas.height = img.height;
+			const ctx = canvas.getContext('2d');
+			ctx?.drawImage(img, 0, 0);
+			setSealBase64(canvas.toDataURL('image/png'));
+		};
+	}, []);
+	useEffect(() => {
+		const img = new Image();
+		img.crossOrigin = 'anonymous';
+		img.src = phone;
+		img.onload = () => {
+			const canvas = document.createElement('canvas');
+			canvas.width = img.width;
+			canvas.height = img.height;
+			const ctx = canvas.getContext('2d');
+			ctx?.drawImage(img, 0, 0);
+			setPhoneBase64(canvas.toDataURL('image/png'));
+		};
+	}, []);
+	const handleDownload = () => {
+		const selectedExpensesData = selectedExpenses.map((id) => {
+			const expense = data.find((exp) => exp._id === id);
+			return expense;
+		});
+		console.log('Download expenses', selectedExpensesData);
+		setLoading(true);
+
+		try {
+			const doc = new jsPDF('p', 'mm', 'a4');
+			const pageWidth = doc.internal.pageSize.getWidth();
+			const pageHeight = doc.internal.pageSize.getHeight();
+
+			// ===============================
+			// REUSABLE DRAWING FUNCS
+			// ===============================
+			const addBackgroundAndHeader = (currentDoc) => {
+				// WATERMARK
+				if (logoBase64) {
+					const watermarkWidth = 120; // large size
+					const watermarkHeight = 120;
+					const centerX = (pageWidth - watermarkWidth) / 2;
+					const centerY = (pageHeight - watermarkHeight) / 2;
+
+					if (currentDoc.setGState) {
+						currentDoc.setGState(new currentDoc.GState({ opacity: 0.04 }));
+					}
+					currentDoc.addImage(
+						logoBase64,
+						'PNG',
+						centerX,
+						centerY,
+						watermarkWidth,
+						watermarkHeight,
+					);
+					if (currentDoc.setGState) {
+						currentDoc.setGState(new currentDoc.GState({ opacity: 1 }));
+					}
+				}
+
+				// HEADER
+				if (logoBase64) {
+					currentDoc.addImage(logoBase64, 'PNG', 14, 10, 25, 25);
+				}
+
+				currentDoc.setFont('helvetica', 'bold');
+				currentDoc.setFontSize(16);
+				currentDoc.text(
+					'SALISU KANO INTERNATIONAL LIMITED',
+					pageWidth / 2,
+					18,
+					{
+						align: 'center',
+					},
+				);
+
+				currentDoc.setFontSize(10);
+				currentDoc.setFont('helvetica', 'normal');
+				currentDoc.text(
+					"Scrap Materials' Suppliers and General Contractors",
+					pageWidth / 2,
+					24,
+					{ align: 'center' },
+				);
+
+				currentDoc.text(
+					'No. 2 & 3 Block P, Dalar Gyade Market, Kano State',
+					pageWidth / 2,
+					29,
+					{ align: 'center' },
+				);
+				// Phone Numbers
+				const phoneX = pageWidth - 14;
+
+				currentDoc.text('08023239018', phoneX, 22, { align: 'right' });
+
+				// Second number with icon
+				currentDoc.text('08067237273', phoneX, 26, { align: 'right' });
+
+				// Small phone icon before second number
+				if (phoneBase64) {
+					currentDoc.addImage(
+						phoneBase64,
+						'PNG',
+						phoneX - 30, // move left from right margin
+						18, // slightly above 23 for vertical center
+						10, // width (small)
+						10, // height
+					);
+				}
+
+				// Title
+				currentDoc.setFont('helvetica', 'bold');
+				currentDoc.setFontSize(14);
+				currentDoc.setFillColor(0);
+				currentDoc.rect(pageWidth / 2 - 30, 35, 60, 10, 'F');
+				currentDoc.setTextColor(255);
+
+				currentDoc.setLineWidth(0.4);
+				currentDoc.line(14, 40, pageWidth - 14, 40);
+
+				currentDoc.text('EXPENSES', pageWidth / 2, 42, { align: 'center' });
+				currentDoc.setTextColor(0);
+				// Divider line
+				// currentDoc.setLineWidth(0.6);
+				// currentDoc.line(14, 32, pageWidth - 14, 32);
+
+				currentDoc.setFontSize(11);
+			};
+
+			// Initialize first page
+			addBackgroundAndHeader(doc);
+
+			// ===============================
+			// CALCULATIONS
+			// ===============================
+
+			const totalExpenses = selectedExpensesData.reduce(
+				(total, expense) => total + expense?.amount,
+				0,
+			);
+
+			// ===============================
+			// TABLE SECTION
+			// ===============================
+			const tableStartY = 50;
+
+			// Prepare filled rows
+			const filledRows = selectedExpensesData.map((item, index) => [
+				index + 1,
+				item.serialNumber,
+				item?.amount?.toLocaleString() || '',
+				item.date ? new Date(item.date).toISOString().split('T')[0] : '',
+				item.description,
+			]);
+			// Ensure minimum 10 rows
+			while (filledRows.length < 10) {
+				filledRows.push(['', '', '', '', '']);
+			}
+			autoTable(doc, {
+				startY: tableStartY,
+				head: [['S/N', 'Serial Number', 'Amount (NG)', 'Date', 'Description']],
+				body: filledRows,
+				theme: 'grid',
+				margin: { top: 50, bottom: 20 },
+				styles: {
+					fontSize: 9,
+					cellPadding: 3,
+					lineColor: [0, 0, 0],
+					lineWidth: 0.3,
+				},
+				headStyles: {
+					fillColor: [0, 0, 0],
+					textColor: 255,
+					fontStyle: 'bold',
+					lineWidth: 0.5,
+				},
+				columnStyles: {
+					0: { cellWidth: 12, halign: 'center' },
+					1: { cellWidth: 38, halign: 'left' },
+					2: { cellWidth: 26, halign: 'left' },
+					3: { cellWidth: 26, halign: 'left' },
+					4: { cellWidth: 'auto' },
+				},
+				didDrawPage: function (data) {
+					// Draw background and header on subsequent pages
+					if (data.pageNumber > 1) {
+						addBackgroundAndHeader(doc);
+					}
+				},
+			});
+
+			let currentY = doc.lastAutoTable.finalY + 10;
+			const gap = 10;
+
+			// If the remaining space is not enough for the summary and signatures
+			// (we need about 80 units), add a new page
+			if (currentY > pageHeight - 85) {
+				doc.addPage();
+				addBackgroundAndHeader(doc);
+				currentY = 55;
+			}
+
+			// Row 1
+			doc.setFont('helvetica', 'bold');
+			doc.text('Total Expences:', 20, currentY);
+			doc.setFont('helvetica', 'normal');
+			doc.text(`NGN ${totalExpenses.toLocaleString()}`, 50, currentY);
+
+			currentY += gap;
+
+			// ===============================
+			// NOTE SECTION
+			// ===============================
+
+			doc.setFont('helvetica', 'bold');
+			doc.text('Note:', 20, currentY);
+
+			doc.setLineWidth(0.3);
+			doc.rect(20, currentY + 3, pageWidth - 40, 20);
+
+			// ===============================
+			// SIGNATURE SECTION
+			// ===============================
+			// 25
+			const footerY = currentY + 45;
+
+			doc.setLineWidth(0.4);
+
+			doc.line(20, footerY, 80, footerY);
+			doc.text("Customer's Signature", 20, footerY + 5);
+
+			doc.line(pageWidth - 80, footerY, pageWidth - 20, footerY);
+			doc.text('Authorized Signature', pageWidth - 80, footerY + 5);
+			doc.text("For: Salisu Kano Int'l Ltd", pageWidth - 80, footerY + 10);
+
+			if (sealBase64) {
+				doc.addImage(sealBase64, 'PNG', pageWidth - 86, footerY - 32, 80, 50);
+			}
+
+			// ===============================
+			// SAVE
+			// ===============================
+
+			doc.save(`Expenses-${new Date().toISOString()}.pdf`);
+		} catch (error) {
+			console.error(error);
+			toast.error('Failed to generate PDF');
+		} finally {
+			setLoading(false);
+		}
 	};
 
 	if (isLoading) return <Loader />;
@@ -188,6 +499,18 @@ const Expences = () => {
 							className="w-full h-[46px] rounded-md border border-gray-200 px-3 text-base"
 						/>
 					</div>
+					{isSomeSelected || isAllSelected ? (
+						<button
+							className=" flex items-center gap-2 h-[42px] px-2 mt-6 my-1 bg-blue-600 text-white w-fit rounded-md hover:bg-blue-700 transition-colors"
+							onClick={handleDownload}
+							disabled={loading}
+						>
+							<Download size={18} />
+							<span className="hidden md:inline-block">Download</span>
+						</button>
+					) : (
+						''
+					)}
 				</div>
 
 				{/* Table */}
@@ -195,6 +518,17 @@ const Expences = () => {
 					<table className="min-w-full divide-y divide-gray-200">
 						<thead className="bg-gray-50">
 							<tr>
+								<th className="w-12">
+									<input
+										type="checkbox"
+										checked={isAllSelected}
+										ref={(input) => {
+											if (input) input.indeterminate = isSomeSelected;
+										}}
+										onChange={toggleSelectAll}
+										aria-label="Select all expenses"
+									/>
+								</th>
 								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
 									S/N
 								</th>
@@ -204,15 +538,6 @@ const Expences = () => {
 								>
 									<div className="flex items-center gap-1">
 										Serial Number
-										<ArrowUpDown size={14} />
-									</div>
-								</th>
-								<th
-									className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none"
-									onClick={() => requestSort('description')}
-								>
-									<div className="flex items-center gap-1">
-										Description
 										<ArrowUpDown size={14} />
 									</div>
 								</th>
@@ -234,6 +559,15 @@ const Expences = () => {
 										<ArrowUpDown size={14} />
 									</div>
 								</th>
+								<th
+									className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none"
+									onClick={() => requestSort('description')}
+								>
+									<div className="flex items-center gap-1">
+										Description
+										<ArrowUpDown size={14} />
+									</div>
+								</th>
 								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
 									Actions
 								</th>
@@ -252,20 +586,29 @@ const Expences = () => {
 							) : (
 								sortedExpenses.map((expense, index) => (
 									<tr key={expense._id} className="hover:bg-gray-50">
+										<td className="w-12 text-center">
+											<input
+												type="checkbox"
+												checked={selectedExpenses.includes(expense._id)}
+												onChange={() => toggleSelect(expense._id)}
+												aria-label={`Select ${expense.amount}`}
+												className="mx-auto"
+											/>
+										</td>
 										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
 											{index + 1}
 										</td>
 										<td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
 											{expense.serialNumber}
 										</td>
-										<td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-											{expense.description}
-										</td>
 										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
 											{expense.amount?.toLocaleString()}
 										</td>
 										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
 											{formatDate(expense.date)}
+										</td>
+										<td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+											{expense.description}
 										</td>
 										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
 											<div className="flex items-center gap-3">
