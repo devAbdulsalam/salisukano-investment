@@ -329,9 +329,10 @@ const Expences = () => {
 			// Prepare filled rows
 			const filledRows = selectedExpensesData.map((item, index) => [
 				index + 1,
-				item?.amount?.toLocaleString() || '',
 				item.description,
+				item?.amount?.toLocaleString() || '',
 				item.date ? new Date(item.date).toISOString().split('T')[0] : '',
+				'',
 			]);
 			// Ensure minimum 10 rows
 			while (filledRows.length < 10) {
@@ -339,7 +340,7 @@ const Expences = () => {
 			}
 			autoTable(doc, {
 				startY: tableStartY,
-				head: [['S/N', 'Amount (NG)', 'Description', 'Date']],
+				head: [['S/N', 'Description', 'Amount (NG)', 'Date', 'Remarks']],
 				body: filledRows,
 				theme: 'grid',
 				margin: { top: 50, bottom: 20 },
@@ -357,9 +358,10 @@ const Expences = () => {
 				},
 				columnStyles: {
 					0: { cellWidth: 12, halign: 'center' },
-					1: { cellWidth: 26, halign: 'left' },
-					2: { cellWidth: 'auto' },
+					1: { cellWidth: 32, halign: 'left' },
+					2: { cellWidth: 26, halign: 'left' },
 					3: { cellWidth: 26, halign: 'left' },
+					4: { cellWidth: 'auto' },
 				},
 				didDrawPage: function (data) {
 					// Draw background and header on subsequent pages
@@ -382,9 +384,9 @@ const Expences = () => {
 
 			// Row 1
 			doc.setFont('helvetica', 'bold');
-			doc.text('Total Expences:', 20, currentY);
+			doc.text('Total Expences:', 15, currentY);
 			doc.setFont('helvetica', 'normal');
-			doc.text(`NGN ${totalExpenses.toLocaleString()}`, 50, currentY);
+			doc.text(`NGN ${totalExpenses.toLocaleString()}`, 45, currentY);
 
 			currentY += gap;
 
@@ -393,10 +395,10 @@ const Expences = () => {
 			// ===============================
 
 			doc.setFont('helvetica', 'bold');
-			doc.text('Note:', 20, currentY);
+			doc.text('Note:', 15, currentY);
 
 			doc.setLineWidth(0.3);
-			doc.rect(20, currentY + 3, pageWidth - 40, 20);
+			doc.rect(15, currentY + 3, pageWidth - 30, 20);
 
 			// ===============================
 			// SIGNATURE SECTION

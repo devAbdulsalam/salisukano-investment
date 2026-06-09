@@ -62,7 +62,7 @@ const Index = () => {
 									PHONE
 								</h2>
 								<p className="mt-1 text-gray-800 md:text-lg">
-									Call: +234 803 2342 453 or +234 803 2342 453
+									Call: +234 802 3239 018 or +234 806 723 7273
 								</p>
 								<h2 className="title-font font-semibold text-gray-900 tracking-widest text-lg">
 									EMAIL
@@ -211,12 +211,12 @@ const Index = () => {
 						<div>
 							<p className="mt-4 text-sm text-white">
 								{' '}
-								Powered by
+								Powered by:{' '}
 								<a
 									className="hover:text-secondary text-tertiary font-semibold"
-									href="/"
+									href="mailto:devabdulsalam74@gmail.com"
 								>
-									Abdulsalam
+									devAbdulsalam
 								</a>
 							</p>
 						</div>
