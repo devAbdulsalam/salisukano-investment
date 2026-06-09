@@ -329,18 +329,17 @@ const Expences = () => {
 			// Prepare filled rows
 			const filledRows = selectedExpensesData.map((item, index) => [
 				index + 1,
-				item.serialNumber,
 				item?.amount?.toLocaleString() || '',
-				item.date ? new Date(item.date).toISOString().split('T')[0] : '',
 				item.description,
+				item.date ? new Date(item.date).toISOString().split('T')[0] : '',
 			]);
 			// Ensure minimum 10 rows
 			while (filledRows.length < 10) {
-				filledRows.push(['', '', '', '', '']);
+				filledRows.push(['', '', '', '']);
 			}
 			autoTable(doc, {
 				startY: tableStartY,
-				head: [['S/N', 'Serial Number', 'Amount (NG)', 'Date', 'Description']],
+				head: [['S/N', 'Amount (NG)', 'Description', 'Date']],
 				body: filledRows,
 				theme: 'grid',
 				margin: { top: 50, bottom: 20 },
@@ -358,10 +357,9 @@ const Expences = () => {
 				},
 				columnStyles: {
 					0: { cellWidth: 12, halign: 'center' },
-					1: { cellWidth: 38, halign: 'left' },
-					2: { cellWidth: 26, halign: 'left' },
+					1: { cellWidth: 26, halign: 'left' },
+					2: { cellWidth: 'auto' },
 					3: { cellWidth: 26, halign: 'left' },
-					4: { cellWidth: 'auto' },
 				},
 				didDrawPage: function (data) {
 					// Draw background and header on subsequent pages
@@ -518,7 +516,7 @@ const Expences = () => {
 					<table className="min-w-full divide-y divide-gray-200">
 						<thead className="bg-gray-50">
 							<tr>
-								<th className="w-12">
+								<th className="px-6 py-3 w-12">
 									<input
 										type="checkbox"
 										checked={isAllSelected}
@@ -534,19 +532,20 @@ const Expences = () => {
 								</th>
 								<th
 									className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none"
-									onClick={() => requestSort('serialNumber')}
-								>
-									<div className="flex items-center gap-1">
-										Serial Number
-										<ArrowUpDown size={14} />
-									</div>
-								</th>
-								<th
-									className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none"
 									onClick={() => requestSort('amount')}
 								>
 									<div className="flex items-center gap-1">
 										Amount
+										<ArrowUpDown size={14} />
+									</div>
+								</th>
+
+								<th
+									className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none"
+									onClick={() => requestSort('description')}
+								>
+									<div className="flex items-center gap-1">
+										Description
 										<ArrowUpDown size={14} />
 									</div>
 								</th>
@@ -556,15 +555,6 @@ const Expences = () => {
 								>
 									<div className="flex items-center gap-1">
 										Date
-										<ArrowUpDown size={14} />
-									</div>
-								</th>
-								<th
-									className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none"
-									onClick={() => requestSort('description')}
-								>
-									<div className="flex items-center gap-1">
-										Description
 										<ArrowUpDown size={14} />
 									</div>
 								</th>
@@ -598,17 +588,14 @@ const Expences = () => {
 										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
 											{index + 1}
 										</td>
-										<td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-											{expense.serialNumber}
-										</td>
 										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
 											{expense.amount?.toLocaleString()}
 										</td>
-										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-											{formatDate(expense.date)}
-										</td>
 										<td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
 											{expense.description}
+										</td>
+										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+											{formatDate(expense.date)}
 										</td>
 										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
 											<div className="flex items-center gap-3">
