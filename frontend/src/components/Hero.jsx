@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
 import hero from '../assets/young.jpg';
-import Image1 from '../assets/unsplash.jpg';
-import Image2 from '../assets/unsplash2.jpg';
-import Image3 from '../assets/oven.jpg';
+import Image1 from '../assets/metal.jpeg';
+import Image2 from '../assets/metals.jpg';
+import Image3 from '../assets/metall.webp';
 import { motion } from 'framer-motion';
 const Hero = () => {
 	const data = [
@@ -51,7 +51,7 @@ const Hero = () => {
 					<div className="lg:flex lg:flex-1 lg:justify-end">
 						<Link
 							to="/login"
-							className="rounded-md bg-green-700 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+							className="rounded-md bg-green-700 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-green-500/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600"
 						>
 							Log in <span aria-hidden="true">&rarr;</span>
 						</Link>
@@ -74,7 +74,7 @@ const Hero = () => {
 						className="w-full pt-4 px-5 pb-6 mt-0 mr-auto mb-0 ml-auto space-y-5 sm:py-8 md:py-12 sm:space-y-8 md:space-y-16
       max-w-7xl"
 					>
-						<div className="flex flex-col items-center sm:px-5 md:flex-row">
+						<div className="flex flex-col items-center sm:px-5 md:flex-row ">
 							<div className="flex flex-col items-start justify-center w-full h-full pt-6 pr-0 pb-6 pl-0 mb-6 md:mb-0 md:w-1/2">
 								<div
 									className="flex flex-col items-start justify-center h-full space-y-3 transform md:pr-10 lg:pr-16
@@ -113,17 +113,17 @@ const Hero = () => {
 								viewport={{ once: false, amount: 0.5 }}
 								initial={{ visible: { opacity: 0, scale: 0 } }}
 								animate="visible"
-								className="w-full md:w-1/2"
+								className="w-full md:w-1/2 h-full"
 							>
 								<div className="block">
 									<img
 										src={hero}
-										className="object-cover rounded-lg max-h-64 sm:max-h-96 btn- w-full h-full"
+										className="object-cover rounded-lg max-h-64 sm:max-h-96 btn- w-full h-full md:min-h-[420px]"
 									/>
 								</div>
 							</motion.div>
 						</div>
-						<section className="py-20">
+						<section className="py-20 ">
 							<div className="text-2xl font-semibold md:mb-6 py-4 text-center">
 								<h2 className="text-balance text-3xl font-semibold tracking-tight text-gray-900 sm:text-5xl">
 									Our Services
@@ -136,13 +136,13 @@ const Hero = () => {
 								{data.map((item, index) => (
 									<div
 										key={index}
-										className="flex flex-col items-start col-span-12 space-y-3 sm:col-span-6 xl:col-span-4 rounded-sm hover:-translate-y-1 transition-all hover:shadow-lg pb-3 cursor-pointer "
+										className="flex flex-col items-start col-span-12 space-y-3 sm:col-span-6 xl:col-span-4 rounded-md hover:-translate-y-1 transition-all duration-300 shadow-sm hover:shadow-lg pb-3 cursor-pointer "
 									>
 										<img
 											src={item.image}
 											className="object-cover w-full mb-2 overflow-hidden rounded-lg shadow-sm max-h-56 btn-"
 										/>
-										<div className="w-full px-2">
+										<div className="w-full px-2 md:px-3 py-3">
 											<motion.p
 												initial={{ opacity: 0, y: 50 }}
 												whileInView={{

@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import Hero from '../components/Hero';
-import Grid from '../components/Grid';
+// import Grid from '../components/Grid';
 import { motion } from 'framer-motion';
 import { useContext, useEffect } from 'react';
 import AuthContext from '../context/authContext';
@@ -16,7 +16,7 @@ const Index = () => {
 	return (
 		<>
 			<Hero />
-			<Grid />
+			{/* <Grid /> */}
 			<section className="pattern bg-repeat text-gray-600 body-font relative ">
 				<div className="lg:w-8/12 px-5 py-10 mx-auto flex sm:flex-nowrap flex-wrap">
 					<div
