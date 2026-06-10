@@ -17,10 +17,10 @@ const Index = () => {
 		<>
 			<Hero />
 			{/* <Grid /> */}
-			<section className="pattern bg-repeat text-gray-600 body-font relative ">
-				<div className="lg:w-8/12 px-5 py-10 mx-auto flex sm:flex-nowrap flex-wrap">
+			<section className="pattern bg-repeat text-gray-600 body-font relative w-full">
+				<div className="max-w-7xl mx-auto  py-10 flex sm:flex-nowrap flex-wrap">
 					<div
-						className="md:w-1/2 overflow-hidden sm:mr-10 flex justify-center relative"
+						className="md:w-1/2 overflow-hidden sm:mr-10 flex justify-center relative px-5"
 						data-aos="fade-right"
 						data-aos-easing="linear"
 						data-aos-duration="1000"
@@ -74,7 +74,7 @@ const Index = () => {
 						</div>
 					</div>
 					<div
-						className="md:w-1/2 bg-white flex flex-col md:ml-auto w-full p-10 mt-8 md:mt-0 rounded-lg"
+						className="md:w-1/2 bg-white flex flex-col md:ml-auto w-full p-4 md:p-10 mt-8 md:mt-0 rounded-lg"
 						data-aos="fade-up"
 						data-aos-easing="linear"
 						data-aos-duration="1000"
@@ -144,12 +144,11 @@ const Index = () => {
 					</div>
 				</div>
 			</section>
-			<footer className="bg-green-800 w-full p-4 ">
+			<footer className="bg-green-800 w-full px-4 pt-16 md:px-24 lg:px-8">
 				<div
 					id="contact"
-					className="px-4 pt-16 mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-24 lg:px-8"
+					className="mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl "
 				>
-					{/* <div className="grid gap-10 mb-1 sm:grid-cols-2 lg:grid-cols-4"> */}
 					<div className="sm:col-span-2 flex items-center justify-between my-1 space-x-3">
 						<a
 							href="/"
@@ -166,7 +165,7 @@ const Index = () => {
 								Salisu Kano International Limited
 							</span>
 						</a>
-						<div className="flex space-x-3">
+						<div className="flex space-x-3 invisible">
 							<a
 								href="/"
 								className="text-gray-50 hover:text-gray-200 transition-colors duration-300 hover:text-deep-purple-accent-400"
@@ -186,7 +185,7 @@ const Index = () => {
 						</div>
 						{/* </div> */}
 					</div>
-					<div className="flex flex-col justify-between pt-5 pb-10 border-t lg:flex-row">
+					<div className="flex flex-col justify-between my-5 border-t lg:flex-row">
 						<div>
 							<div className="hidden sm:col-span-2 text-tertiary space-x-5">
 								<a

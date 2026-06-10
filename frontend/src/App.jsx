@@ -44,6 +44,7 @@ import Waybills from './pages/Waybills';
 import InvoiceRegister from './pages/InvoiceRegister';
 import RegisterdInvoices from './pages/RegisterdInvoices';
 import Expences from './pages/Expences';
+import Statement from './pages/Statement';
 function App() {
 	const [loading, setLoading] = useState(true);
 
@@ -130,6 +131,7 @@ function App() {
 								path="/register-invoices/:id"
 								element={<InvoiceRegister />}
 							/>
+							<Route path="/statement" element={<Statement />} />
 						</Route>
 					</Route>
 				</Route>
