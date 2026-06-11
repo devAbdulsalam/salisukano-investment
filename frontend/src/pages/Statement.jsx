@@ -1,5 +1,5 @@
 import { Download, RefreshCw } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import {
@@ -10,6 +10,12 @@ import {
 	updateStatementApi,
 } from '../hooks/axiosApis';
 
+import logo from '../assets/logo.png';
+import seal from '../assets/seal.png';
+import phone from '../assets/call.png';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import getError from '../hooks/getError.js';
 /* ─────────────────────────────────────────── */
 /* Constants                                   */
 /* ─────────────────────────────────────────── */
@@ -74,6 +80,11 @@ const FinancialStatement = () => {
 	);
 	const [isExisting, setIsExisting] = useState(false);
 	const [loadingYear, setLoadingYear] = useState(false);
+
+	const [loading, setLoading] = useState(false);
+	const [logoBase64, setLogoBase64] = useState('');
+	const [sealBase64, setSealBase64] = useState('');
+	const [phoneBase64, setPhoneBase64] = useState('');
 
 	/* ── List of all statements (year selector) ── */
 	const {
@@ -225,9 +236,330 @@ const FinancialStatement = () => {
 		};
 	}, [statement]);
 
+	// Load logo as base64
+	useEffect(() => {
+		const img = new Image();
+		img.crossOrigin = 'anonymous';
+		img.src = logo;
+		img.onload = () => {
+			const canvas = document.createElement('canvas');
+			canvas.width = img.width;
+			canvas.height = img.height;
+			const ctx = canvas.getContext('2d');
+			ctx?.drawImage(img, 0, 0);
+			setLogoBase64(canvas.toDataURL('image/png'));
+		};
+	}, []);
+	useEffect(() => {
+		const img = new Image();
+		img.crossOrigin = 'anonymous';
+		img.src = seal;
+		img.onload = () => {
+			const canvas = document.createElement('canvas');
+			canvas.width = img.width;
+			canvas.height = img.height;
+			const ctx = canvas.getContext('2d');
+			ctx?.drawImage(img, 0, 0);
+			setSealBase64(canvas.toDataURL('image/png'));
+		};
+	}, []);
+	useEffect(() => {
+		const img = new Image();
+		img.crossOrigin = 'anonymous';
+		img.src = phone;
+		img.onload = () => {
+			const canvas = document.createElement('canvas');
+			canvas.width = img.width;
+			canvas.height = img.height;
+			const ctx = canvas.getContext('2d');
+			ctx?.drawImage(img, 0, 0);
+			setPhoneBase64(canvas.toDataURL('image/png'));
+		};
+	}, []);
 	const handleDownload = () => {
-		console.log('statement', statement, 'calc', calc);
+		if (!statement) {
+			return;
+		}
+		// console.log('statement', statement, 'calc', calc);
 		toast.success('Download coming soon');
+		setLoading(true);
+
+		try {
+			const doc = new jsPDF('p', 'mm', 'a4');
+			const pageWidth = doc.internal.pageSize.getWidth();
+			const pageHeight = doc.internal.pageSize.getHeight();
+
+			// ===============================
+			// REUSABLE DRAWING FUNCS
+			// ===============================
+			const addBackgroundAndHeader = (currentDoc) => {
+				// WATERMARK
+				if (logoBase64) {
+					const watermarkWidth = 120; // large size
+					const watermarkHeight = 120;
+					const centerX = (pageWidth - watermarkWidth) / 2;
+					const centerY = (pageHeight - watermarkHeight) / 2;
+
+					if (currentDoc.setGState) {
+						currentDoc.setGState(new currentDoc.GState({ opacity: 0.04 }));
+					}
+					currentDoc.addImage(
+						logoBase64,
+						'PNG',
+						centerX,
+						centerY,
+						watermarkWidth,
+						watermarkHeight,
+					);
+					if (currentDoc.setGState) {
+						currentDoc.setGState(new currentDoc.GState({ opacity: 1 }));
+					}
+				}
+
+				// HEADER
+				if (logoBase64) {
+					currentDoc.addImage(logoBase64, 'PNG', 14, 10, 25, 25);
+				}
+
+				currentDoc.setFont('helvetica', 'bold');
+				currentDoc.setFontSize(16);
+				currentDoc.text(
+					'SALISU KANO INTERNATIONAL LIMITED',
+					pageWidth / 2,
+					18,
+					{
+						align: 'center',
+					},
+				);
+
+				currentDoc.setFontSize(10);
+				currentDoc.setFont('helvetica', 'normal');
+				currentDoc.text(
+					"Scrap Materials' Suppliers and General Contractors",
+					pageWidth / 2,
+					24,
+					{ align: 'center' },
+				);
+
+				currentDoc.text(
+					'No. 2 & 3 Block P, Dalar Gyade Market, Kano State',
+					pageWidth / 2,
+					29,
+					{ align: 'center' },
+				);
+				// Phone Numbers
+				const phoneX = pageWidth - 14;
+
+				currentDoc.text('08023239018', phoneX, 22, { align: 'right' });
+
+				// Second number with icon
+				currentDoc.text('08067237273', phoneX, 26, { align: 'right' });
+
+				// Small phone icon before second number
+				if (phoneBase64) {
+					currentDoc.addImage(
+						phoneBase64,
+						'PNG',
+						phoneX - 30, // move left from right margin
+						18, // slightly above 23 for vertical center
+						10, // width (small)
+						10, // height
+					);
+				}
+
+				// Title
+				currentDoc.setFont('helvetica', 'bold');
+				currentDoc.setFontSize(14);
+				currentDoc.setFillColor(0);
+				currentDoc.rect((pageWidth - 80) / 2, 35, 80, 10, 'F');
+				currentDoc.setTextColor(255);
+
+				currentDoc.setLineWidth(0.4);
+				currentDoc.line(14, 40, pageWidth - 14, 40);
+
+				currentDoc.text(
+					`${statement.year} FINANCIAL STATEMENT`,
+					pageWidth / 2,
+					42,
+					{
+						align: 'center',
+					},
+				);
+				currentDoc.setTextColor(0);
+
+				currentDoc.setFontSize(11);
+			};
+
+			// Initialize first page
+			addBackgroundAndHeader(doc);
+
+			// ===============================
+			// TABLE SECTION
+			// ===============================
+			const tableStartY = 50;
+
+			const credits = statement.items.filter((item) => item.type === 'credit');
+			const debits = statement.items.filter((item) => item.type === 'debit');
+
+			// ---------- Build rows in desired order ----------
+			const bodyRows = [];
+
+			// 1. Credit rows
+			credits.forEach((item, idx) => {
+				bodyRows.push([
+					idx + 1, // S/N
+					item.title,
+					item.description,
+					'', // Debit
+					item.amount?.toLocaleString() || '0', // Credit
+				]);
+			});
+
+			// 2. Gross Capital row (right after credits, before debits)
+			const grossCapitalIndex = bodyRows.length; // 0‑based index of this row
+			bodyRows.push([
+				credits.length + 1, // S/N
+				'Gross Capital',
+				'-',
+				'',
+				calc.totalCredits.toLocaleString(),
+			]);
+
+			// 3. Debit rows (with total on the last row, in Credit column)
+			const totalDebitsIndex = bodyRows.length;
+			debits.forEach((item, idx) => {
+				const isLastDebit = idx === debits.length - 1;
+				bodyRows.push([
+					credits.length + 1 + (idx + 1), // S/N
+					item.title,
+					item.description,
+					item.amount?.toLocaleString(),
+					isLastDebit ? calc.totalDebits.toLocaleString() : '',
+				]);
+			});
+
+			// 4. Net Capital row
+			const netCapitalIndex = bodyRows.length;
+			bodyRows.push([
+				credits.length + 1 + debits.length + 1,
+				'Net Capital',
+				'-',
+				'',
+				calc.netCapital.toLocaleString(),
+			]);
+
+			// 5. Zakat row
+			const zakatIndex = bodyRows.length;
+			bodyRows.push([
+				credits.length + 1 + debits.length + 2,
+				`Zakat (${statement.zakatRate}%)`,
+				'-',
+				'',
+				calc.zakatAmount.toLocaleString(),
+			]);
+
+			// 6. Closing Capital row
+			const closingIndex = bodyRows.length;
+			bodyRows.push([
+				credits.length + 1 + debits.length + 3,
+				`Capital For ${parseInt(statement.year) + 1}`,
+				'-',
+				'',
+				calc.closingCapital.toLocaleString(),
+			]);
+
+			// Indices of rows to be bold (all summary rows)
+			const boldRowIndices = [
+				grossCapitalIndex, // Gross Capital
+				totalDebitsIndex, // Total Less
+				netCapitalIndex, // Net Capital
+				zakatIndex, // Zakat
+				closingIndex, // Capital For
+			];
+
+			autoTable(doc, {
+				startY: tableStartY,
+				head: [['S/N', 'Title', 'Description', 'Debit (NGN)', 'Credit (NGN)']],
+				body: bodyRows,
+				theme: 'grid',
+				margin: { top: 50, bottom: 20 },
+				styles: {
+					fontSize: 9,
+					cellPadding: 3,
+					lineColor: [0, 0, 0],
+					lineWidth: 0.3,
+				},
+				headStyles: {
+					fillColor: [0, 0, 0],
+					textColor: 255,
+					fontStyle: 'bold',
+					lineWidth: 0.5,
+					halign: 'center',
+				},
+				columnStyles: {
+					0: { cellWidth: 12, halign: 'center' },
+					1: { cellWidth: 50 },
+					2: { cellWidth: 'auto' },
+					3: { cellWidth: 'auto', halign: 'right' },
+					4: { cellWidth: 'auto', halign: 'right' },
+				},
+				// Apply bold to summary rows
+				rowStyles: (row, data) => {
+					if (boldRowIndices.includes(data.row.index)) {
+						return { fontStyle: 'bold', textColor: [0, 0, 0] };
+					}
+					return {};
+				},
+				didDrawPage: (data) => {
+					if (data.pageNumber > 1) {
+						addBackgroundAndHeader(doc);
+					}
+				},
+			});
+
+			let currentY = doc.lastAutoTable.finalY + 10;
+			// const gap = 10;
+
+			// If the remaining space is not enough for the summary and signatures
+			// (we need about 80 units), add a new page
+			// if (currentY > pageHeight - 85) {
+			// 	doc.addPage();
+			// 	addBackgroundAndHeader(doc);
+			// 	currentY = 55;
+			// }
+
+			// ===============================
+			// SIGNATURE SECTION
+			// ===============================
+
+			const footerY = currentY + 15;
+
+			doc.setLineWidth(0.4);
+
+			doc.line(20, footerY, 80, footerY);
+			doc.text("Customer's Signature", 20, footerY + 5);
+
+			doc.line(pageWidth - 80, footerY, pageWidth - 20, footerY);
+			doc.text('Authorized Signature', pageWidth - 80, footerY + 5);
+			doc.text("For: Salisu Kano Int'l Ltd", pageWidth - 80, footerY + 10);
+
+			if (sealBase64) {
+				doc.addImage(sealBase64, 'PNG', pageWidth - 86, footerY - 32, 80, 50);
+			}
+
+			// ===============================
+			// SAVE
+			// ===============================
+
+			doc.save(
+				`${statement.year}-Financial-Statement-${new Date().toISOString()}.pdf`,
+			);
+		} catch (error) {
+			console.error(error);
+			toast.error('Failed to generate PDF');
+		} finally {
+			setLoading(false);
+		}
 	};
 
 	/* ─────────────────────────────────────────── */
