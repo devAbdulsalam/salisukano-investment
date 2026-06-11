@@ -89,7 +89,11 @@ const Charts = ({ data }) => {
 						name: 'Spacials',
 						data: [2, 2, 1, 2, 1, 7, 6],
 					},
-			  ],
+					{
+						name: 'Carbody',
+						data: [2, 2, 1, 2, 1, 7, 6],
+					},
+				],
 		responsive: {
 			rules: [
 				{

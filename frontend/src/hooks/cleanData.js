@@ -11,7 +11,7 @@ export function cleanData(data) {
 	const datasets = uniqueCategories.map((category) => {
 		const dataPoints = uniqueDates.map((date) => {
 			const matchingItem = data.find(
-				(item) => item.date === date && item.category === category
+				(item) => item.date === date && item.category === category,
 			);
 			return matchingItem ? matchingItem.totalSales : 0;
 		});
@@ -43,7 +43,7 @@ export function cleanSuppliesData(data) {
 	const datasets = uniqueItems.map((name) => {
 		const dataPoints = uniqueDates.map((date) => {
 			const matchingItem = data.find(
-				(item) => item.date === date && item.name === name
+				(item) => item.date === date && item.name === name,
 			);
 			return matchingItem ? matchingItem.totalCost : 0;
 		});
@@ -125,14 +125,18 @@ export const cleanTableData = (transactions) => {
 			{};
 		const specialMaterial =
 			transaction.materials?.find(
-				(material) => material.product === 'special'
+				(material) => material.product === 'special',
+			) || {};
+		const carbodyMaterial =
+			transaction.materials?.find(
+				(material) => material.product === 'carbody',
 			) || {};
 
 		return {
 			_id: transaction._id,
 			sn: index + 1,
 			date: new Date(
-				transaction.date || transaction.createdAt
+				transaction.date || transaction.createdAt,
 			).toLocaleDateString(), // Format date
 			name: transaction.name || '-',
 			vehicleNumber: transaction.vehicleNumber || '-',
@@ -145,6 +149,9 @@ export const cleanTableData = (transactions) => {
 			specialQuantity: specialMaterial.qty || '-', // Special data
 			specialPrice: specialMaterial.rate || '-',
 			specialTotal: specialMaterial.cost || '-',
+			carbodyQuantity: carbodyMaterial.qty || '-', // carbody data
+			carbodyPrice: carbodyMaterial.rate || '-',
+			carbodyTotal: carbodyMaterial.cost || '-',
 			credit: transaction.credit || '-',
 			debit: transaction.debit || '-',
 			balance: transaction.balance || '-',
@@ -163,14 +170,18 @@ export const cleanCreditorsData = (transactions) => {
 			{};
 		const specialMaterial =
 			transaction.materials?.find(
-				(material) => material.product === 'special'
+				(material) => material.product === 'special',
+			) || {};
+		const carbodyMaterial =
+			transaction.materials?.find(
+				(material) => material.product === 'carbody',
 			) || {};
 
 		return {
 			_id: transaction._id,
 			creditorId: transaction.creditorId,
 			date: new Date(
-				transaction.date || transaction.createdAt
+				transaction.date || transaction.createdAt,
 			).toLocaleDateString(), // Format date
 			vehicleNumber: transaction.vehicleNumber || '-',
 			mixQuantity: mixMaterial.qty || '-', // Mix data
@@ -182,6 +193,9 @@ export const cleanCreditorsData = (transactions) => {
 			specialQuantity: specialMaterial.qty || '-', // Special data
 			specialPrice: specialMaterial.rate || '-',
 			specialTotal: specialMaterial.cost || '-',
+			carbodyQuantity: carbodyMaterial.qty || '-', // carbody data
+			carbodyPrice: carbodyMaterial.rate || '-',
+			carbodyTotal: carbodyMaterial.cost || '-',
 			total: transaction.total || '-',
 			credit: transaction.credit || '-',
 			debit: transaction.debit || '-',

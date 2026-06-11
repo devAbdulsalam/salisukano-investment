@@ -159,6 +159,15 @@ const TransactionTable = ({ tableData, handelExportToExcel }) => {
 							<th className="p-3 text-[#212B36] text-sm font-normal whitespace-nowrap">
 								Special Total
 							</th>
+							<th className="p-3 text-[#212B36] text-sm font-normal whitespace-nowrap">
+								Carbody Qty
+							</th>
+							<th className="p-3 text-[#212B36] text-sm font-normal whitespace-nowrap">
+								Carbody Price
+							</th>
+							<th className="p-3 text-[#212B36] text-sm font-normal whitespace-nowrap">
+								Carbody Total
+							</th>
 							<th className="p-3 px-2.5 text-[#212B36] text-sm font-normal whitespace-nowrap">
 								Credit
 							</th>

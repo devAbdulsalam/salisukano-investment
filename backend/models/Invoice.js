@@ -27,7 +27,7 @@ const ItemSchema = new mongoose.Schema({
 	type: {
 		type: String,
 		required: true,
-		enum: ['Mix', 'Cast', 'Special'],
+		enum: ['Mix', 'Cast', 'Special', 'Carbody'],
 	},
 	weight: {
 		type: Number,

@@ -131,7 +131,7 @@ function App() {
 								path="/register-invoices/:id"
 								element={<InvoiceRegister />}
 							/>
-							<Route path="/statement" element={<Statement />} />
+							<Route path="/financial-statement" element={<Statement />} />
 						</Route>
 					</Route>
 				</Route>

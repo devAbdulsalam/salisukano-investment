@@ -39,7 +39,7 @@ const EditInvoice = () => {
 		balance: 0,
 	});
 
-	const itemTypes = ['Mix', 'Cast', 'Special'];
+	const itemTypes = ['Mix', 'Cast', 'Special', 'Carbody'];
 
 	useEffect(() => {
 		fetchInvoice();

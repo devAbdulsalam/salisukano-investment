@@ -103,6 +103,27 @@ const Tablle = ({
 			),
 		},
 		{
+			Header: 'CB Qty (kg)',
+			accessor: 'carbodyQuantity',
+			Cell: ({ value }) => (
+				<span className={`text-[#637381] `}>{value || ' '}</span>
+			),
+		},
+		{
+			Header: 'CB P ₦',
+			accessor: 'carbodyPrice',
+			Cell: ({ value }) => (
+				<span className={` text-[#637381]`}>{value || ' '}</span>
+			),
+		},
+		{
+			Header: 'Carbody Total ₦',
+			accessor: 'carbodyTotal',
+			Cell: ({ value }) => (
+				<span className={` text-[#DD6107]`}>{value || ' '}</span>
+			),
+		},
+		{
 			Header: 'Credit ₦',
 			accessor: 'credit',
 			Cell: ({ value }) => (

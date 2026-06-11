@@ -24,6 +24,7 @@ const parseReceiptText = (text) => {
 				M: 'Mix',
 				C: 'Cast',
 				S: 'Special',
+				S: 'Carbody',
 			};
 			const type = typeMap[match[1]];
 			const weight = parseFloat(match[2].replace(/,/g, ''));
@@ -44,12 +45,12 @@ const parseReceiptText = (text) => {
 	// Parse expenses and deposit
 	const expensesLine = lines[i];
 	const expenses = parseFloat(
-		expensesLine.split('~')[0].replace('N', '').replace(/,/g, '')
+		expensesLine.split('~')[0].replace('N', '').replace(/,/g, ''),
 	);
 	i++;
 	const depositLine = lines[i];
 	const deposit = parseFloat(
-		depositLine.split('~')[0].replace('N', '').replace(/,/g, '')
+		depositLine.split('~')[0].replace('N', '').replace(/,/g, ''),
 	);
 	i++;
 	// Parse balance

@@ -45,6 +45,7 @@ const Waybill = () => {
 		date: new Date().toISOString().split('T')[0], // YYYY-MM-DD for input[type=date]
 		note: '',
 	});
+
 	// Load logo as base64
 	useEffect(() => {
 		const img = new Image();
@@ -589,6 +590,104 @@ const Waybill = () => {
 								className="input w-full h-[44px] rounded-md border border-gray6 px-2 text-base md:ml-2"
 							/>
 						</div>
+					</div>
+					{/* Table */}
+					<div className="hidden">
+						<div className="overflow-auto">
+							<table className="w-full border">
+								<thead>
+									<tr className="bg-gray-100">
+										<th className="p-2">Category</th>
+										<th className="p-2">Name</th>
+										<th className="p-2">Description</th>
+										<th className="p-2">Type</th>
+										<th className="p-2">Amount</th>
+										<th className="p-2">Action</th>
+									</tr>
+								</thead>
+
+								<tbody>
+									{statement.entries.map((row) => (
+										<tr key={row.id}>
+											<td className="border p-2">
+												<select
+													className="w-full"
+													value={row.category}
+													onChange={(e) =>
+														updateRow(row.id, 'category', e.target.value)
+													}
+												>
+													{defaultCategories.map((category) => (
+														<option key={category} value={category}>
+															{category}
+														</option>
+													))}
+												</select>
+											</td>
+
+											<td className="border p-2">
+												<input
+													className="w-full"
+													value={row.title}
+													onChange={(e) =>
+														updateRow(row.id, 'title', e.target.value)
+													}
+												/>
+											</td>
+
+											<td className="border p-2">
+												<input
+													className="w-full"
+													value={row.description}
+													onChange={(e) =>
+														updateRow(row.id, 'description', e.target.value)
+													}
+												/>
+											</td>
+
+											<td className="border p-2">
+												<select
+													value={row.type}
+													onChange={(e) =>
+														updateRow(row.id, 'type', e.target.value)
+													}
+												>
+													<option value="credit">Credit</option>
+													<option value="debit">Debit</option>
+												</select>
+											</td>
+
+											<td className="border p-2">
+												<input
+													type="number"
+													className="w-full"
+													value={row.amount}
+													onChange={(e) =>
+														updateRow(row.id, 'amount', e.target.value)
+													}
+												/>
+											</td>
+
+											<td className="border p-2">
+												<button
+													onClick={() => deleteRow(row.id)}
+													className="text-red-600"
+												>
+													Delete
+												</button>
+											</td>
+										</tr>
+									))}
+								</tbody>
+							</table>
+						</div>
+
+						<button
+							onClick={addRow}
+							className="px-4 py-2 bg-blue-600 text-white rounded"
+						>
+							Add Entry
+						</button>
 					</div>
 
 					{/* Comments and Signature */}

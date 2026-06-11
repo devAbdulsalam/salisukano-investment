@@ -124,6 +124,12 @@ const Table = ({ tableData, handelDelete }) => {
 							<th className="py-3 text-[#212B36] text-sm font-normal whitespace-nowrap md:w-[100px]">
 								New Special ₦
 							</th>
+							<th className="py-3 text-[#212B36] text-sm font-normal whitespace-nowrap md:w-[100px]">
+								Old Carbody ₦
+							</th>
+							<th className="py-3 text-[#212B36] text-sm font-normal whitespace-nowrap md:w-[100px]">
+								New Carbody ₦
+							</th>
 							<th className="py-3 text-[#212B36] text-sm font-normal whitespace-nowrap">
 								Diff ₦
 							</th>
@@ -168,6 +174,12 @@ const Table = ({ tableData, handelDelete }) => {
 								</td>
 								<td className="py-4 px-1 text-sm font-normal text-[#637381] whitespace-nowrap bg-gray-50 cursor-pointer">
 									{data?.oldSpecial - data?.newSpecial}
+								</td>
+								<td className="py-2 px-2.5 text-sm font-normal text-[#637381] whitespace-nowrap cursor-pointer uppercase">
+									{data?.newCarbody}
+								</td>
+								<td className="py-4 px-1 text-sm font-normal text-[#637381] whitespace-nowrap bg-gray-50 cursor-pointer">
+									{data?.oldCarbody - data?.newCarbody}
 								</td>
 								<td className="py-2 px-1 text-sm font-normal whitespace-nowrap bg-gray-50 flex gap-2 justify-center items-center h-full">
 									{/* <span

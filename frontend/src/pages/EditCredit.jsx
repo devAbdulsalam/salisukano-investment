@@ -10,7 +10,7 @@ import { FaPlus } from 'react-icons/fa6';
 import Loader from '../components/Loader.jsx';
 import capitalizeText from '../hooks/CapitalizeText.js';
 
-const materialsData = [{ name: 'Cast' }, { name: 'Mix' }, { name: 'Special' }];
+const materialsData = [{ name: 'Cast' }, { name: 'Mix' }, { name: 'Special' }, { name: 'Carbody' }];
 
 // ----------- MAIN COMPONENT -----------
 const EditCredit = () => {
@@ -27,6 +27,7 @@ const EditCredit = () => {
 		{ product: 'Mix', qty: '', rate: '', cost: 0 },
 		{ product: 'Cast', qty: '', rate: '', cost: 0 },
 		{ product: 'Special', qty: '', rate: '', cost: 0 },
+		{ product: 'Carbody', qty: '', rate: '', cost: 0 },
 	]);
 	const [date, setDate] = useState('');
 	const [dateError, setDateError] = useState('');

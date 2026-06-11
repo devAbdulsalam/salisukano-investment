@@ -18,6 +18,10 @@ const PriceSchema = new mongoose.Schema(
 			type: Number,
 			default: 0,
 		},
+		oldCarbody: {
+			type: Number,
+			default: 0,
+		},
 		newMix: {
 			type: Number,
 			default: 0,
@@ -30,12 +34,16 @@ const PriceSchema = new mongoose.Schema(
 			type: Number,
 			default: 0,
 		},
+		newCarbody: {
+			type: Number,
+			default: 0,
+		},
 		date: {
 			type: Date,
 			default: Date.now, // Set to current date by default
 		},
 	},
-	{ timestamps: true }
+	{ timestamps: true },
 );
 
 const Price = mongoose.model('Price', PriceSchema);

@@ -997,7 +997,10 @@ const InvoicesPage = () => {
 									<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
 										{index + 1}
 									</td>
-									<td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+									<td
+										onClick={() => navigate(`/waybill/${invoice._id}`)}
+										className="cursor-pointer px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
+									>
 										{invoice.name}
 									</td>
 									<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

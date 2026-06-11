@@ -13,7 +13,7 @@ import Loader from '../components/Loader.jsx';
 import CustomersInput from '../components/CustomersInput.jsx';
 import { fetchTransactingCustomers } from '../hooks/axiosApis.js';
 
-const materialsData = [{ name: 'Cast' }, { name: 'Mix' }, { name: 'Special' }];
+const materialsData = [{ name: 'Cast' }, { name: 'Mix' }, { name: 'Special' }, { name: 'Carbody' }];
 
 const AddSupply = () => {
 	const { user } = useContext(AuthContext);

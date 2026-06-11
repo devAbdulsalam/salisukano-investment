@@ -135,6 +135,15 @@ const Table = ({ tableData, tableRef }) => {
 							<th className="p-3 text-[#212B36] text-sm font-normal whitespace-nowrap">
 								Special Total ₦
 							</th>
+							<th className="p-3 text-[#212B36] text-sm font-normal whitespace-nowrap">
+								Carbody Qty (kg)
+							</th>
+							<th className="p-3 text-[#212B36] text-sm font-normal whitespace-nowrap">
+								CB P ₦
+							</th>
+							<th className="p-3 text-[#212B36] text-sm font-normal whitespace-nowrap">
+								Carbody Total ₦
+							</th>
 							<th className="py-3 p-2 text-[#212B36] text-sm font-normal whitespace-nowrap">
 								Credit ₦
 							</th>
@@ -191,6 +200,15 @@ const Table = ({ tableData, tableRef }) => {
 								</td>
 								<td className="py-2 px-2 text-sm font-normal text-[#DD6107] whitespace-nowrap">
 									{data?.specialTotal || '-'}
+								</td>
+								<td className="py-2 px-2 text-sm font-normal text-[#637381] whitespace-nowrap bg-gray-50">
+									{data?.carbodyQuantity || '-'}
+								</td>
+								<td className="py-2 px-2 text-sm font-normal text-[#637381] whitespace-nowrap">
+									{data?.carbodyPrice || '-'}
+								</td>
+								<td className="py-2 px-2 text-sm font-normal text-[#DD6107] whitespace-nowrap">
+									{data?.carbodyTotal || '-'}
 								</td>
 								<td className="py-4 px-1 text-sm font-normal text-[#4F80E1] whitespace-nowrap">
 									{data?.credit?.toLocaleString() || '-'}

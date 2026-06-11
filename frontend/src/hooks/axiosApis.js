@@ -707,3 +707,45 @@ export const fetchExpenses = async (prop) => {
 		return error;
 	}
 };
+
+export const fetchStatements = async () => {
+	try {
+		const { data } = await axios.get(`${apiUrl}/statements`);
+		return data;
+	} catch (error) {
+		console.error('API failed', error);
+		return error;
+	}
+};
+
+export const fetchStatementByYear = async (year) => {
+	try {
+		const { data } = await axios.get(`${apiUrl}/statements/${year}`);
+		return data;
+	} catch (error) {
+		console.log(error.message);
+		throw error;
+	}
+};
+
+export const createStatementApi = async (payload) => {
+	const { data } = await axios.post(`${apiUrl}/statements`, payload);
+	return data;
+};
+
+export const updateStatementApi = async ({ year, payload }) => {
+	const { data } = await axios.put(`${apiUrl}/statements/${year}`, payload);
+	return data;
+};
+
+export const duplicateStatementApi = async ({ year, newYear }) => {
+	const { data } = await axios.post(`${apiUrl}/statements/${year}/duplicate`, {
+		newYear,
+	});
+	return data;
+};
+
+export const deleteStatementApi = async (year) => {
+	const { data } = await axios.delete(`${apiUrl}/statements/${year}`);
+	return data;
+};
