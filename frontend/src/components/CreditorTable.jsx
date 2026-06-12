@@ -136,13 +136,13 @@ const Table = ({ tableData, tableRef }) => {
 								Special Total ₦
 							</th>
 							<th className="p-3 text-[#212B36] text-sm font-normal whitespace-nowrap">
-								Carbody Qty (kg)
+								Bundle Qty (kg)
 							</th>
 							<th className="p-3 text-[#212B36] text-sm font-normal whitespace-nowrap">
-								CB P ₦
+								B P ₦
 							</th>
 							<th className="p-3 text-[#212B36] text-sm font-normal whitespace-nowrap">
-								Carbody Total ₦
+								Bundle Total ₦
 							</th>
 							<th className="py-3 p-2 text-[#212B36] text-sm font-normal whitespace-nowrap">
 								Credit ₦
@@ -202,13 +202,13 @@ const Table = ({ tableData, tableRef }) => {
 									{data?.specialTotal || '-'}
 								</td>
 								<td className="py-2 px-2 text-sm font-normal text-[#637381] whitespace-nowrap bg-gray-50">
-									{data?.carbodyQuantity || '-'}
+									{data?.bundleQuantity || '-'}
 								</td>
 								<td className="py-2 px-2 text-sm font-normal text-[#637381] whitespace-nowrap">
-									{data?.carbodyPrice || '-'}
+									{data?.bundlePrice || '-'}
 								</td>
 								<td className="py-2 px-2 text-sm font-normal text-[#DD6107] whitespace-nowrap">
-									{data?.carbodyTotal || '-'}
+									{data?.bundleTotal || '-'}
 								</td>
 								<td className="py-4 px-1 text-sm font-normal text-[#4F80E1] whitespace-nowrap">
 									{data?.credit?.toLocaleString() || '-'}

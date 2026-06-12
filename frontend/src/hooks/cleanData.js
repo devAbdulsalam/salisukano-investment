@@ -127,9 +127,9 @@ export const cleanTableData = (transactions) => {
 			transaction.materials?.find(
 				(material) => material.product === 'special',
 			) || {};
-		const carbodyMaterial =
+		const bundleMaterial =
 			transaction.materials?.find(
-				(material) => material.product === 'carbody',
+				(material) => material.product === 'bundle',
 			) || {};
 
 		return {
@@ -149,9 +149,9 @@ export const cleanTableData = (transactions) => {
 			specialQuantity: specialMaterial.qty || '-', // Special data
 			specialPrice: specialMaterial.rate || '-',
 			specialTotal: specialMaterial.cost || '-',
-			carbodyQuantity: carbodyMaterial.qty || '-', // carbody data
-			carbodyPrice: carbodyMaterial.rate || '-',
-			carbodyTotal: carbodyMaterial.cost || '-',
+			bundleQuantity: bundleMaterial.qty || '-', // bundle data
+			bundlePrice: bundleMaterial.rate || '-',
+			bundleTotal: bundleMaterial.cost || '-',
 			credit: transaction.credit || '-',
 			debit: transaction.debit || '-',
 			balance: transaction.balance || '-',
@@ -172,9 +172,9 @@ export const cleanCreditorsData = (transactions) => {
 			transaction.materials?.find(
 				(material) => material.product === 'special',
 			) || {};
-		const carbodyMaterial =
+		const bundleMaterial =
 			transaction.materials?.find(
-				(material) => material.product === 'carbody',
+				(material) => material.product === 'bundle',
 			) || {};
 
 		return {
@@ -193,9 +193,9 @@ export const cleanCreditorsData = (transactions) => {
 			specialQuantity: specialMaterial.qty || '-', // Special data
 			specialPrice: specialMaterial.rate || '-',
 			specialTotal: specialMaterial.cost || '-',
-			carbodyQuantity: carbodyMaterial.qty || '-', // carbody data
-			carbodyPrice: carbodyMaterial.rate || '-',
-			carbodyTotal: carbodyMaterial.cost || '-',
+			bundleQuantity: bundleMaterial.qty || '-', // bundle data
+			bundlePrice: bundleMaterial.rate || '-',
+			bundleTotal: bundleMaterial.cost || '-',
 			total: transaction.total || '-',
 			credit: transaction.credit || '-',
 			debit: transaction.debit || '-',

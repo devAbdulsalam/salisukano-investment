@@ -90,7 +90,7 @@ const Charts = ({ data }) => {
 						data: [2, 2, 1, 2, 1, 7, 6],
 					},
 					{
-						name: 'Carbody',
+						name: 'Bundle',
 						data: [2, 2, 1, 2, 1, 7, 6],
 					},
 				],

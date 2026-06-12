@@ -17,7 +17,7 @@ const materialsData = [
 	{ name: 'Cast' },
 	{ name: 'Mix' },
 	{ name: 'Special' },
-	{ name: 'Carbody' },
+	{ name: 'Bundle' },
 ];
 
 const AddSupply = () => {
@@ -51,7 +51,7 @@ const AddSupply = () => {
 			cost: 0,
 		},
 		{
-			product: 'Carbody',
+			product: 'Bundle',
 			qty: '',
 			rate: '',
 			cost: 0,

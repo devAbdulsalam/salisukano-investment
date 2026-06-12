@@ -104,21 +104,21 @@ const Tablle = ({
 		},
 		{
 			Header: 'CB Qty (kg)',
-			accessor: 'carbodyQuantity',
+			accessor: 'bundleQuantity',
 			Cell: ({ value }) => (
 				<span className={`text-[#637381] `}>{value || ' '}</span>
 			),
 		},
 		{
 			Header: 'CB P ₦',
-			accessor: 'carbodyPrice',
+			accessor: 'bundlePrice',
 			Cell: ({ value }) => (
 				<span className={` text-[#637381]`}>{value || ' '}</span>
 			),
 		},
 		{
-			Header: 'Carbody Total ₦',
-			accessor: 'carbodyTotal',
+			Header: 'Bundle Total ₦',
+			accessor: 'bundleTotal',
 			Cell: ({ value }) => (
 				<span className={` text-[#DD6107]`}>{value || ' '}</span>
 			),

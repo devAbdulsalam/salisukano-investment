@@ -12,7 +12,7 @@ import { FaPlus } from 'react-icons/fa6';
 import Loader from '../components/Loader.jsx';
 import { fetchCreditor } from '../hooks/axiosApis.js';
 
-const materialsData = [{ name: 'Cast' }, { name: 'Mix' }, { name: 'Special' }, {name: 'Carbody'}];
+const materialsData = [{ name: 'Cast' }, { name: 'Mix' }, { name: 'Special' }, {name: 'Bundle'}];
 
 const NewCredit = () => {
 	const { user } = useContext(AuthContext);

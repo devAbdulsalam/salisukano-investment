@@ -508,6 +508,18 @@ const FinancialStatement = () => {
 					if (boldRowIndices.includes(data.row.index)) {
 						return { fontStyle: 'bold', textColor: [0, 0, 0] };
 					}
+					// return {};
+					// },
+					// rowStyles: (row, data) => {
+					const firstCell = row[0]?.getText?.() || '';
+					if (
+						firstCell === 'Gross Capital' ||
+						firstCell === 'Net Capital' ||
+						firstCell.includes('Zakat') ||
+						firstCell.includes('Capital For')
+					) {
+						return { fontStyle: 'bold', textColor: [0, 0, 0] };
+					}
 					return {};
 				},
 				didDrawPage: (data) => {

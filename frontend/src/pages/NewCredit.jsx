@@ -12,7 +12,7 @@ import { FaPlus } from 'react-icons/fa6';
 import Loader from '../components/Loader.jsx';
 import { fetchCreditor, fetchCustomers } from '../hooks/axiosApis.js';
 
-const materialsData = [{ name: 'Cast' }, { name: 'Mix' }, { name: 'Special' }, { name: 'Carbody' }];
+const materialsData = [{ name: 'Cast' }, { name: 'Mix' }, { name: 'Special' }, { name: 'Bundle' }];
 
 const NewCredit = () => {
 	const { user } = useContext(AuthContext);
@@ -55,7 +55,7 @@ const NewCredit = () => {
 			cost: 0,
 		},
 		{
-			product: 'Carbody',
+			product: 'Bundle',
 			qty: '',
 			rate: '',
 			cost: 0,
