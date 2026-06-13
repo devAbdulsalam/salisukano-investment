@@ -426,7 +426,6 @@ const FinancialStatement = () => {
 			]);
 
 			// 3. Debit rows (with total on the last row, in Credit column)
-			const totalDebitsIndex = bodyRows.length;
 			debits.forEach((item, idx) => {
 				const isLastDebit = idx === debits.length - 1;
 				bodyRows.push([
@@ -437,6 +436,8 @@ const FinancialStatement = () => {
 					isLastDebit ? calc.totalDebits.toLocaleString() : '',
 				]);
 			});
+			// const debitStartIndex = bodyRows.length;
+			const totalDebitsIndex = bodyRows.length - 1; // last debit row
 
 			// 4. Net Capital row
 			const netCapitalIndex = bodyRows.length;
@@ -483,12 +484,14 @@ const FinancialStatement = () => {
 				body: bodyRows,
 				theme: 'grid',
 				margin: { top: 50, bottom: 20 },
+
 				styles: {
 					fontSize: 9,
 					cellPadding: 3,
 					lineColor: [0, 0, 0],
 					lineWidth: 0.3,
 				},
+
 				headStyles: {
 					fillColor: [0, 0, 0],
 					textColor: 255,
@@ -496,6 +499,7 @@ const FinancialStatement = () => {
 					lineWidth: 0.5,
 					halign: 'center',
 				},
+
 				columnStyles: {
 					0: { cellWidth: 12, halign: 'center' },
 					1: { cellWidth: 50 },
@@ -503,25 +507,17 @@ const FinancialStatement = () => {
 					3: { cellWidth: 'auto', halign: 'right' },
 					4: { cellWidth: 'auto', halign: 'right' },
 				},
-				// Apply bold to summary rows
-				rowStyles: (row, data) => {
-					if (boldRowIndices.includes(data.row.index)) {
-						return { fontStyle: 'bold', textColor: [0, 0, 0] };
-					}
-					// return {};
-					// },
-					// rowStyles: (row, data) => {
-					const firstCell = row[0]?.getText?.() || '';
+
+				didParseCell: (data) => {
 					if (
-						firstCell === 'Gross Capital' ||
-						firstCell === 'Net Capital' ||
-						firstCell.includes('Zakat') ||
-						firstCell.includes('Capital For')
+						data.section === 'body' &&
+						boldRowIndices.includes(data.row.index)
 					) {
-						return { fontStyle: 'bold', textColor: [0, 0, 0] };
+						data.cell.styles.fontStyle = 'bold';
+						data.cell.styles.fillColor = [240, 240, 240];
 					}
-					return {};
 				},
+
 				didDrawPage: (data) => {
 					if (data.pageNumber > 1) {
 						addBackgroundAndHeader(doc);
