@@ -27,6 +27,7 @@ const DEFAULT_CATEGORIES = [
 	'Stocks',
 	'Investments',
 	'Fixed Assets',
+	'Operating Assets',
 	'Liabilities',
 	'Creditors',
 	'Shareholders',
@@ -280,7 +281,7 @@ const FinancialStatement = () => {
 		if (!statement) {
 			return;
 		}
-		// console.log('statement', statement, 'calc', calc);
+		console.log('statement', statement, 'calc', calc);
 		toast.success('Download coming soon');
 		setLoading(true);
 
@@ -407,7 +408,8 @@ const FinancialStatement = () => {
 			// 1. Credit rows
 			credits.forEach((item, idx) => {
 				bodyRows.push([
-					idx + 1, // S/N
+					// idx + 1, // S/N
+					item.category,
 					item.title,
 					item.description,
 					'', // Debit
@@ -418,7 +420,8 @@ const FinancialStatement = () => {
 			// 2. Gross Capital row (right after credits, before debits)
 			const grossCapitalIndex = bodyRows.length; // 0‑based index of this row
 			bodyRows.push([
-				credits.length + 1, // S/N
+				// credits.length + 1, // S/N
+				'_',
 				'Gross Capital',
 				'-',
 				'',
@@ -429,7 +432,8 @@ const FinancialStatement = () => {
 			debits.forEach((item, idx) => {
 				const isLastDebit = idx === debits.length - 1;
 				bodyRows.push([
-					credits.length + 1 + (idx + 1), // S/N
+					// credits.length + 1 + (idx + 1), // S/N
+					item.category,
 					item.title,
 					item.description,
 					item.amount?.toLocaleString(),
@@ -442,7 +446,8 @@ const FinancialStatement = () => {
 			// 4. Net Capital row
 			const netCapitalIndex = bodyRows.length;
 			bodyRows.push([
-				credits.length + 1 + debits.length + 1,
+				// credits.length + 1 + debits.length + 1,
+				'_',
 				'Net Capital',
 				'-',
 				'',
@@ -452,7 +457,8 @@ const FinancialStatement = () => {
 			// 5. Zakat row
 			const zakatIndex = bodyRows.length;
 			bodyRows.push([
-				credits.length + 1 + debits.length + 2,
+				// credits.length + 1 + debits.length + 2,
+				'_',
 				`Zakat (${statement.zakatRate}%)`,
 				'-',
 				'',
@@ -462,7 +468,8 @@ const FinancialStatement = () => {
 			// 6. Closing Capital row
 			const closingIndex = bodyRows.length;
 			bodyRows.push([
-				credits.length + 1 + debits.length + 3,
+				// credits.length + 1 + debits.length + 3,
+				'_',
 				`Capital For ${parseInt(statement.year) + 1}`,
 				'-',
 				'',
@@ -480,7 +487,15 @@ const FinancialStatement = () => {
 
 			autoTable(doc, {
 				startY: tableStartY,
-				head: [['S/N', 'Title', 'Description', 'Debit (NGN)', 'Credit (NGN)']],
+				head: [
+					[
+						'Category',
+						'Description',
+						'Quantity/Rate/Unit',
+						'Debit (NGN)',
+						'Credit (NGN)',
+					],
+				],
 				body: bodyRows,
 				theme: 'grid',
 				margin: { top: 50, bottom: 20 },
@@ -501,8 +516,8 @@ const FinancialStatement = () => {
 				},
 
 				columnStyles: {
-					0: { cellWidth: 12, halign: 'center' },
-					1: { cellWidth: 50 },
+					0: { cellWidth: 'auto' },
+					1: { cellWidth: 'auto' },
 					2: { cellWidth: 'auto' },
 					3: { cellWidth: 'auto', halign: 'right' },
 					4: { cellWidth: 'auto', halign: 'right' },
@@ -713,8 +728,13 @@ const FinancialStatement = () => {
 					<thead>
 						<tr className="bg-gray-100 text-left">
 							<th className="p-2 whitespace-nowrap">Category</th>
-							<th className="p-2 whitespace-nowrap">Name</th>
 							<th className="p-2 whitespace-nowrap">Description</th>
+							<th className="p-2 whitespace-nowrap">
+								<span className="hidden md:inline-block">
+									Quantity/Unit/Rate
+								</span>
+								<span className="inline-block md:hidden">Q/U/R</span>
+							</th>
 							<th className="p-2 whitespace-nowrap">Type</th>
 							<th className="p-2 whitespace-nowrap text-right">Amount</th>
 							<th className="p-2 whitespace-nowrap">Action</th>
