@@ -18,7 +18,7 @@ const PriceSchema = new mongoose.Schema(
 			type: Number,
 			default: 0,
 		},
-		oldCarbody: {
+		oldBundle: {
 			type: Number,
 			default: 0,
 		},
@@ -34,7 +34,7 @@ const PriceSchema = new mongoose.Schema(
 			type: Number,
 			default: 0,
 		},
-		newCarbody: {
+		newBundle: {
 			type: Number,
 			default: 0,
 		},

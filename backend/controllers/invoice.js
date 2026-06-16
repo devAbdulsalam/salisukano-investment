@@ -97,13 +97,13 @@ export const parseInvoiceText = (text) => {
 			// Format: M~19,900kg*809 =N16,099,100
 			/([MCS])~([\d,]+)kg\*(\d+)(?:\s*=\s*N([\d,]+))?/i,
 			// Format: Mix:19,900kg*809 = N16,099,100
-			/(Mix|Cast|Special):\s*([\d,]+)kg\*(\d+)(?:\s*=\s*N([\d,]+))?/i,
+			/(Mix|Cast|Special|Bundle):\s*([\d,]+)kg\*(\d+)(?:\s*=\s*N([\d,]+))?/i,
 			// Format: Mix:19,900kg*809 (without amount)
-			/(Mix|Cast|Special):\s*([\d,]+)kg\*(\d+)/i,
+			/(Mix|Cast|Special|Bundle):\s*([\d,]+)kg\*(\d+)/i,
 			// Format: Mix:19,900kg*809 (without amount)
-			/(M|C|S):\s*([\d,]+)kg\*(\d+)/i,
+			/(M|C|S|B):\s*([\d,]+)kg\*(\d+)/i,
 			// Format: M~19,900kg*809 (without amount)
-			/([MCS])~([\d,]+)kg\*(\d+)/i,
+			/([MCSB])~([\d,]+)kg\*(\d+)/i,
 		];
 
 		for (const pattern of itemPatterns) {
@@ -117,12 +117,15 @@ export const parseInvoiceText = (text) => {
 					M: 'Mix',
 					C: 'Cast',
 					S: 'Special',
+					B: 'Bundle',
 					mix: 'Mix',
 					cast: 'Cast',
 					special: 'Special',
+					bundle: 'Bundle',
 					Mix: 'Mix',
 					Cast: 'Cast',
 					Special: 'Special',
+					Bundle: 'Bundle',
 				};
 
 				typeName = typeMap[typeCode] || typeCode;
@@ -226,13 +229,13 @@ export const parseInvoiceText = (text) => {
 					if (nextLine.toLowerCase().includes('expenses')) {
 						parsedData.less.expenses = extractFinancialValue(
 							nextLine,
-							'expenses'
+							'expenses',
 						);
 					}
 					if (nextLine.toLowerCase().includes('deposit')) {
 						parsedData.less.deposit = extractFinancialValue(
 							nextLine,
-							'deposit'
+							'deposit',
 						);
 					}
 				}
@@ -266,7 +269,7 @@ export const parseInvoiceText = (text) => {
 		if (parsedData.total === 0 && parsedData.items.length > 0) {
 			parsedData.total = parsedData.items.reduce(
 				(sum, item) => sum + item.amount,
-				0
+				0,
 			);
 		}
 
@@ -555,7 +558,7 @@ export const updateInvoice = async (req, res) => {
 		if (!updateData.total && updateData.items.length > 0) {
 			updateData.total = updateData.items.reduce(
 				(sum, item) => sum + (item.amount || item.weight * item.rate),
-				0
+				0,
 			);
 		}
 

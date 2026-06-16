@@ -24,7 +24,7 @@ const parseReceiptText = (text) => {
 				M: 'Mix',
 				C: 'Cast',
 				S: 'Special',
-				S: 'Carbody',
+				B: 'Bundle',
 			};
 			const type = typeMap[match[1]];
 			const weight = parseFloat(match[2].replace(/,/g, ''));

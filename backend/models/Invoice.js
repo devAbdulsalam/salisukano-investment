@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 // const ItemSchema = new mongoose.Schema({
-// 	type: { type: String, enum: ['Mix', 'Cast', 'Special'], required: true },
+// 	type: { type: String, enum: ['Mix', 'Cast', 'Special', Bundle], required: true },
 // 	weight: { type: Number, required: true },
 // 	rate: { type: Number, required: true },
 // 	amount: { type: Number, required: true },
@@ -27,7 +27,7 @@ const ItemSchema = new mongoose.Schema({
 	type: {
 		type: String,
 		required: true,
-		enum: ['Mix', 'Cast', 'Special', 'Carbody'],
+		enum: ['Mix', 'Cast', 'Special', 'Bundle'],
 	},
 	weight: {
 		type: Number,
