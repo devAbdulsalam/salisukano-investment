@@ -22,6 +22,10 @@ const WaybillRegisterSchema = new mongoose.Schema(
 			type: Number,
 			default: 0,
 		},
+		bundle: {
+			type: Number,
+			default: 0,
+		},
 		tare: {
 			type: Number,
 			default: 0,

@@ -14,6 +14,7 @@ export const createWaybill = async (req, res) => {
 			tare = 0,
 			date,
 			note,
+			bundle,
 		} = req.body;
 
 		// Calculate gross automatically
@@ -28,6 +29,7 @@ export const createWaybill = async (req, res) => {
 			gross,
 			date,
 			note,
+			bundle,
 		});
 
 		res.status(201).json({
