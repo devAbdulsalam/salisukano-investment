@@ -8,6 +8,7 @@ import Loader from '../components/Loader';
 import getError from '../hooks/getError';
 import { useNavigate } from 'react-router-dom';
 import { months } from '../data.js';
+import { ArrowUpDown } from 'lucide-react';
 
 const currency = (amount) =>
 	Number(amount || 0).toLocaleString(undefined, {
@@ -27,6 +28,8 @@ const Dividends = () => {
 
 	const [search, setSearch] = useState('');
 
+	const [sortConfig, setSortConfig] = useState({ key: '', direction: '' });
+
 	const { data, isLoading, error } = useQuery({
 		queryKey: ['dividends'],
 		queryFn: () => fetchDividends(user),
@@ -41,19 +44,61 @@ const Dividends = () => {
 		return years.sort((a, b) => b - a);
 	}, [dividends]);
 
+
+	// Sorting
+	const requestSort = (key) => {
+		let direction = 'asc';
+		if (sortConfig.key === key && sortConfig.direction === 'asc') {
+			direction = 'desc';
+		} else if (sortConfig.key === key && sortConfig.direction === 'desc') {
+			direction = ''; // clear sort
+		}
+		setSortConfig({ key, direction });
+	};
+
 	const filteredDividends = useMemo(() => {
-		return dividends.filter((item) => {
+		// 1. Filter
+		let result = dividends.filter((item) => {
 			const matchesYear = !year || item.year === Number(year);
-
 			const matchesMonth = !month || item.month === Number(month);
-
 			const matchesSearch =
 				!search ||
 				item.shareholder?.name?.toLowerCase().includes(search.toLowerCase());
-
 			return matchesYear && matchesMonth && matchesSearch;
 		});
-	}, [dividends, year, month, search]);
+
+		// 2. Sort (if a direction is set)
+		if (sortConfig.direction) {
+			result = [...result].sort((a, b) => {
+				let aValue, bValue;
+
+				// Extract the value to sort by based on the key
+				switch (sortConfig.key) {
+					case 'shareholder':
+						aValue = a.shareholder?.name?.toLowerCase() || '';
+						bValue = b.shareholder?.name?.toLowerCase() || '';
+						break;
+					case 'year':
+					case 'month':
+					case 'amount': // add any other numeric fields
+						aValue = a[sortConfig.key];
+						bValue = b[sortConfig.key];
+						break;
+					default:
+						// fallback for direct properties (string or number)
+						aValue = a[sortConfig.key];
+						bValue = b[sortConfig.key];
+				}
+
+				// Compare values
+				if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+				if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+				return 0;
+			});
+		}
+
+		return result;
+	}, [dividends, year, month, search, sortConfig]);
 
 	const stats = useMemo(() => {
 		const totalDividend = filteredDividends.reduce(
@@ -179,7 +224,15 @@ const Dividends = () => {
 					<table className="w-full text-sm">
 						<thead>
 							<tr className="bg-gray-100">
-								<th className="p-3 text-left">Shareholder</th>
+								<th
+									onClick={() => requestSort('shareholder')}
+									className="p-3 text-left cursor-pointer select-none"
+								>
+									<div className="flex items-center gap-1">
+										Shareholder
+										<ArrowUpDown size={14} />
+									</div>
+								</th>
 
 								<th className="p-3 text-left">Month</th>
 

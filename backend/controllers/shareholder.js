@@ -152,62 +152,162 @@ export const getShareholder = async (req, res) => {
 };
 
 export const addInvestment = async (req, res) => {
+	const session = await mongoose.startSession();
+
 	try {
 		const { shareholderId } = req.params;
-
 		const { amount, date, description } = req.body;
+
+		const investmentAmount = Number(amount);
+
+		if (!investmentAmount || investmentAmount <= 0) {
+			return res.status(400).json({
+				success: false,
+				message: 'Invalid investment amount',
+			});
+		}
 
 		const effective = getEffectivePeriod(date);
 
-		const transaction = await ShareholderTransaction.create({
-			shareholder: shareholderId,
-			type: 'topup',
-			amount,
-			description,
-			transactionDate: date,
-			effectiveMonth: effective.month,
-			effectiveYear: effective.year,
-		});
+		await session.withTransaction(async () => {
+			const shareholder =
+				await Shareholder.findById(shareholderId).session(session);
 
-		res.status(201).json({
-			success: true,
-			data: transaction,
+			if (!shareholder) {
+				throw new Error('Shareholder not found');
+			}
+
+			const transaction = await ShareholderTransaction.create(
+				[
+					{
+						shareholder: shareholderId,
+						type: 'topup',
+						amount: investmentAmount,
+						description,
+						transactionDate: date,
+						effectiveMonth: effective.month,
+						effectiveYear: effective.year,
+					},
+				],
+				{ session },
+			);
+
+			await Shareholder.updateOne(
+				{
+					_id: shareholderId,
+				},
+				{
+					$inc: {
+						currentInvestment: investmentAmount,
+					},
+				},
+				{
+					session,
+				},
+			);
+
+			res.status(201).json({
+				success: true,
+				message: 'Investment added successfully',
+				data: transaction[0],
+			});
 		});
 	} catch (error) {
 		res.status(500).json({
 			success: false,
 			message: error.message,
 		});
+	} finally {
+		await session.endSession();
 	}
 };
 
 export const withdrawInvestment = async (req, res) => {
+	const session = await mongoose.startSession();
+
 	try {
 		const { shareholderId } = req.params;
 
 		const { amount, date, description } = req.body;
 
+		const withdrawalAmount = Number(amount);
+
+		if (!withdrawalAmount || withdrawalAmount <= 0) {
+			return res.status(400).json({
+				success: false,
+				message: 'Invalid withdrawal amount',
+			});
+		}
+
 		const effective = getEffectivePeriod(date);
 
-		const transaction = await ShareholderTransaction.create({
-			shareholder: shareholderId,
-			type: 'withdrawal',
-			amount,
-			description,
-			transactionDate: date,
-			effectiveMonth: effective.month,
-			effectiveYear: effective.year,
-		});
+		await session.withTransaction(async () => {
+			/**
+			 * Atomic balance check
+			 */
+			const shareholder = await Shareholder.findOneAndUpdate(
+				{
+					_id: shareholderId,
 
-		res.status(201).json({
-			success: true,
-			data: transaction,
+					currentInvestment: {
+						$gte: withdrawalAmount,
+					},
+				},
+				{
+					$inc: {
+						currentInvestment: -withdrawalAmount,
+					},
+				},
+				{
+					new: true,
+					session,
+				},
+			);
+
+			if (!shareholder) {
+				throw new Error('Insufficient investment or shareholder not found');
+			}
+
+			const transaction = await ShareholderTransaction.create(
+				[
+					{
+						shareholder: shareholderId,
+
+						type: 'withdrawal',
+
+						amount: withdrawalAmount,
+
+						description,
+
+						transactionDate: date,
+
+						effectiveMonth: effective.month,
+
+						effectiveYear: effective.year,
+					},
+				],
+				{
+					session,
+				},
+			);
+
+			res.status(201).json({
+				success: true,
+
+				message: 'Withdrawal processed successfully',
+
+				currentInvestment: shareholder.currentInvestment,
+
+				data: transaction[0],
+			});
 		});
 	} catch (error) {
 		res.status(500).json({
 			success: false,
 			message: error.message,
 		});
+	} finally {
+		await session.endSession();
 	}
 };
 
@@ -363,91 +463,74 @@ export const getDividends = async (req, res) => {
 export const calculateMonthlyDividend = async (req, res) => {
 	const session = await mongoose.startSession();
 
-	session.startTransaction();
-
 	try {
 		const { month, year } = req.body;
 
-		// Lock dividend rate
-
-		const rate = await DividendRate.findOne({
-			month,
-			year,
-		}).session(session);
-
-		if (!rate) {
-			await session.abortTransaction();
-
-			return res.status(404).json({
-				success: false,
-				message: 'Dividend rate not found',
-			});
-		}
-
-		if (rate.status === 'completed') {
-			await session.abortTransaction();
-
+		if (!month || !year) {
 			return res.status(400).json({
 				success: false,
-				message: 'Dividend already processed',
+				message: 'Month and year are required',
 			});
 		}
 
-		if (rate.status === 'processing') {
-			await session.abortTransaction();
+		await session.withTransaction(async () => {
+			/**
+			 * Lock dividend processing
+			 */
+			const rate = await DividendRate.findOneAndUpdate(
+				{
+					month: Number(month),
+					year: Number(year),
+					status: 'pending',
+				},
+				{
+					$set: {
+						status: 'processing',
+					},
+				},
+				{
+					new: true,
+					session,
+				},
+			);
 
-			return res.status(400).json({
-				success: false,
-				message: 'Dividend currently processing',
-			});
-		}
+			if (!rate) {
+				throw new Error(
+					'Dividend already processed, processing, or rate not found',
+				);
+			}
 
-		rate.status = 'processing';
-
-		await rate.save({
-			session,
-		});
-
-		// Fetch shareholders once
-
-		const shareholders = await Shareholder.find({}, '_id name')
-			.lean()
-			.session(session);
-
-		const ledgerEntries = [];
-
-		for (const shareholder of shareholders) {
-			// Net Investment
-
-			const transactionAgg = await ShareholderTransaction.aggregate([
+			/**
+			 * Aggregate all shareholder investments
+			 */
+			const investments = await ShareholderTransaction.aggregate([
 				{
 					$match: {
-						shareholder: shareholder._id,
-
 						$or: [
 							{
 								effectiveYear: {
-									$lt: year,
+									$lt: Number(year),
 								},
 							},
 							{
-								effectiveYear: year,
+								effectiveYear: Number(year),
 								effectiveMonth: {
-									$lte: month,
+									$lte: Number(month),
 								},
 							},
 						],
 					},
 				},
+
 				{
 					$group: {
-						_id: null,
+						_id: '$shareholder',
 
 						deposits: {
 							$sum: {
 								$cond: [
 									{
-										$eq: ['$type', 'deposit'],
+										$in: ['$type', ['opening', 'topup']],
 									},
 									'$amount',
 									0,
@@ -470,25 +553,14 @@ export const calculateMonthlyDividend = async (req, res) => {
 				},
 			]).session(session);
 
-			const deposits = transactionAgg[0]?.deposits || 0;
-
-			const withdrawals = transactionAgg[0]?.withdrawals || 0;
-
-			const investment = deposits - withdrawals;
-
-			if (investment <= 0) continue;
-
-			const dividend = (investment * rate.percentage) / 100;
-
-			const previousDividend = await DividendLedger.aggregate([
-				{
-					$match: {
-						shareholder: shareholder._id,
-					},
-				},
+			/**
+			 * Previous dividends
+			 */
+			const previousDividends = await DividendLedger.aggregate([
 				{
 					$group: {
-						_id: null,
+						_id: '$shareholder',
+
 						total: {
 							$sum: '$dividendAmount',
 						},
@@ -496,63 +568,112 @@ export const calculateMonthlyDividend = async (req, res) => {
 				},
 			]).session(session);
 
-			const cumulative = (previousDividend[0]?.total || 0) + dividend;
+			const dividendMap = new Map(
+				previousDividends.map((item) => [String(item._id), item.total]),
+			);
 
-			ledgerEntries.push({
-				shareholder: shareholder._id,
+			/**
+			 * Generate dividend records
+			 */
+			const ledgerEntries = investments
+				.filter((item) => item.deposits - item.withdrawals > 0)
+				.map((item) => {
+					const investment = item.deposits - item.withdrawals;
+
+					const dividend = (investment * rate.percentage) / 100;
+
+					const previousTotal = dividendMap.get(String(item._id)) || 0;
+
+					return {
+						shareholder: item._id,
+
+						month: Number(month),
+
+						year: Number(year),
+
+						percentage: rate.percentage,
+
+						investmentAmount: investment,
+
+						dividendAmount: Number(dividend.toFixed(2)),
+
+						cumulativeDividend: Number((previousTotal + dividend).toFixed(2)),
+
+						description: `${month}/${year} Dividend`,
+					};
+				});
+
+			/**
+			 * Insert dividends
+			 */
+			if (ledgerEntries.length > 0) {
+				await DividendLedger.insertMany(ledgerEntries, {
+					session,
+					ordered: false,
+				});
+			}
+
+			/**
+			 * Complete processing
+			 */
+			await DividendRate.updateOne(
+				{
+					_id: rate._id,
+				},
+				{
+					$set: {
+						status: 'completed',
+
+						processedAt: new Date(),
+					},
+				},
+				{
+					session,
+				},
+			);
+
+			const totalDividend = ledgerEntries.reduce(
+				(sum, item) => sum + item.dividendAmount,
+				0,
+			);
+
+			res.status(200).json({
+				success: true,
+				message: 'Monthly dividend processed successfully',
 
 				month,
 				year,
 
 				percentage: rate.percentage,
 
-				investmentAmount: investment,
+				totalShareholders: ledgerEntries.length,
 
-				dividendAmount: dividend,
-
-				cumulativeDividend: cumulative,
-
-				description: `${month}/${year} Dividend`,
+				totalDividend: Number(totalDividend.toFixed(2)),
 			});
-		}
-
-		if (ledgerEntries.length > 0) {
-			await DividendLedger.insertMany(ledgerEntries, {
-				session,
-				ordered: true,
-			});
-		}
-
-		rate.status = 'completed';
-
-		rate.processedAt = new Date();
-
-		await rate.save({
-			session,
-		});
-
-		await session.commitTransaction();
-
-		res.status(200).json({
-			success: true,
-			message: 'Monthly dividend processed successfully',
-			totalProcessed: ledgerEntries.length,
-			totalDividend: ledgerEntries.reduce(
-				(sum, item) => sum + item.dividendAmount,
-				0,
-			),
 		});
 	} catch (error) {
-		await session.abortTransaction();
+		console.error('Dividend Processing Error:', error);
 
-		console.error(error);
+		// Reset stuck processing status
+		await DividendRate.updateOne(
+			{
+				month: req.body.month,
+				year: req.body.year,
+				status: 'processing',
+			},
+			{
+				$set: {
+					status: 'pending',
+				},
+			},
+		).catch(() => {});
 
-		res.status(500).json({
+		return res.status(500).json({
 			success: false,
 			message: error.message,
 		});
 	} finally {
-		session.endSession();
+		await session.endSession();
 	}
 };
 
@@ -605,28 +726,69 @@ export const getShareholderStatement = async (req, res) => {
 };
 
 export const deleteShareholder = async (req, res) => {
+	const session = await Shareholder.startSession(); // assuming Mongoose
+	session.startTransaction();
+
 	try {
 		const { shareholderId } = req.params;
 
-		const shareholder = await Shareholder.findById(shareholderId);
+		// 1. Validate ObjectId format
+		if (!mongoose.Types.ObjectId.isValid(shareholderId)) {
+			return res.status(400).json({
+				success: false,
+				message: 'Invalid shareholder ID format',
+			});
+		}
 
-		if (!shareholder) {
+		// 2. Authorization (example – adjust to your auth logic)
+		// if (!req.user || !req.user.canDelete('shareholder')) {
+		//   return res.status(403).json({ success: false, message: 'Forbidden' });
+		// }
+
+		// 3. Find and delete the shareholder atomically
+		const deletedShareholder = await Shareholder.findByIdAndDelete(
+			shareholderId,
+			{ session },
+		);
+
+		if (!deletedShareholder) {
+			await session.abortTransaction();
 			return res.status(404).json({
 				success: false,
 				message: 'Shareholder not found',
 			});
 		}
 
-		await Shareholder.findByIdAndDelete(shareholderId);
+		// 4. Cascade delete all related records
+		await ShareholderTransaction.deleteMany(
+			{ shareholder: shareholderId },
+			{ session },
+		);
+		await DividendLedger.deleteMany(
+			{ shareholder: shareholderId },
+			{ session },
+		);
 
-		res.json({
+		// 5. Commit transaction
+		await session.commitTransaction();
+		session.endSession();
+
+		res.status(200).json({
 			success: true,
 			message: 'Shareholder deleted successfully',
 		});
 	} catch (error) {
+		// Rollback transaction on error
+		await session.abortTransaction();
+		session.endSession();
+
+		// Log the error for debugging (use your logger)
+		console.error('Delete shareholder error:', error);
+
+		// Send a generic error to the client
 		res.status(500).json({
 			success: false,
-			message: error.message,
+			message: 'An error occurred while deleting the shareholder',
 		});
 	}
 };

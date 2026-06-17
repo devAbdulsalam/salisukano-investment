@@ -32,6 +32,13 @@ const shareholderTransactionSchema = new mongoose.Schema(
 	{ timestamps: true },
 );
 
+shareholderTransactionSchema.index({
+	shareholder: 1,
+	effectiveYear: 1,
+	effectiveMonth: 1,
+	type: 1,
+});
+
 export default mongoose.model(
 	'ShareholderTransaction',
 	shareholderTransactionSchema,

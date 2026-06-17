@@ -11,7 +11,15 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import getError from '../hooks/getError.js';
 import toast from 'react-hot-toast';
-import { Plus, Download, Minus, List, ArrowDownWideNarrow } from 'lucide-react';
+import {
+	Wallet,
+	ArrowLeftRight,
+	Plus,
+	Download,
+	Minus,
+	List,
+	ArrowDownWideNarrow,
+} from 'lucide-react';
 import formatDate from '../hooks/formatDate.js';
 import { useNavigate, useParams } from 'react-router-dom';
 import { months } from '../data.js';
@@ -67,10 +75,22 @@ const Shareholder = () => {
 	const filteredDividends = useMemo(() => {
 		if (!data?.dividends) return [];
 
-		return data.dividends.filter(
-			(dividend) => !year || dividend.year === Number(year),
-		);
+		// Filter by year if provided
+		const filtered = year
+			? data.dividends.filter((d) => d.year === Number(year))
+			: data.dividends;
+
+		// Accumulate total while mapping
+		let runningTotal = 0;
+		return filtered.map((item) => {
+			runningTotal += item.dividendAmount;
+			return {
+				...item,
+				total: runningTotal,
+			};
+		});
 	}, [data, year]);
+
 	const filteredTransactions = useMemo(() => {
 		if (!data?.transactions) return [];
 
@@ -398,6 +418,15 @@ const Shareholder = () => {
 	return (
 		<main>
 			<div className="p-3 md:p-6 bg-gray-50 min-h-screen">
+				{/* Header */}
+				<div className="mb-6">
+					<h1 className="text-2xl font-bold text-gray-900">
+						Shareholder Records
+					</h1>
+					<p className="text-sm text-gray-500 mt-1">
+						View dividend distributions and transaction history.
+					</p>
+				</div>
 				{/* Shareholder Details */}
 				<div className="bg-white rounded-lg shadow p-4 mb-6">
 					<h2 className="font-bold text-xl mb-3">{shareholder?.name}</h2>
@@ -440,7 +469,7 @@ const Shareholder = () => {
 					</div>
 
 					<div className="bg-white shadow rounded p-4">
-						<p className="text-gray-500 text-sm">Total Dividends</p>
+						<p className="text-gray-500 text-sm mb-4">Total Dividends</p>
 						<h3 className="font-bold text-xl text-green-600">
 							₦{currency(stats.totalDividend)}
 						</h3>
@@ -463,7 +492,7 @@ const Shareholder = () => {
 					</div>
 
 					<div className="bg-white shadow rounded p-4">
-						<p className="text-gray-500 text-sm">Closing Balance</p>
+						<p className="text-gray-500 text-sm mb-4">Closing Balance</p>
 						<h3 className="font-bold text-xl text-blue-700">
 							₦{currency(stats.closingBalance)}
 						</h3>
@@ -471,32 +500,31 @@ const Shareholder = () => {
 				</div>
 
 				{/* Tabs */}
-				<div className="border-b border-gray-200">
-					<nav className="-mb-px flex space-x-4" aria-label="Tabs">
-						<button
-							onClick={() => setActiveTab('dividends')}
-							className={`py-2 px-1 border-b-2 text-sm font-medium flex items-center justify-center gap-2 ${
-								activeTab === 'dividends'
-									? 'border-blue-500 text-blue-600'
-									: 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-							}`}
-						>
-							<ArrowDownWideNarrow className="h-4 w-4" />
-							Dividends
-						</button>
-						<button
-							onClick={() => setActiveTab('transactions')}
-							className={`py-2 px-1 border-b-2 text-sm font-medium flex items-center justify-center gap-2 ${
-								activeTab === 'transactions'
-									? 'border-blue-500 text-blue-600'
-									: 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-							}`}
-						>
-							<List className="h-4 w-4" />
-							Transactions
-						</button>
-					</nav>
-				</div>
+				<nav className="inline-flex bg-white p-1 rounded-xl shadow-sm border border-gray-200 mb-4">
+					<button
+						onClick={() => setActiveTab('dividends')}
+						className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+							activeTab === 'dividends'
+								? 'bg-green-600 text-white shadow-md'
+								: 'text-gray-600 hover:bg-gray-100'
+						}`}
+					>
+						<ArrowDownWideNarrow size={18} />
+						Dividends
+					</button>
+
+					<button
+						onClick={() => setActiveTab('transactions')}
+						className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+							activeTab === 'transactions'
+								? 'bg-blue-600 text-white shadow-md'
+								: 'text-gray-600 hover:bg-gray-100'
+						}`}
+					>
+						<List size={18} />
+						Transactions
+					</button>
+				</nav>
 
 				{/* Tab Panels */}
 				<div className="mt-2">
@@ -504,30 +532,35 @@ const Shareholder = () => {
 						<div className="overflow-x-auto">
 							<div className="bg-white rounded-lg shadow overflow-x-auto p-4">
 								{/* Search and Date Filter */}
-								<div className="w-full flex gap-4  items-center mb-4">
-									{/* Year selector */}
-									<select
-										className="border p-2 rounded text-sm"
-										value={year}
-										onChange={(e) => setYear(Number(e.target.value))}
-									>
-										<option value={year} disabled>
-											{year}
-										</option>
-										{years.map((yr) => (
-											<option key={yr} value={yr}>
-												{yr} Financial Year
+								<div className="w-full flex gap-4 justify-between items-center mb-4">
+									<h2 className="text-xl font-semibold text-gray-900 whitespace-nowrap">
+										Dividend History
+									</h2>
+									<div className="flex gap-2  items-center">
+										{/* Year selector */}
+										<select
+											className="border p-2 rounded text-sm"
+											value={year}
+											onChange={(e) => setYear(Number(e.target.value))}
+										>
+											<option value={year} disabled>
+												{year}
 											</option>
-										))}
-									</select>
-									<button
-										disabled={loading}
-										onClick={handleDownload}
-										className="cursor-pointer bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm flex items-center justify-center gap-2 w-full md:w-auto "
-									>
-										<Download className="h-4 w-4" />
-										Download
-									</button>
+											{years.map((yr) => (
+												<option key={yr} value={yr}>
+													{yr} Financial Year
+												</option>
+											))}
+										</select>
+										<button
+											disabled={loading}
+											onClick={handleDownload}
+											className="cursor-pointer bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm flex items-center justify-center gap-2 w-full md:w-auto "
+										>
+											<Download className="h-4 w-4" />
+											Download
+										</button>
+									</div>
 								</div>
 
 								<table className="w-full rounded-lg border border-gray-200 overflow-x-auto">
@@ -553,9 +586,7 @@ const Shareholder = () => {
 												<td className="p-3 text-green-600 font-medium">
 													₦{currency(dividend.dividendAmount)}
 												</td>
-												<td className="p-3">
-													₦{currency(dividend.investmentAmount)}
-												</td>
+												<td className="p-3">₦{currency(dividend.total)}</td>
 											</tr>
 										))}
 									</tbody>
@@ -564,76 +595,83 @@ const Shareholder = () => {
 						</div>
 					)}
 					{activeTab === 'transactions' && (
-						<div className="overflow-x-auto">
-							<table className="min-w-full rounded-lg border text-sm">
-								<thead className="bg-gray-100 ">
-									<tr>
-										<th className="px-4 py-2 text-left font-medium text-gray-500">
-											Date
-										</th>
-										<th className="px-4 py-2 text-left font-medium text-gray-500">
-											Type
-										</th>
-										<th className="px-4 py-2 text-left font-medium text-gray-500">
-											Amount
-										</th>
-										<th className="px-4 py-2 text-left font-medium text-gray-500">
-											Effective Month/Year
-										</th>
-										<th className="px-4 py-2 text-left font-medium text-gray-500">
-											Description
-										</th>
-									</tr>
-								</thead>
-								<tbody className="divide-y divide-gray-200">
-									{filteredTransactions.length === 0 ? (
+						<div className="bg-white rounded-lg border p-4">
+							<div className="flex items-center justify-between mb-4">
+								<h2 className="text-xl font-semibold text-gray-900">
+									Transaction History
+								</h2>
+							</div>
+							<div className="overflow-x-auto">
+								<table className="min-w-full rounded-lg border text-sm">
+									<thead className="bg-gray-100 ">
 										<tr>
-											<td
-												colSpan="4"
-												className="px-4 py-4 text-center text-gray-400"
-											>
-												No transactions found
-											</td>
+											<th className="px-4 py-2 text-left font-medium text-gray-500">
+												Date
+											</th>
+											<th className="px-4 py-2 text-left font-medium text-gray-500">
+												Type
+											</th>
+											<th className="px-4 py-2 text-left font-medium text-gray-500">
+												Amount
+											</th>
+											<th className="px-4 py-2 text-left font-medium text-gray-500">
+												Effective Month/Year
+											</th>
+											<th className="px-4 py-2 text-left font-medium text-gray-500">
+												Description
+											</th>
 										</tr>
-									) : (
-										filteredTransactions.map((tx, idx) => (
-											<tr key={idx} className="hover:bg-gray-50">
-												<td className="px-4 py-2 whitespace-nowrap">
-													{formatDate(tx.createdAt)}
-												</td>
-												<td className="px-4 py-2">
-													<span
-														className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full capitalize ${
-															tx.type !== 'withdrawal'
-																? 'bg-green-100 text-green-800'
-																: 'bg-red-100 text-red-800'
-														}`}
-													>
-														{tx.type}
-													</span>
-												</td>
-
-												<td className="px-4 py-2 font-medium">
-													<span
-														className={
-															tx.type !== 'withdrawal'
-																? 'text-green-600'
-																: 'text-red-600'
-														}
-													>
-														{tx.type !== 'withdrawal' ? '+' : '−'}
-														{currency(tx.amount)}
-													</span>
-												</td>
-												<td className="p-3">{getMonth(tx.effectiveMonth)}</td>
-												<td className="px-4 py-2 whitespace-nowrap">
-													{tx.description || '—'}
+									</thead>
+									<tbody className="divide-y divide-gray-200">
+										{filteredTransactions.length === 0 ? (
+											<tr>
+												<td
+													colSpan="4"
+													className="px-4 py-4 text-center text-gray-400"
+												>
+													No transactions found
 												</td>
 											</tr>
-										))
-									)}
-								</tbody>
-							</table>
+										) : (
+											filteredTransactions.map((tx, idx) => (
+												<tr key={idx} className="hover:bg-gray-50">
+													<td className="px-4 py-2 whitespace-nowrap">
+														{formatDate(tx.createdAt)}
+													</td>
+													<td className="px-4 py-2">
+														<span
+															className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full capitalize ${
+																tx.type !== 'withdrawal'
+																	? 'bg-green-100 text-green-800'
+																	: 'bg-red-100 text-red-800'
+															}`}
+														>
+															{tx.type}
+														</span>
+													</td>
+
+													<td className="px-4 py-2 font-medium">
+														<span
+															className={
+																tx.type !== 'withdrawal'
+																	? 'text-green-600'
+																	: 'text-red-600'
+															}
+														>
+															{tx.type !== 'withdrawal' ? '+' : '−'}
+															{currency(tx.amount)}
+														</span>
+													</td>
+													<td className="p-3">{getMonth(tx.effectiveMonth)}</td>
+													<td className="px-4 py-2 whitespace-nowrap">
+														{tx.description || '—'}
+													</td>
+												</tr>
+											))
+										)}
+									</tbody>
+								</table>
+							</div>
 						</div>
 					)}
 				</div>
