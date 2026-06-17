@@ -25,4 +25,15 @@ const dividendLedgerSchema = new mongoose.Schema(
 	{ timestamps: true },
 );
 
+dividendLedgerSchema.index(
+	{
+		shareholder: 1,
+		year: 1,
+		month: 1,
+	},
+	{
+		unique: true,
+	},
+);
+
 export default mongoose.model('DividendLedger', dividendLedgerSchema);

@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import Shareholder from '../models/Shareholder.js';
 import ShareholderTransaction from '../models/ShareholderTransaction.js';
 import DividendLedger from '../models/DividendLedger.js';
@@ -221,6 +222,7 @@ export const createDividendRate = async (req, res) => {
 				year,
 				percentage,
 				description,
+				status: 'completed',
 			},
 			{
 				new: true,
@@ -359,34 +361,80 @@ export const getDividends = async (req, res) => {
 };
 
 export const calculateMonthlyDividend = async (req, res) => {
+	const session = await mongoose.startSession();
+
+	session.startTransaction();
+
 	try {
 		const { month, year } = req.body;
+
+		// Lock dividend rate
 
 		const rate = await DividendRate.findOne({
 			month,
 			year,
-		});
+		}).session(session);
 
 		if (!rate) {
+			await session.abortTransaction();
+
 			return res.status(404).json({
 				success: false,
 				message: 'Dividend rate not found',
 			});
 		}
 
-		const shareholders = await Shareholder.find();
+		if (rate.status === 'completed') {
+			await session.abortTransaction();
+
+			return res.status(400).json({
+				success: false,
+				message: 'Dividend already processed',
+			});
+		}
+
+		if (rate.status === 'processing') {
+			await session.abortTransaction();
+
+			return res.status(400).json({
+				success: false,
+				message: 'Dividend currently processing',
+			});
+		}
+
+		rate.status = 'processing';
+
+		await rate.save({
+			session,
+		});
+
+		// Fetch shareholders once
+
+		const shareholders = await Shareholder.find({}, '_id name')
+			.lean()
+			.session(session);
+
+		const ledgerEntries = [];
 
 		for (const shareholder of shareholders) {
-			const deposits = await ShareholderTransaction.aggregate([
+			// Net Investment
+
+			const transactionAgg = await ShareholderTransaction.aggregate([
 				{
 					$match: {
 						shareholder: shareholder._id,
-						type: 'deposit',
+
 						$or: [
-							{ effectiveYear: { $lt: year } },
+							{
+								effectiveYear: {
+									$lt: year,
+								},
+							},
 							{
 								effectiveYear: year,
-								effectiveMonth: { $lte: month },
+								effectiveMonth: {
+									$lte: month,
+								},
 							},
 						],
 					},
@@ -394,35 +442,41 @@ export const calculateMonthlyDividend = async (req, res) => {
 				{
 					$group: {
 						_id: null,
-						total: { $sum: '$amount' },
-					},
-				},
-			]);
 
-			const withdrawals = await ShareholderTransaction.aggregate([
-				{
-					$match: {
-						shareholder: shareholder._id,
-						type: 'withdrawal',
-						$or: [
-							{ effectiveYear: { $lt: year } },
-							{
-								effectiveYear: year,
-								effectiveMonth: { $lte: month },
+						deposits: {
+							$sum: {
+								$cond: [
+									{
+										$eq: ['$type', 'deposit'],
+									},
+									'$amount',
+									0,
+								],
 							},
-						],
-					},
-				},
-				{
-					$group: {
-						_id: null,
-						total: { $sum: '$amount' },
-					},
-				},
-			]);
+						},
 
-			const investment =
-				(deposits[0]?.total || 0) - (withdrawals[0]?.total || 0);
+						withdrawals: {
+							$sum: {
+								$cond: [
+									{
+										$eq: ['$type', 'withdrawal'],
+									},
+									'$amount',
+									0,
+								],
+							},
+						},
+					},
+				},
+			]).session(session);
+
+			const deposits = transactionAgg[0]?.deposits || 0;
+
+			const withdrawals = transactionAgg[0]?.withdrawals || 0;
+
+			const investment = deposits - withdrawals;
+
+			if (investment <= 0) continue;
 
 			const dividend = (investment * rate.percentage) / 100;
 
@@ -440,31 +494,65 @@ export const calculateMonthlyDividend = async (req, res) => {
 						},
 					},
 				},
-			]);
+			]).session(session);
 
 			const cumulative = (previousDividend[0]?.total || 0) + dividend;
 
-			await DividendLedger.create({
+			ledgerEntries.push({
 				shareholder: shareholder._id,
+
 				month,
 				year,
+
 				percentage: rate.percentage,
+
 				investmentAmount: investment,
+
 				dividendAmount: dividend,
+
 				cumulativeDividend: cumulative,
+
 				description: `${month}/${year} Dividend`,
 			});
 		}
 
-		res.json({
+		if (ledgerEntries.length > 0) {
+			await DividendLedger.insertMany(ledgerEntries, {
+				session,
+				ordered: true,
+			});
+		}
+
+		rate.status = 'completed';
+
+		rate.processedAt = new Date();
+
+		await rate.save({
+			session,
+		});
+
+		await session.commitTransaction();
+
+		res.status(200).json({
 			success: true,
-			message: 'Monthly dividend processed',
+			message: 'Monthly dividend processed successfully',
+			totalProcessed: ledgerEntries.length,
+			totalDividend: ledgerEntries.reduce(
+				(sum, item) => sum + item.dividendAmount,
+				0,
+			),
 		});
 	} catch (error) {
+		await session.abortTransaction();
+
+		console.error(error);
+
 		res.status(500).json({
 			success: false,
 			message: error.message,
 		});
+	} finally {
+		session.endSession();
 	}
 };
 

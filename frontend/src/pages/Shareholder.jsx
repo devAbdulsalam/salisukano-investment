@@ -1,11 +1,8 @@
 import React from 'react';
 import { useContext, useState, useMemo, useEffect } from 'react';
 import Loader from '../components/Loader.jsx';
-import AddExpenceModal from '../components/modals/AddShareholderModal.jsx';
-import EditExpenceModal from '../components/modals/EditExpenceModal.jsx';
 import AuthContext from '../context/authContext.jsx';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
 import { fetchShareholder } from '../hooks/axiosApis.js';
 import logo from '../assets/logo.png';
 import seal from '../assets/seal.png';
@@ -14,9 +11,11 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import getError from '../hooks/getError.js';
 import toast from 'react-hot-toast';
-import { ArrowUpDown, Download, MoveLeft } from 'lucide-react';
+import { Plus, Download, Minus, List, ArrowDownWideNarrow } from 'lucide-react';
 import formatDate from '../hooks/formatDate.js';
 import { useNavigate, useParams } from 'react-router-dom';
+import { months } from '../data.js';
+import TopupModal from '../components/modals/TopupModal.jsx';
 
 const currency = (amount) =>
 	Number(amount || 0).toLocaleString(undefined, {
@@ -33,9 +32,12 @@ const Shareholder = () => {
 	const [shareholder, setShareholder] = useState(null);
 	const [year, setYear] = useState(new Date().getFullYear());
 	const [loading, setLoading] = useState(false);
+	const [topupModal, setTopupModal] = useState(false);
+	const [isTopup, setIsTopup] = useState(false);
 	const [logoBase64, setLogoBase64] = useState('');
 	const [sealBase64, setSealBase64] = useState('');
 	const [phoneBase64, setPhoneBase64] = useState('');
+	const [activeTab, setActiveTab] = useState('dividends');
 
 	// Fetch shareholder
 	const { data, isLoading, error } = useQuery({
@@ -58,6 +60,9 @@ const Shareholder = () => {
 		);
 	}, [data]);
 
+	const getMonth = (month) => {
+		return months.find((m) => m.value === month)?.label;
+	};
 	// Filtering
 	const filteredDividends = useMemo(() => {
 		if (!data?.dividends) return [];
@@ -87,7 +92,7 @@ const Shareholder = () => {
 		}
 
 		const totalDeposits = filteredTransactions
-			.filter((t) => t.type === 'deposit')
+			.filter((t) => t.type !== 'withdrawal')
 			.reduce((sum, t) => sum + Number(t.amount), 0);
 
 		const totalWithdrawals = filteredTransactions
@@ -392,19 +397,7 @@ const Shareholder = () => {
 
 	return (
 		<main>
-			<div className="p-6 bg-gray-50 min-h-screen">
-				{/* Header */}
-				<div className="flex justify-between items-center mb-6">
-					<button
-						onClick={() => navigate(-1)}
-						className="text-xl font-bold text-gray-800 flex items-center gap-2 hover:bg-gray-200 py-2 px-4 rounded-lg"
-					>
-						{' '}
-						<MoveLeft className="h-4 w-4" />
-						Shareholders
-					</button>
-				</div>
-
+			<div className="p-3 md:p-6 bg-gray-50 min-h-screen">
 				{/* Shareholder Details */}
 				<div className="bg-white rounded-lg shadow p-4 mb-6">
 					<h2 className="font-bold text-xl mb-3">{shareholder?.name}</h2>
@@ -433,7 +426,16 @@ const Shareholder = () => {
 
 				<div className="grid md:grid-cols-4 gap-4 mb-6">
 					<div className="bg-white shadow rounded p-4">
-						<p className="text-gray-500 text-sm">Investment</p>
+						<div
+							onClick={() => {
+								setIsTopup('topup');
+								setTopupModal(true);
+							}}
+							className="cursor-pointer w-full flex justify-between gap-2 items-end mb-4 text-green-600"
+						>
+							<p className="text-gray-500 text-sm">Investment</p>
+							<Plus size={18} />
+						</div>
 						<h3 className="font-bold text-xl">₦{currency(stats.investment)}</h3>
 					</div>
 
@@ -445,7 +447,16 @@ const Shareholder = () => {
 					</div>
 
 					<div className="bg-white shadow rounded p-4">
-						<p className="text-gray-500 text-sm">Withdrawals</p>
+						<div
+							onClick={() => {
+								setIsTopup('withdrawal');
+								setTopupModal(true);
+							}}
+							className="cursor-pointer w-full flex justify-between gap-2 items-end mb-4 text-red-600"
+						>
+							<p className="text-gray-500 text-sm">Withdrawals</p>
+							<Minus size={18} />
+						</div>
 						<h3 className="font-bold text-xl text-red-600">
 							₦{currency(stats.totalWithdrawals)}
 						</h3>
@@ -459,66 +470,183 @@ const Shareholder = () => {
 					</div>
 				</div>
 
-				{/* Search and Date Filter */}
-				<div className="w-full flex gap-4  items-center mb-4">
-					{/* Year selector */}
-					<select
-						className="border p-2 rounded text-sm"
-						value={year}
-						onChange={(e) => setYear(Number(e.target.value))}
-					>
-						<option value={year} disabled>
-							{year}
-						</option>
-						{years.map((yr) => (
-							<option key={yr} value={yr}>
-								{yr} Financial Year
-							</option>
-						))}
-					</select>
-					<button
-						disabled={loading}
-						onClick={handleDownload}
-						className="cursor-pointer bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm flex items-center gap-2 w-full md:w-auto justify-center"
-					>
-						<Download className="h-4 w-4" />
-						Download
-					</button>
+				{/* Tabs */}
+				<div className="border-b border-gray-200">
+					<nav className="-mb-px flex space-x-4" aria-label="Tabs">
+						<button
+							onClick={() => setActiveTab('dividends')}
+							className={`py-2 px-1 border-b-2 text-sm font-medium flex items-center justify-center gap-2 ${
+								activeTab === 'dividends'
+									? 'border-blue-500 text-blue-600'
+									: 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+							}`}
+						>
+							<ArrowDownWideNarrow className="h-4 w-4" />
+							Dividends
+						</button>
+						<button
+							onClick={() => setActiveTab('transactions')}
+							className={`py-2 px-1 border-b-2 text-sm font-medium flex items-center justify-center gap-2 ${
+								activeTab === 'transactions'
+									? 'border-blue-500 text-blue-600'
+									: 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+							}`}
+						>
+							<List className="h-4 w-4" />
+							Transactions
+						</button>
+					</nav>
 				</div>
 
-				<div className="bg-white rounded-lg shadow overflow-hidden">
-					<table className="w-full">
-						<thead>
-							<tr className="bg-gray-100">
-								<th className="p-3 text-left">Month</th>
-								<th className="p-3 text-left">Rate</th>
-								<th className="p-3 text-left">Investment</th>
-								<th className="p-3 text-left">Dividend</th>
-							</tr>
-						</thead>
+				{/* Tab Panels */}
+				<div className="mt-2">
+					{activeTab === 'dividends' && (
+						<div className="overflow-x-auto">
+							<div className="bg-white rounded-lg shadow overflow-x-auto p-4">
+								{/* Search and Date Filter */}
+								<div className="w-full flex gap-4  items-center mb-4">
+									{/* Year selector */}
+									<select
+										className="border p-2 rounded text-sm"
+										value={year}
+										onChange={(e) => setYear(Number(e.target.value))}
+									>
+										<option value={year} disabled>
+											{year}
+										</option>
+										{years.map((yr) => (
+											<option key={yr} value={yr}>
+												{yr} Financial Year
+											</option>
+										))}
+									</select>
+									<button
+										disabled={loading}
+										onClick={handleDownload}
+										className="cursor-pointer bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm flex items-center justify-center gap-2 w-full md:w-auto "
+									>
+										<Download className="h-4 w-4" />
+										Download
+									</button>
+								</div>
 
-						<tbody>
-							{filteredDividends.map((dividend) => (
-								<tr key={dividend._id} className="border-t">
-									<td className="p-3">
-										{dividend.month}/{dividend.year}
-									</td>
+								<table className="w-full rounded-lg border border-gray-200 overflow-x-auto">
+									<thead>
+										<tr className="bg-gray-100">
+											<th className="p-3 text-left">Month</th>
+											<th className="p-3 text-left">Rate</th>
+											<th className="p-3 text-left">Dividend</th>
+											<th className="p-3 text-left">Total</th>
+										</tr>
+									</thead>
 
-									<td className="p-3">{dividend.percentage}%</td>
+									<tbody>
+										{filteredDividends.map((dividend) => (
+											<tr
+												key={dividend._id}
+												className="border-t hover:bg-gray-50"
+											>
+												<td className="p-3">{getMonth(dividend.month)}</td>
 
-									<td className="p-3">
-										₦{currency(dividend.investmentAmount)}
-									</td>
+												<td className="p-3">{dividend.percentage}%</td>
 
-									<td className="p-3 text-green-600 font-medium">
-										₦{currency(dividend.dividendAmount)}
-									</td>
-								</tr>
-							))}
-						</tbody>
-					</table>
+												<td className="p-3 text-green-600 font-medium">
+													₦{currency(dividend.dividendAmount)}
+												</td>
+												<td className="p-3">
+													₦{currency(dividend.investmentAmount)}
+												</td>
+											</tr>
+										))}
+									</tbody>
+								</table>
+							</div>
+						</div>
+					)}
+					{activeTab === 'transactions' && (
+						<div className="overflow-x-auto">
+							<table className="min-w-full rounded-lg border text-sm">
+								<thead className="bg-gray-100 ">
+									<tr>
+										<th className="px-4 py-2 text-left font-medium text-gray-500">
+											Date
+										</th>
+										<th className="px-4 py-2 text-left font-medium text-gray-500">
+											Type
+										</th>
+										<th className="px-4 py-2 text-left font-medium text-gray-500">
+											Amount
+										</th>
+										<th className="px-4 py-2 text-left font-medium text-gray-500">
+											Effective Month/Year
+										</th>
+										<th className="px-4 py-2 text-left font-medium text-gray-500">
+											Description
+										</th>
+									</tr>
+								</thead>
+								<tbody className="divide-y divide-gray-200">
+									{filteredTransactions.length === 0 ? (
+										<tr>
+											<td
+												colSpan="4"
+												className="px-4 py-4 text-center text-gray-400"
+											>
+												No transactions found
+											</td>
+										</tr>
+									) : (
+										filteredTransactions.map((tx, idx) => (
+											<tr key={idx} className="hover:bg-gray-50">
+												<td className="px-4 py-2 whitespace-nowrap">
+													{formatDate(tx.createdAt)}
+												</td>
+												<td className="px-4 py-2">
+													<span
+														className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full capitalize ${
+															tx.type !== 'withdrawal'
+																? 'bg-green-100 text-green-800'
+																: 'bg-red-100 text-red-800'
+														}`}
+													>
+														{tx.type}
+													</span>
+												</td>
+
+												<td className="px-4 py-2 font-medium">
+													<span
+														className={
+															tx.type !== 'withdrawal'
+																? 'text-green-600'
+																: 'text-red-600'
+														}
+													>
+														{tx.type !== 'withdrawal' ? '+' : '−'}
+														{currency(tx.amount)}
+													</span>
+												</td>
+												<td className="p-3">{getMonth(tx.effectiveMonth)}</td>
+												<td className="px-4 py-2 whitespace-nowrap">
+													{tx.description || '—'}
+												</td>
+											</tr>
+										))
+									)}
+								</tbody>
+							</table>
+						</div>
+					)}
 				</div>
 			</div>
+			<TopupModal
+				show={topupModal}
+				setShow={setTopupModal}
+				onClose={() => setTopupModal(false)}
+				setLoading={() => {}}
+				loading={false}
+				shareholder={shareholder}
+				isTopup={isTopup === 'topup' ? true : false}
+			/>
 		</main>
 	);
 };

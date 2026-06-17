@@ -13,7 +13,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import getError from '../hooks/getError.js';
 import toast from 'react-hot-toast';
-import { Pencil, Trash2, Search, ArrowUpDown, Download } from 'lucide-react';
+import { Pencil, Trash2, Search, ArrowUpDown, Download, Plus } from 'lucide-react';
 import formatDate from '../hooks/formatDate.js';
 import DeleteConfirmationModal from '../components/modals/DeleteConfirmationModal.jsx';
 import moment from 'moment';
@@ -439,7 +439,7 @@ const Shareholders = () => {
 
 	return (
 		<main>
-			<div className="p-6 bg-gray-50 min-h-screen">
+			<div className="p-3 md:p-6 bg-gray-50 min-h-screen">
 				{/* Header */}
 				<div className="flex justify-between items-center mb-6">
 					<h1 className="text-xl md:text-3xl font-bold text-gray-800">
@@ -449,185 +449,212 @@ const Shareholders = () => {
 						onClick={() => setIsAddModal(true)}
 						className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
 					>
-						Add Shareholder
+						<span className="hidden md:inline">Add {' '}</span>
+						<Plus className="inline md:hidden"/>
+						Shareholder
 					</button>
 				</div>
 
 				{/* Summary Cards */}
-				<div className="w-full grid sm:grid-cols-2 gap-4 mb-4">
+				<div className="w-full grid sm:grid-cols-2 md:grid-cols-3 gap-4 mb-4">
 					<div className="p-5 bg-white flex flex-col rounded-xl gap-2 border border-gray-200 hover:shadow-md">
 						<span className="text-gray-500 text-sm font-medium">
 							Total Investment
 						</span>
-						<span className="text-xl font-bold">{total.toLocaleString()}</span>
+						<span className="text-xl font-bold">₦{total.toLocaleString()}</span>
 					</div>
-					{/* <div className="p-5 bg-white flex flex-col rounded-xl gap-2 border border-gray-200 hover:shadow-md">
-						<span className="text-gray-500 text-sm font-medium">
-							This Month
-						</span>
-						<span className="text-xl font-bold">
-							{thisMonthShareholder.toLocaleString()}
-						</span>
-					</div> */}
 					<div
 						onClick={() => navigate('/dividend-rates')}
 						className="p-5 bg-white flex flex-col rounded-xl gap-2 border border-gray-200 hover:shadow-md"
 					>
-						<div className="w-full flex gap-4 items-end mb-4">
-							<h2 className="text-gray-500 text-sm font-medium">Dividend</h2>
-							<Pencil className="h-4 w-4 text-green-600" />
+						<span className="text-gray-500 text-sm font-medium">Payments</span>
+						<span className="text-xl font-bold">
+							<span className="text-xl font-bold">
+								₦{total.toLocaleString()}
+							</span>
+						</span>
+					</div>
+					<div
+						onClick={() => navigate('/dividend-rates')}
+						className="p-5 bg-white flex flex-col rounded-xl gap-2 border border-gray-200 hover:shadow-md"
+					>
+						<div className="w-full flex gap-2 items-end mb-4 text-green-600">
+							<h2 className="text-gray-500 text-sm font-medium">
+								Dividend Rate
+							</h2>
+							<Pencil size={18} />
 						</div>
 						<span className="text-xl font-bold">1%</span>
 					</div>
 				</div>
-
-				{/* Search and Date Filter */}
-				<div className="w-full flex gap-4 items-end mb-4">
-					<div className="w-full">
-						<label className="text-sm text-gray-700 mb-1 block">Search</label>
-						<div className="flex items-center bg-white rounded-md shadow-sm border border-gray-200 p-0.5">
-							<Search className="text-gray-400 ml-2" size={20} />
+				<div className="p-5 bg-white rounded-xl  border border-gray-200">
+					{/* Search and Date Filter */}
+					<div className="w-full md:flex gap-4  items-center mb-4">
+						<div className="w-full">
+							<label className="text-sm text-gray-700 mb-1 block">Search</label>
+							<div className="flex items-center bg-white rounded-md shadow-sm border border-gray-200 p-0.5">
+								<Search className="text-gray-400 ml-2" size={20} />
+								<input
+									type="text"
+									placeholder="Search by description..."
+									value={searchTerm}
+									onChange={(e) => setSearchTerm(e.target.value)}
+									className="w-full px-4 py-2 text-sm outline-none rounded-md"
+								/>
+							</div>
+						</div>
+						<div className="w-full sm:w-auto hidden">
+							<label className="text-sm text-gray-700 mb-1 block">Date</label>
 							<input
-								type="text"
-								placeholder="Search by description..."
-								value={searchTerm}
-								onChange={(e) => setSearchTerm(e.target.value)}
-								className="w-full p-2 outline-none rounded-md"
+								type="date"
+								value={startDate}
+								onChange={(e) => setStartDate(e.target.value)}
+								className="w-full px-4 py-2 rounded-md border border-gray-200  text-sm"
 							/>
 						</div>
+						<div className="">
+							<label className="text-sm text-gray-700 mb-1 block invisible">
+								Date
+							</label>
+							<div className="flex justify-between items-center gap-2 text-sm">
+								<button
+									onClick={() => navigate('/dividend-rates')}
+									className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors whitespace-nowrap"
+								>
+									Dividend Rate (%)
+								</button>
+								<button
+									onClick={() => navigate('/dividends')}
+									className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+								>
+									Payments
+								</button>
+							</div>
+						</div>
 					</div>
-					<div className="w-full sm:w-auto">
-						<label className="text-sm text-gray-700 mb-1 block">Date</label>
-						<input
-							type="date"
-							value={startDate}
-							onChange={(e) => setStartDate(e.target.value)}
-							className="w-full h-[46px] rounded-md border border-gray-200 px-3 text-base"
-						/>
-					</div>
-				</div>
 
-				{/* Table */}
-				<div className="bg-white rounded-md shadow overflow-x-auto">
-					<table className="min-w-full divide-y divide-gray-200">
-						<thead className="bg-gray-50">
-							<tr>
-								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-									S/N
-								</th>
-								<th
-									className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none"
-									onClick={() => requestSort('name')}
-								>
-									<div className="flex items-center gap-1">
-										Name
-										<ArrowUpDown size={14} />
-									</div>
-								</th>
-								<th
-									className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none"
-									onClick={() => requestSort('phone')}
-								>
-									<div className="flex items-center gap-1">
-										Phone
-										<ArrowUpDown size={14} />
-									</div>
-								</th>
-								<th
-									className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none"
-									onClick={() => requestSort('currentInvestment')}
-								>
-									<div className="flex items-center gap-1 whitespace-nowrap">
-										Current Investment
-										<ArrowUpDown size={14} />
-									</div>
-								</th>
-								<th
-									className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none"
-									onClick={() => requestSort('totalDividendEarned')}
-								>
-									<div className="flex items-center gap-1 whitespace-nowrap">
-										Total Dividend Earned
-										<ArrowUpDown size={14} />
-									</div>
-								</th>
-								<th
-									className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none"
-									onClick={() => requestSort('date')}
-								>
-									<div className="flex items-center gap-1">
-										Date
-										<ArrowUpDown size={14} />
-									</div>
-								</th>
-								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-									Actions
-								</th>
-							</tr>
-						</thead>
-						<tbody className="bg-white divide-y divide-gray-200">
-							{sortedShareholders.length === 0 ? (
+					{/* Table */}
+					<div className="bg-white rounded-md shadow overflow-x-auto">
+						<table className="min-w-full divide-y divide-gray-200">
+							<thead className="bg-gray-50">
 								<tr>
-									<td
-										colSpan={5}
-										className="px-6 py-4 text-center text-gray-500"
+									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+										S/N
+									</th>
+									<th
+										className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none"
+										onClick={() => requestSort('name')}
 									>
-										No Shareholders found.
-									</td>
+										<div className="flex items-center gap-1">
+											Name
+											<ArrowUpDown size={14} />
+										</div>
+									</th>
+									<th
+										className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none"
+										onClick={() => requestSort('phone')}
+									>
+										<div className="flex items-center gap-1">
+											Phone
+											<ArrowUpDown size={14} />
+										</div>
+									</th>
+									<th
+										className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none"
+										onClick={() => requestSort('currentInvestment')}
+									>
+										<div className="flex items-center gap-1 whitespace-nowrap">
+											Current Investment
+											<ArrowUpDown size={14} />
+										</div>
+									</th>
+									<th
+										className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none"
+										onClick={() => requestSort('totalDividendEarned')}
+									>
+										<div className="flex items-center gap-1 whitespace-nowrap">
+											Total Dividend Earned
+											<ArrowUpDown size={14} />
+										</div>
+									</th>
+									<th
+										className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none"
+										onClick={() => requestSort('date')}
+									>
+										<div className="flex items-center gap-1">
+											Date
+											<ArrowUpDown size={14} />
+										</div>
+									</th>
+									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+										Actions
+									</th>
 								</tr>
-							) : (
-								sortedShareholders.map((shareholder, index) => (
-									<tr key={shareholder._id} className="hover:bg-gray-50">
-										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-											{index + 1}
-										</td>
+							</thead>
+							<tbody className="bg-white divide-y divide-gray-200">
+								{sortedShareholders.length === 0 ? (
+									<tr>
 										<td
-											onClick={() =>
-												navigate(`/shareholders/${shareholder._id}`)
-											}
-											className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
+											colSpan={5}
+											className="px-6 py-4 text-center text-gray-500"
 										>
-											{shareholder.name?.toLocaleString()}
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-											{shareholder.phone}
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-											{shareholder.currentInvestment?.toLocaleString()}
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-											{shareholder.totalDividendEarned?.toLocaleString()}
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-											{formatDate(shareholder.createdAt)}
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-											<div className="flex items-center gap-3">
-												<button
-													onClick={() => handleEdit(shareholder)}
-													className="text-blue-600 hover:text-blue-800"
-													title="Edit"
-												>
-													<Pencil size={18} />
-												</button>
-												<button
-													onClick={() => {
-														setSelectedShareholder(shareholder); // store the Shareholder to be deleted
-														setDeleteModal(true);
-													}}
-													className="text-red-600 hover:text-red-800"
-													title="Delete"
-													disabled={deleteLoading}
-												>
-													<Trash2 size={18} />
-												</button>
-											</div>
+											No Shareholders found.
 										</td>
 									</tr>
-								))
-							)}
-						</tbody>
-					</table>
+								) : (
+									sortedShareholders.map((shareholder, index) => (
+										<tr key={shareholder._id} className="hover:bg-gray-50">
+											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+												{index + 1}
+											</td>
+											<td
+												onClick={() =>
+													navigate(`/shareholders/${shareholder._id}`)
+												}
+												className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
+											>
+												{shareholder.name?.toLocaleString()}
+											</td>
+											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+												{shareholder.phone}
+											</td>
+											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+												{shareholder.currentInvestment?.toLocaleString()}
+											</td>
+											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+												{shareholder.totalDividendEarned?.toLocaleString()}
+											</td>
+											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+												{formatDate(shareholder.createdAt)}
+											</td>
+											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+												<div className="flex items-center gap-3">
+													<button
+														onClick={() => handleEdit(shareholder)}
+														className="text-blue-600 hover:text-blue-800"
+														title="Edit"
+													>
+														<Pencil size={18} />
+													</button>
+													<button
+														onClick={() => {
+															setSelectedShareholder(shareholder); // store the Shareholder to be deleted
+															setDeleteModal(true);
+														}}
+														className="text-red-600 hover:text-red-800"
+														title="Delete"
+														disabled={deleteLoading}
+													>
+														<Trash2 size={18} />
+													</button>
+												</div>
+											</td>
+										</tr>
+									))
+								)}
+							</tbody>
+						</table>
+					</div>
 				</div>
 			</div>
 

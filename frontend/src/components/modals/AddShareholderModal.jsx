@@ -16,7 +16,7 @@ const AddShareholderModal = ({ show, setShow }) => {
 	const [name, setName] = useState('');
 	const [phone, setPhone] = useState('');
 	const [date, setDate] = useState('');
-	const [openingBalance, setopeningBalance] = useState('');
+	const [openingBalance, setOpeningBalance] = useState('');
 	const [address, setAddress] = useState('');
 
 	const apiUrl = import.meta.env.VITE_API_URL;
@@ -45,7 +45,7 @@ const AddShareholderModal = ({ show, setShow }) => {
 	const resetForm = () => {
 		setName('');
 		setPhone('');
-		setopeningBalance('');
+		setOpeningBalance('');
 		setAddress('');
 		setDate('');
 	};
@@ -86,7 +86,7 @@ const AddShareholderModal = ({ show, setShow }) => {
 
 	return (
 		<Modal show={show}>
-			<div className="transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all font-josefin min-w-[450px] max-w-2xl">
+			<div className="transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all font-josefin min-w-[280px] md:min-w-[450px]">
 				<div className="space-y-2 p-4">
 					{/* Header */}
 					<div className="flex justify-between items-start">
@@ -142,7 +142,7 @@ const AddShareholderModal = ({ show, setShow }) => {
 										min="0"
 										step="0.01"
 										value={openingBalance}
-										onChange={(e) => setopeningBalance(e.target.value)}
+										onChange={(e) => setOpeningBalance(e.target.value)}
 										disabled={isSubmitting}
 									/>
 								</div>

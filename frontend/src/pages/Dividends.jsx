@@ -6,6 +6,8 @@ import AuthContext from '../context/authContext';
 import { fetchDividends } from '../hooks/axiosApis.js';
 import Loader from '../components/Loader';
 import getError from '../hooks/getError';
+import { useNavigate } from 'react-router-dom';
+import { months } from '../data.js';
 
 const currency = (amount) =>
 	Number(amount || 0).toLocaleString(undefined, {
@@ -13,24 +15,9 @@ const currency = (amount) =>
 		maximumFractionDigits: 2,
 	});
 
-const months = [
-	{ value: '', label: 'All Months' },
-	{ value: 1, label: 'January' },
-	{ value: 2, label: 'February' },
-	{ value: 3, label: 'March' },
-	{ value: 4, label: 'April' },
-	{ value: 5, label: 'May' },
-	{ value: 6, label: 'June' },
-	{ value: 7, label: 'July' },
-	{ value: 8, label: 'August' },
-	{ value: 9, label: 'September' },
-	{ value: 10, label: 'October' },
-	{ value: 11, label: 'November' },
-	{ value: 12, label: 'December' },
-];
-
 const Dividends = () => {
 	const { user } = useContext(AuthContext);
+	const navigate = useNavigate();
 
 	const currentYear = new Date().getFullYear();
 
@@ -62,7 +49,7 @@ const Dividends = () => {
 
 			const matchesSearch =
 				!search ||
-				item.shareholderName?.toLowerCase().includes(search.toLowerCase());
+				item.shareholder?.name?.toLowerCase().includes(search.toLowerCase());
 
 			return matchesYear && matchesMonth && matchesSearch;
 		});
@@ -99,7 +86,7 @@ const Dividends = () => {
 	}
 
 	return (
-		<div className="p-6 bg-gray-50 min-h-screen">
+		<div className="p-3 md:p-6 bg-gray-50 min-h-screen">
 			{/* Header */}
 
 			<div className="mb-6">
@@ -216,11 +203,16 @@ const Dividends = () => {
 							) : (
 								filteredDividends.map((dividend) => (
 									<tr key={dividend._id} className="border-t hover:bg-gray-50">
-										<td className="p-3 font-medium">
-											{dividend.shareholderName}
+										<td
+											onClick={() =>
+												navigate(`/shareholders/${dividend.shareholder?._id}`)
+											}
+											className="p-3 font-medium"
+										>
+											{dividend.shareholder?.name}
 										</td>
 
-										<td className="p-3">
+										<td className="p-3 whitespace-nowrap">
 											{months.find((m) => m.value === dividend.month)?.label}{' '}
 											{dividend.year}
 										</td>

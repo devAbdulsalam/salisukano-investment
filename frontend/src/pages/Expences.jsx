@@ -443,7 +443,7 @@ const Expences = () => {
 
 	return (
 		<main>
-			<div className="p-6 bg-gray-50 min-h-screen">
+			<div className="p-3 md:p-6 bg-gray-50 min-h-screen">
 				{/* Header */}
 				<div className="flex justify-between items-center mb-6">
 					<h1 className="text-xl md:text-3xl font-bold text-gray-800">

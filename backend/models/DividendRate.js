@@ -18,12 +18,13 @@ const dividendRateSchema = new mongoose.Schema(
 		},
 
 		description: String,
-
 		status: {
 			type: String,
-			enum: ['completed', 'inactive'],
-			default: 'completed',
+			enum: ['pending', 'processing', 'completed'],
+			default: 'pending',
 		},
+
+		processedAt: Date,
 	},
 	{ timestamps: true },
 );

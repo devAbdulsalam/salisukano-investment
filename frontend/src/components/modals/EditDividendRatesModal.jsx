@@ -55,13 +55,7 @@ const EditDividendRatesModal = ({ show, setShow, selectedRate }) => {
 
 	const mutation = useMutation({
 		mutationFn: async (payload) => {
-			const url = selectedRate?._id
-				? `${apiUrl}/shareholders/dividend-rate/${selectedRate._id}`
-				: `${apiUrl}/shareholders/dividend-rate`;
-
-			const method = selectedRate?._id ? axios.patch : axios.post;
-
-			return method(url, payload, {
+			return axios.post(`${apiUrl}/shareholders/dividend-rate`, payload, {
 				headers: {
 					Authorization: `Bearer ${user?.token}`,
 				},
@@ -123,7 +117,7 @@ const EditDividendRatesModal = ({ show, setShow, selectedRate }) => {
 
 	return (
 		<Modal show={show}>
-			<div className="overflow-hidden rounded-2xl bg-white shadow-xl min-w-[450px] max-w-xl">
+			<div className="transform text-left align-middle transition-all font-josefin overflow-hidden rounded-2xl bg-white shadow-xl w-full min-w-[280px] md:min-w-[450px]">
 				<div className="p-5">
 					<div className="flex justify-between items-center mb-4">
 						<h2 className="font-semibold text-lg text-blue-600">
@@ -144,7 +138,7 @@ const EditDividendRatesModal = ({ show, setShow, selectedRate }) => {
 					<form onSubmit={handleSubmit} className="space-y-4">
 						<div className="grid md:grid-cols-2 gap-4">
 							<div>
-								<label className="block mb-1">Year</label>
+								<label className="block mb-1 text-left">Year</label>
 
 								<select
 									value={year}
@@ -166,7 +160,7 @@ const EditDividendRatesModal = ({ show, setShow, selectedRate }) => {
 							</div>
 
 							<div>
-								<label className="block mb-1">Month</label>
+								<label className="block mb-1 text-left">Month</label>
 
 								<select
 									value={month}
@@ -186,7 +180,9 @@ const EditDividendRatesModal = ({ show, setShow, selectedRate }) => {
 						</div>
 
 						<div>
-							<label className="block mb-1">Dividend Percentage (%)</label>
+							<label className="block mb-1 text-left">
+								Dividend Percentage (%)
+							</label>
 
 							<input
 								type="number"
@@ -200,7 +196,7 @@ const EditDividendRatesModal = ({ show, setShow, selectedRate }) => {
 						</div>
 
 						<div>
-							<label className="block mb-1">Description</label>
+							<label className="block mb-1 text-left">Description</label>
 
 							<textarea
 								rows="3"

@@ -804,15 +804,16 @@ export const fetchDividends = async (prop) => {
 		return error;
 	}
 };
-export const fetchDividendRates = async (prop) => {
+export const fetchDividendRates = async (prop, year) => {
 	try {
+		console.log(year);
 		const config = {
 			headers: {
 				Authorization: `Bearer ${prop?.token}`,
 			},
 		};
 		const { data } = await axios.get(
-			`${apiUrl}/shareholders/dividend-rate`,
+			`${apiUrl}/shareholders/dividend-rate?year=${year}`,
 			config,
 		);
 		return data;

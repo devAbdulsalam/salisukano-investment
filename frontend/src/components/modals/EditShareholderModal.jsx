@@ -13,16 +13,18 @@ const EditShareholderModal = ({ show, setShow, shareholder }) => {
 	const queryClient = useQueryClient();
 
 	// Form state
-	const [amount, setAmount] = useState('');
-	const [description, setDescription] = useState('');
-	const [date, setDate] = useState('');
+	const [name, setName] = useState('');
+	const [email, setEmail] = useState('');
+	const [phone, setPhone] = useState('');
+	const [address, setAddress] = useState('');
 
 	// Sync form with shareholder when modal opens or shareholder changes
 	useEffect(() => {
 		if (shareholder && show) {
-			setAmount(shareholder.amount || '');
-			setDescription(shareholder.description || '');
-			setDate(shareholder.date?.slice(0, 10) || ''); // format to YYYY-MM-DD
+			setEmail(shareholder.email || '');
+			setName(shareholder.name || '');
+			setAddress(shareholder.address || '');
+			setPhone(shareholder.phone || '');
 		}
 	}, [shareholder, show]);
 
@@ -30,12 +32,19 @@ const EditShareholderModal = ({ show, setShow, shareholder }) => {
 
 	const mutation = useMutation({
 		mutationFn: (updatedshareholder) =>
-			axios.patch(`${apiUrl}/shareholders/${shareholder._id}`, updatedshareholder, {
-				headers: { Authorization: `Bearer ${user?.token}` },
-			}),
+			axios.patch(
+				`${apiUrl}/shareholders/${shareholder._id}`,
+				updatedshareholder,
+				{
+					headers: { Authorization: `Bearer ${user?.token}` },
+				},
+			),
 		onSuccess: () => {
 			queryClient.invalidateQueries(['shareholders']);
-			queryClient.invalidateQueries({ queryKey: ['shareholders', 'dashboard'] });
+			queryClient.invalidateQueries(['shareholders', shareholder._id]);
+			queryClient.invalidateQueries({
+				queryKey: ['shareholders', 'dashboard'],
+			});
 			toast.success('shareholder updated successfully');
 			setShow(false); // close modal
 		},
@@ -46,22 +55,15 @@ const EditShareholderModal = ({ show, setShow, shareholder }) => {
 
 	const handleSubmit = (e) => {
 		e.preventDefault();
-
-		const parsedAmount = parseFloat(amount);
-		if (!amount || isNaN(parsedAmount) || parsedAmount <= 0) {
-			return toast.error('Amount must be a valid positive number');
-		}
-		if (!date) {
-			return toast.error('Please select a date');
-		}
-		if (!description.trim()) {
-			return toast.error('Description is required');
+		if (!name.trim()) {
+			return toast.error('Name is required');
 		}
 
 		mutation.mutate({
-			amount: parsedAmount,
-			date,
-			description: description.trim(),
+			email: email.trim(),
+			phone: phone.trim(),
+			address: address.trim(),
+			name: name.trim(),
 		});
 	};
 
@@ -90,42 +92,54 @@ const EditShareholderModal = ({ show, setShow, shareholder }) => {
 							<div className="md:flex gap-2">
 								<div className="mb-2 flex-1">
 									<label className="text-base text-black">
-										Amount <span className="text-red-600">*</span>
+										Name <span className="text-red-600">*</span>
 									</label>
 									<input
 										className="input w-full h-[44px] rounded-md border border-gray-300 px-4 text-base"
-										type="number"
-										min="0"
-										step="0.01"
-										value={amount}
-										onChange={(e) => setAmount(e.target.value)}
+										type="text"
+										value={name}
+										onChange={(e) => setName(e.target.value)}
 										disabled={isSubmitting}
 									/>
 								</div>
 								<div className="mb-2 flex-1">
 									<label className="text-base text-black">
-										Date <span className="text-red-600">*</span>
+										Phone <span className="text-red-600">*</span>
 									</label>
 									<input
 										className="input w-full h-[44px] rounded-md border border-gray-300 px-4 text-base"
-										type="date"
-										value={date}
-										onChange={(e) => setDate(e.target.value)}
+										type="text"
+										value={phone}
+										onChange={(e) => setPhone(e.target.value)}
 										disabled={isSubmitting}
 									/>
 								</div>
 							</div>
-							<div className="mb-2">
-								<label className="text-base text-black">
-									Description <span className="text-red-600">*</span>
-								</label>
-								<textarea
-									className="input w-full rounded-md border border-gray-300 px-4 py-2 text-base"
-									rows={3}
-									value={description}
-									onChange={(e) => setDescription(e.target.value)}
-									disabled={isSubmitting}
-								/>
+							<div className="md:flex gap-2">
+								<div className="mb-2 flex-1">
+									<label className="text-base text-black">
+										Email <span className="text-red-600">*</span>
+									</label>
+									<input
+										className="input w-full h-[44px] rounded-md border border-gray-300 px-4 text-base"
+										type="email"
+										value={email}
+										onChange={(e) => setEmail(e.target.value)}
+										disabled={isSubmitting}
+									/>
+								</div>
+								<div className="mb-2 flex-1">
+									<label className="text-base text-black">
+										Address <span className="text-red-600">*</span>
+									</label>
+									<input
+										className="input w-full h-[44px] rounded-md border border-gray-300 px-4 text-base"
+										type="address"
+										value={address}
+										onChange={(e) => setAddress(e.target.value)}
+										disabled={isSubmitting}
+									/>
+								</div>
 							</div>
 						</div>
 

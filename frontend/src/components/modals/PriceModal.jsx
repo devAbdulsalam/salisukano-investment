@@ -93,7 +93,7 @@ const PriceModal = ({
 
 	return (
 		<Modal show={show}>
-			<div className="transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all font-josefin max-w-2xl">
+			<div className="transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all font-josefin min-w-[280px] md:min-w-[450px]">
 				<div className="space-y-5 p-4">
 					<div className="flex justify-between">
 						<div>
