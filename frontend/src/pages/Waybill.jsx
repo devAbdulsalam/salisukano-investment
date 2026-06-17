@@ -42,7 +42,6 @@ const Waybill = () => {
 		tare: 0,
 		gross: 0,
 		dust: 0,
-		bundle: 0,
 		date: new Date().toISOString().split('T')[0], // YYYY-MM-DD for input[type=date]
 		note: '',
 	});
@@ -313,14 +312,14 @@ const Waybill = () => {
 			doc.setFont('helvetica', 'normal');
 			doc.text(formData.vehicle || '-', 55, startY);
 
-			doc.setFont('helvetica', 'bold');
-			doc.text('Bundle:', pageWidth - 90, startY);
-			doc.setFont('helvetica', 'normal');
-			doc.text(
-				formData.bundle ? `${formData.bundle.toLocaleString()} kg ` : '-',
-				pageWidth - 75,
-				startY,
-			);
+			// doc.setFont('helvetica', 'bold');
+			// doc.text('Bundle:', pageWidth - 90, startY);
+			// doc.setFont('helvetica', 'normal');
+			// doc.text(
+			// 	formData.bundle ? `${formData.bundle.toLocaleString()} kg ` : '-',
+			// 	pageWidth - 75,
+			// 	startY,
+			// );
 
 			startY += gap;
 
@@ -526,23 +525,6 @@ const Waybill = () => {
 								value={formData.vehicle}
 								onChange={(e) =>
 									setFormData({ ...formData, vehicle: e.target.value })
-								}
-								className="input w-full h-[44px] rounded-md border border-gray6 px-2 text-base"
-							/>
-						</div>
-						<div className="flex flex-col justify-between items-start w-full">
-							<strong
-								style={{
-									whiteSpace: 'nowrap',
-								}}
-							>
-								Bundle:
-							</strong>
-							<input
-								type="text"
-								value={formData.bundle}
-								onChange={(e) =>
-									setFormData({ ...formData, bundle: e.target.value })
 								}
 								className="input w-full h-[44px] rounded-md border border-gray6 px-2 text-base"
 							/>
