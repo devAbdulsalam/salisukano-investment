@@ -749,3 +749,75 @@ export const deleteStatementApi = async (year) => {
 	const { data } = await axios.delete(`${apiUrl}/statements/${year}`);
 	return data;
 };
+export const fetchShareholders = async (prop) => {
+	try {
+		const config = {
+			headers: {
+				Authorization: `Bearer ${prop?.token}`,
+			},
+		};
+		const { data } = await axios.get(`${apiUrl}/shareholders`, config);
+		return data;
+	} catch (error) {
+		console.log(error.message);
+		return error;
+	}
+};
+
+export const fetchShareholder = async (id, token) => {
+	try {
+		const config = {
+			headers: {
+				Authorization: `Bearer ${token}`,
+			},
+		};
+		const { data } = await axios.get(
+			`${apiUrl}/shareholders/${id}/statement`,
+			config,
+		);
+		return data;
+	} catch (error) {
+		console.log(error.message);
+		return error;
+	}
+};
+
+export const deleteShareholder = async (id) => {
+	const { data } = await axios.delete(`${apiUrl}/shareholders/${id}`);
+	return data;
+};
+
+export const fetchDividends = async (prop) => {
+	try {
+		const config = {
+			headers: {
+				Authorization: `Bearer ${prop?.token}`,
+			},
+		};
+		const { data } = await axios.get(
+			`${apiUrl}/shareholders/dividends`,
+			config,
+		);
+		return data;
+	} catch (error) {
+		console.log(error.message);
+		return error;
+	}
+};
+export const fetchDividendRates = async (prop) => {
+	try {
+		const config = {
+			headers: {
+				Authorization: `Bearer ${prop?.token}`,
+			},
+		};
+		const { data } = await axios.get(
+			`${apiUrl}/shareholders/dividend-rate`,
+			config,
+		);
+		return data;
+	} catch (error) {
+		console.log(error.message);
+		return error;
+	}
+};

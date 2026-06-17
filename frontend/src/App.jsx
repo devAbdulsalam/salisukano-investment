@@ -45,6 +45,10 @@ import InvoiceRegister from './pages/InvoiceRegister';
 import RegisterdInvoices from './pages/RegisterdInvoices';
 import Expences from './pages/Expences';
 import Statement from './pages/Statement';
+import Shareholders from './pages/Shareholders';
+import Shareholder from './pages/Shareholder';
+import Dividends from './pages/Dividends';
+import DividendRatesPage from './pages/DividendRatesPage';
 function App() {
 	const [loading, setLoading] = useState(true);
 
@@ -132,6 +136,10 @@ function App() {
 								element={<InvoiceRegister />}
 							/>
 							<Route path="/financial-statement" element={<Statement />} />
+							<Route path="/shareholders" element={<Shareholders />} />
+							<Route path="/shareholders/:id" element={<Shareholder />} />
+							<Route path="/dividends" element={<Dividends />} />
+							<Route path="/dividend-rates" element={<DividendRatesPage />} />
 						</Route>
 					</Route>
 				</Route>

@@ -1,0 +1,232 @@
+/* eslint-disable react/prop-types */
+import { useContext, useState, useEffect } from 'react';
+import AuthContext from '../../context/authContext';
+import toast from 'react-hot-toast';
+import axios from 'axios';
+import getError from '../../hooks/getError';
+import { useQueryClient, useMutation } from '@tanstack/react-query';
+
+import Modal from './Modal';
+import { HiXMark } from 'react-icons/hi2';
+
+const months = [
+	{ value: 1, label: 'January' },
+	{ value: 2, label: 'February' },
+	{ value: 3, label: 'March' },
+	{ value: 4, label: 'April' },
+	{ value: 5, label: 'May' },
+	{ value: 6, label: 'June' },
+	{ value: 7, label: 'July' },
+	{ value: 8, label: 'August' },
+	{ value: 9, label: 'September' },
+	{ value: 10, label: 'October' },
+	{ value: 11, label: 'November' },
+	{ value: 12, label: 'December' },
+];
+
+const EditDividendRatesModal = ({ show, setShow, selectedRate }) => {
+	const { user } = useContext(AuthContext);
+
+	const queryClient = useQueryClient();
+
+	const currentYear = new Date().getFullYear();
+
+	const [percentage, setPercentage] = useState('');
+
+	const [description, setDescription] = useState('');
+
+	const [year, setYear] = useState(currentYear);
+
+	const [month, setMonth] = useState('');
+
+	useEffect(() => {
+		if (show) {
+			setPercentage(selectedRate?.percentage || '');
+
+			setDescription(selectedRate?.description || '');
+
+			setMonth(selectedRate?.month || '');
+
+			setYear(selectedRate?.year || currentYear);
+		}
+	}, [show, selectedRate, currentYear]);
+
+	const apiUrl = import.meta.env.VITE_API_URL;
+
+	const mutation = useMutation({
+		mutationFn: async (payload) => {
+			const url = selectedRate?._id
+				? `${apiUrl}/shareholders/dividend-rate/${selectedRate._id}`
+				: `${apiUrl}/shareholders/dividend-rate`;
+
+			const method = selectedRate?._id ? axios.patch : axios.post;
+
+			return method(url, payload, {
+				headers: {
+					Authorization: `Bearer ${user?.token}`,
+				},
+			});
+		},
+
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: ['dividend-rates'],
+			});
+
+			queryClient.invalidateQueries({
+				queryKey: ['dividends'],
+			});
+			queryClient.invalidateQueries({
+				queryKey: ['dividends', year, month],
+			});
+
+			toast.success(
+				selectedRate?._id
+					? 'Dividend rate updated successfully'
+					: 'Dividend rate created successfully',
+			);
+
+			setShow(false);
+		},
+
+		onError: (error) => {
+			toast.error(getError(error));
+		},
+	});
+
+	const handleSubmit = (e) => {
+		e.preventDefault();
+
+		const parsedPercentage = parseFloat(percentage);
+
+		if (!parsedPercentage || parsedPercentage <= 0) {
+			return toast.error('Percentage must be greater than 0');
+		}
+
+		if (!month) {
+			return toast.error('Please select a month');
+		}
+
+		if (!year) {
+			return toast.error('Please select a year');
+		}
+
+		mutation.mutate({
+			year: Number(year),
+			month: Number(month),
+			percentage: parsedPercentage,
+			description: description.trim(),
+		});
+	};
+
+	const isSubmitting = mutation.isPending;
+
+	return (
+		<Modal show={show}>
+			<div className="overflow-hidden rounded-2xl bg-white shadow-xl min-w-[450px] max-w-xl">
+				<div className="p-5">
+					<div className="flex justify-between items-center mb-4">
+						<h2 className="font-semibold text-lg text-blue-600">
+							{selectedRate?._id
+								? 'Edit Dividend Rate'
+								: 'Create Dividend Rate'}
+						</h2>
+
+						<button
+							onClick={() => setShow(false)}
+							disabled={isSubmitting}
+							className="p-1 rounded-full bg-red-100 hover:bg-red-200"
+						>
+							<HiXMark className="text-xl text-red-600" />
+						</button>
+					</div>
+
+					<form onSubmit={handleSubmit} className="space-y-4">
+						<div className="grid md:grid-cols-2 gap-4">
+							<div>
+								<label className="block mb-1">Year</label>
+
+								<select
+									value={year}
+									onChange={(e) => setYear(e.target.value)}
+									className="w-full border rounded-md p-2"
+									disabled={isSubmitting}
+								>
+									{Array.from(
+										{
+											length: 10,
+										},
+										(_, index) => currentYear - 2 + index,
+									).map((yr) => (
+										<option key={yr} value={yr}>
+											{yr}
+										</option>
+									))}
+								</select>
+							</div>
+
+							<div>
+								<label className="block mb-1">Month</label>
+
+								<select
+									value={month}
+									onChange={(e) => setMonth(e.target.value)}
+									className="w-full border rounded-md p-2"
+									disabled={isSubmitting}
+								>
+									<option value="">Select Month</option>
+
+									{months.map((item) => (
+										<option key={item.value} value={item.value}>
+											{item.label}
+										</option>
+									))}
+								</select>
+							</div>
+						</div>
+
+						<div>
+							<label className="block mb-1">Dividend Percentage (%)</label>
+
+							<input
+								type="number"
+								min="0"
+								step="0.01"
+								value={percentage}
+								onChange={(e) => setPercentage(e.target.value)}
+								className="w-full border rounded-md p-2"
+								disabled={isSubmitting}
+							/>
+						</div>
+
+						<div>
+							<label className="block mb-1">Description</label>
+
+							<textarea
+								rows="3"
+								value={description}
+								onChange={(e) => setDescription(e.target.value)}
+								className="w-full border rounded-md p-2"
+								disabled={isSubmitting}
+							/>
+						</div>
+
+						<button
+							type="submit"
+							disabled={isSubmitting}
+							className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md"
+						>
+							{isSubmitting
+								? 'Saving...'
+								: selectedRate?._id
+									? 'Update Dividend Rate'
+									: 'Create Dividend Rate'}
+						</button>
+					</form>
+				</div>
+			</div>
+		</Modal>
+	);
+};
+
+export default EditDividendRatesModal;

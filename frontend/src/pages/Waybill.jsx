@@ -42,6 +42,7 @@ const Waybill = () => {
 		tare: 0,
 		gross: 0,
 		dust: 0,
+		bundle: 0,
 		date: new Date().toISOString().split('T')[0], // YYYY-MM-DD for input[type=date]
 		note: '',
 	});
@@ -312,6 +313,15 @@ const Waybill = () => {
 			doc.setFont('helvetica', 'normal');
 			doc.text(formData.vehicle || '-', 55, startY);
 
+			doc.setFont('helvetica', 'bold');
+			doc.text('Bundle:', pageWidth - 90, startY);
+			doc.setFont('helvetica', 'normal');
+			doc.text(
+				formData.bundle ? `${formData.bundle.toLocaleString()} kg ` : '-',
+				pageWidth - 75,
+				startY,
+			);
+
 			startY += gap;
 
 			// Row 3
@@ -466,13 +476,13 @@ const Waybill = () => {
 						</h3>
 					</div>
 					<div className="md:flex justify-between mb-2 gap-3">
-						<div className="flex-1 md:flex justify-between items-center gap-1 ">
+						<div className="flex flex-col justify-between items-start w-full">
 							<strong
 								style={{
 									whiteSpace: 'nowrap',
 								}}
 							>
-								CUSTOMER NAME:
+								Customer Name:
 							</strong>
 							<input
 								id="newCustomer"
@@ -481,16 +491,16 @@ const Waybill = () => {
 								onChange={(e) =>
 									setFormData({ ...formData, name: e.target.value })
 								}
-								className="input w-full h-[44px] rounded-md border border-gray6 px-2 text-base md:ml-2"
+								className="input w-full h-[44px] rounded-md border border-gray6 px-2 text-base"
 							/>
 						</div>
-						<div className="flex-1 md:flex justify-between items-center gap-1 mt-4 md:mt-0">
+						<div className="flex flex-col justify-between items-start w-full">
 							<strong
 								style={{
 									whiteSpace: 'nowrap',
 								}}
 							>
-								DATE:
+								Date:
 							</strong>
 							<input
 								type="date"
@@ -498,30 +508,49 @@ const Waybill = () => {
 								onChange={(e) =>
 									setFormData({ ...formData, date: e.target.value })
 								}
-								className="input w-full h-[44px] rounded-md border border-gray6 px-2 text-base md:ml-2"
+								className="input w-full h-[44px] rounded-md border border-gray6 px-2 text-base"
 							/>
 						</div>
 					</div>
-					<div className=" md:flex justify-between items-center gap-1 ">
-						<strong
-							style={{
-								whiteSpace: 'nowrap',
-							}}
-						>
-							VEHICLE REG. NO.:
-						</strong>
-						<input
-							type="text"
-							value={formData.vehicle}
-							onChange={(e) =>
-								setFormData({ ...formData, vehicle: e.target.value })
-							}
-							className="input w-full h-[44px] rounded-md border border-gray6 px-2 text-base md:ml-2"
-						/>
+					<div className="md:flex justify-between mb-2 gap-3">
+						<div className="flex flex-col justify-between items-start w-full">
+							<strong
+								style={{
+									whiteSpace: 'nowrap',
+								}}
+							>
+								Vehicle No.:
+							</strong>
+							<input
+								type="text"
+								value={formData.vehicle}
+								onChange={(e) =>
+									setFormData({ ...formData, vehicle: e.target.value })
+								}
+								className="input w-full h-[44px] rounded-md border border-gray6 px-2 text-base"
+							/>
+						</div>
+						<div className="flex flex-col justify-between items-start w-full">
+							<strong
+								style={{
+									whiteSpace: 'nowrap',
+								}}
+							>
+								Bundle:
+							</strong>
+							<input
+								type="text"
+								value={formData.bundle}
+								onChange={(e) =>
+									setFormData({ ...formData, bundle: e.target.value })
+								}
+								className="input w-full h-[44px] rounded-md border border-gray6 px-2 text-base"
+							/>
+						</div>
 					</div>
 
 					<div className="md:flex justify-between mb-2 gap-3">
-						<div className="flex-1 md:flex justify-between items-center gap-1 ">
+						<div className="flex flex-col justify-between items-start w-full">
 							<strong
 								style={{
 									whiteSpace: 'nowrap',
@@ -535,10 +564,10 @@ const Waybill = () => {
 								onChange={(e) =>
 									setFormData({ ...formData, gross: e.target.value })
 								}
-								className="input w-full h-[44px] rounded-md border border-gray6 px-2 text-base md:ml-2"
+								className="input w-full h-[44px] rounded-md border border-gray6 px-2 text-base"
 							/>
 						</div>
-						<div className="flex-1 md:flex justify-between items-center gap-1 mt-4 md:mt-0">
+						<div className="flex flex-col justify-between items-start w-full">
 							<strong
 								style={{
 									whiteSpace: 'nowrap',
@@ -552,13 +581,13 @@ const Waybill = () => {
 								onChange={(e) =>
 									setFormData({ ...formData, tare: e.target.value })
 								}
-								className="input w-full h-[44px] rounded-md border border-gray6 px-2 text-base md:ml-2"
+								className="input w-full h-[44px] rounded-md border border-gray6 px-2 text-base"
 							/>
 						</div>
 					</div>
 
 					<div className="md:flex justify-between mb-2 gap-3">
-						<div className="flex-1 md:flex justify-between items-center gap-1 ">
+						<div className="flex flex-col justify-between items-start w-full">
 							<strong
 								style={{
 									whiteSpace: 'nowrap',
@@ -572,10 +601,10 @@ const Waybill = () => {
 								onChange={(e) =>
 									setFormData({ ...formData, dust: e.target.value })
 								}
-								className="input w-full h-[44px] rounded-md border border-gray6 px-2 text-base md:ml-2"
+								className="input w-full h-[44px] rounded-md border border-gray6 px-2 text-base"
 							/>
 						</div>
-						<div className="flex-1 md:flex justify-between items-center gap-1 mt-4 md:mt-0">
+						<div className="flex flex-col justify-between items-start w-full">
 							<strong
 								style={{
 									whiteSpace: 'nowrap',
@@ -587,107 +616,9 @@ const Waybill = () => {
 								type="text"
 								value={net}
 								disabled
-								className="input w-full h-[44px] rounded-md border border-gray6 px-2 text-base md:ml-2"
+								className="input w-full h-[44px] rounded-md border border-gray6 px-2 text-base"
 							/>
 						</div>
-					</div>
-					{/* Table */}
-					<div className="hidden">
-						<div className="overflow-auto">
-							<table className="w-full border">
-								<thead>
-									<tr className="bg-gray-100">
-										<th className="p-2">Category</th>
-										<th className="p-2">Name</th>
-										<th className="p-2">Description</th>
-										<th className="p-2">Type</th>
-										<th className="p-2">Amount</th>
-										<th className="p-2">Action</th>
-									</tr>
-								</thead>
-
-								<tbody>
-									{statement.entries.map((row) => (
-										<tr key={row.id}>
-											<td className="border p-2">
-												<select
-													className="w-full"
-													value={row.category}
-													onChange={(e) =>
-														updateRow(row.id, 'category', e.target.value)
-													}
-												>
-													{defaultCategories.map((category) => (
-														<option key={category} value={category}>
-															{category}
-														</option>
-													))}
-												</select>
-											</td>
-
-											<td className="border p-2">
-												<input
-													className="w-full"
-													value={row.title}
-													onChange={(e) =>
-														updateRow(row.id, 'title', e.target.value)
-													}
-												/>
-											</td>
-
-											<td className="border p-2">
-												<input
-													className="w-full"
-													value={row.description}
-													onChange={(e) =>
-														updateRow(row.id, 'description', e.target.value)
-													}
-												/>
-											</td>
-
-											<td className="border p-2">
-												<select
-													value={row.type}
-													onChange={(e) =>
-														updateRow(row.id, 'type', e.target.value)
-													}
-												>
-													<option value="credit">Credit</option>
-													<option value="debit">Debit</option>
-												</select>
-											</td>
-
-											<td className="border p-2">
-												<input
-													type="number"
-													className="w-full"
-													value={row.amount}
-													onChange={(e) =>
-														updateRow(row.id, 'amount', e.target.value)
-													}
-												/>
-											</td>
-
-											<td className="border p-2">
-												<button
-													onClick={() => deleteRow(row.id)}
-													className="text-red-600"
-												>
-													Delete
-												</button>
-											</td>
-										</tr>
-									))}
-								</tbody>
-							</table>
-						</div>
-
-						<button
-							onClick={addRow}
-							className="px-4 py-2 bg-blue-600 text-white rounded"
-						>
-							Add Entry
-						</button>
 					</div>
 
 					{/* Comments and Signature */}

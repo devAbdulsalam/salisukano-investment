@@ -672,6 +672,15 @@ const InvoicesPage = () => {
 			doc.setFont('helvetica', 'normal');
 			doc.text(formData.vehicle || '-', 55, startY);
 
+			doc.setFont('helvetica', 'bold');
+			doc.text('Bundle:', pageWidth - 90, startY);
+			doc.setFont('helvetica', 'normal');
+			doc.text(
+				formData.bundle ? `${formData.bundle.toLocaleString()} kg ` : '-',
+				pageWidth - 75,
+				startY,
+			);
+
 			startY += gap;
 
 			// Row 3
@@ -945,6 +954,15 @@ const InvoicesPage = () => {
 							</th>
 							<th
 								className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+								onClick={() => requestSort('bundle')}
+							>
+								<div className="flex items-center gap-1">
+									Bundle
+									<ArrowUpDown size={14} />
+								</div>
+							</th>
+							<th
+								className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
 								onClick={() => requestSort('gross')}
 							>
 								<div className="flex items-center gap-1 whitespace-nowrap">
@@ -1008,6 +1026,9 @@ const InvoicesPage = () => {
 									</td>
 									<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
 										{invoice.vehicle}
+									</td>
+									<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+										{invoice.bundle}
 									</td>
 									<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
 										{invoice.gross?.toLocaleString()}

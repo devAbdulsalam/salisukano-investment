@@ -14,6 +14,7 @@ import {
 	Users,
 	HandCoins,
 	UserPen,
+	UsersRound,
 } from 'lucide-react';
 // import Search from '../components/Search';
 const navigationList = [
@@ -58,6 +59,12 @@ const navigationList = [
 		name: 'Expenses',
 		link: '/expenses',
 		svg: <HandCoins className="h-4 w-4" />,
+		roles: ['admin'],
+	},
+	{
+		name: 'Shareholders',
+		link: '/shareholders',
+		svg: <UsersRound className="h-4 w-4" />,
 		roles: ['admin'],
 	},
 	{
