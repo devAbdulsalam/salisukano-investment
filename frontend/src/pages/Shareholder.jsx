@@ -3,7 +3,7 @@ import { useContext, useState, useMemo, useEffect } from 'react';
 import Loader from '../components/Loader.jsx';
 import AuthContext from '../context/authContext.jsx';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchShareholder } from '../hooks/axiosApis.js';
+import { fetchDividendRates, fetchShareholder } from '../hooks/axiosApis.js';
 import logo from '../assets/logo.png';
 import seal from '../assets/seal.png';
 import phone from '../assets/call.png';
@@ -11,19 +11,12 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import getError from '../hooks/getError.js';
 import toast from 'react-hot-toast';
-import {
-	Wallet,
-	ArrowLeftRight,
-	Plus,
-	Download,
-	Minus,
-	List,
-	ArrowDownWideNarrow,
-} from 'lucide-react';
+import { Plus, Download, Minus, List, ArrowDownWideNarrow } from 'lucide-react';
 import formatDate from '../hooks/formatDate.js';
 import { useNavigate, useParams } from 'react-router-dom';
 import { months } from '../data.js';
 import TopupModal from '../components/modals/TopupModal.jsx';
+import ShareholderDividendModal from '../components/modals/ShareholderDividendModal.jsx';
 
 const currency = (amount) =>
 	Number(amount || 0).toLocaleString(undefined, {
@@ -42,6 +35,7 @@ const Shareholder = () => {
 	const [loading, setLoading] = useState(false);
 	const [topupModal, setTopupModal] = useState(false);
 	const [isTopup, setIsTopup] = useState(false);
+	const [dividendModal, setDividendModal] = useState(false);
 	const [logoBase64, setLogoBase64] = useState('');
 	const [sealBase64, setSealBase64] = useState('');
 	const [phoneBase64, setPhoneBase64] = useState('');
@@ -51,6 +45,12 @@ const Shareholder = () => {
 	const { data, isLoading, error } = useQuery({
 		queryKey: ['shareholders', id],
 		queryFn: () => fetchShareholder(id, user),
+		enabled: !!user,
+	});
+
+	const { data: dividendRates } = useQuery({
+		queryKey: ['dividend-rates'],
+		queryFn: () => fetchDividendRates(user),
 		enabled: !!user,
 	});
 
@@ -456,23 +456,28 @@ const Shareholder = () => {
 				<div className="grid md:grid-cols-4 gap-4 mb-6">
 					<div className="bg-white shadow rounded p-4">
 						<div
+							onClick={() => setDividendModal(true)}
+							className="cursor-pointer w-full flex justify-between gap-2 items-end mb-4 text-green-600"
+						>
+							<p className="text-gray-500 text-sm ">Total Dividends</p>
+							<Plus size={18} />
+						</div>
+						<h3 className="font-bold text-xl text-green-600">
+							₦{currency(stats.totalDividend)}
+						</h3>
+					</div>
+					<div className="bg-white shadow rounded p-4">
+						<div
 							onClick={() => {
 								setIsTopup('topup');
 								setTopupModal(true);
 							}}
-							className="cursor-pointer w-full flex justify-between gap-2 items-end mb-4 text-green-600"
+							className="cursor-pointer w-full flex justify-between gap-2 items-end mb-4 text-blue-600"
 						>
 							<p className="text-gray-500 text-sm">Investment</p>
 							<Plus size={18} />
 						</div>
 						<h3 className="font-bold text-xl">₦{currency(stats.investment)}</h3>
-					</div>
-
-					<div className="bg-white shadow rounded p-4">
-						<p className="text-gray-500 text-sm mb-4">Total Dividends</p>
-						<h3 className="font-bold text-xl text-green-600">
-							₦{currency(stats.totalDividend)}
-						</h3>
 					</div>
 
 					<div className="bg-white shadow rounded p-4">
@@ -566,10 +571,18 @@ const Shareholder = () => {
 								<table className="w-full rounded-lg border border-gray-200 overflow-x-auto">
 									<thead>
 										<tr className="bg-gray-100">
-											<th className="p-3 text-left">Month</th>
-											<th className="p-3 text-left">Rate</th>
-											<th className="p-3 text-left">Dividend</th>
-											<th className="p-3 text-left">Total</th>
+											<th className="px-4 py-2 text-left font-medium text-gray-500">
+												Month
+											</th>
+											<th className="px-4 py-2 text-left font-medium text-gray-500">
+												Rate
+											</th>
+											<th className="px-4 py-2 text-left font-medium text-gray-500">
+												Dividend
+											</th>
+											<th className="px-4 py-2 text-left font-medium text-gray-500">
+												Total
+											</th>
 										</tr>
 									</thead>
 
@@ -684,6 +697,15 @@ const Shareholder = () => {
 				loading={false}
 				shareholder={shareholder}
 				isTopup={isTopup === 'topup' ? true : false}
+			/>
+			<ShareholderDividendModal
+				show={dividendModal}
+				setShow={setDividendModal}
+				onClose={() => setDividendModal(false)}
+				setLoading={() => {}}
+				loading={false}
+				dividendRates={dividendRates?.data || []}
+				shareholder={shareholder}
 			/>
 		</main>
 	);

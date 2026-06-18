@@ -13,7 +13,14 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import getError from '../hooks/getError.js';
 import toast from 'react-hot-toast';
-import { Pencil, Trash2, Search, ArrowUpDown, Download, Plus } from 'lucide-react';
+import {
+	Pencil,
+	Trash2,
+	Search,
+	ArrowUpDown,
+	Download,
+	Plus,
+} from 'lucide-react';
 import formatDate from '../hooks/formatDate.js';
 import DeleteConfirmationModal from '../components/modals/DeleteConfirmationModal.jsx';
 import moment from 'moment';
@@ -76,26 +83,29 @@ const Shareholders = () => {
 
 	// Compute totals
 	const total = useMemo(() => {
+		if (!data?.length) {
+			return 0;
+		}
 		return data?.reduce((acc, exp) => acc + exp.currentInvestment, 0) || 0;
 	}, [data]);
 
 	// Filtering
 	const filteredShareholders = useMemo(() => {
-		if (!data) return [];
-		return data.filter((Shareholder) => {
+		if (!data || !data?.length) return [];
+		return data?.filter((shareholder) => {
 			const matchesSearch =
-				Shareholder.description
+				shareholder.description
 					?.toLowerCase()
 					.includes(searchTerm.toLowerCase()) ||
-				Shareholder.serialNumber
+				shareholder.serialNumber
 					?.toLowerCase()
 					.includes(searchTerm.toLowerCase()) ||
-				Shareholder?.currentInvestment?.toString().includes(searchTerm) ||
-				moment(Shareholder?.createdAt)
+				shareholder?.currentInvestment?.toString().includes(searchTerm) ||
+				moment(shareholder?.createdAt)
 					.format('DD-MM-YYYY')
 					.includes(searchTerm);
 			const matchesDate =
-				!startDate || new Date(Shareholder.date) >= new Date(startDate);
+				!startDate || new Date(shareholder.date) >= new Date(startDate);
 			return matchesSearch && matchesDate;
 		});
 	}, [data, searchTerm, startDate]);
@@ -449,36 +459,37 @@ const Shareholders = () => {
 						onClick={() => setIsAddModal(true)}
 						className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
 					>
-						<span className="hidden md:inline">Add {' '}</span>
-						<Plus className="inline md:hidden"/>
+						<span className="hidden md:inline">Add </span>
+						<Plus className="inline md:hidden" />
 						Shareholder
 					</button>
 				</div>
 
 				{/* Summary Cards */}
 				<div className="w-full grid sm:grid-cols-2 md:grid-cols-3 gap-4 mb-4">
-					<div className="p-5 bg-white flex flex-col rounded-xl gap-2 border border-gray-200 hover:shadow-md">
-						<span className="text-gray-500 text-sm font-medium">
-							Total Investment
+					<div
+						// onClick={() => navigate('/dividend-rates')}
+						className="p-5 bg-white flex flex-col rounded-xl gap-2 border border-gray-200 hover:shadow-md"
+					>
+						<h2 className="text-gray-500 text-sm font-medium mb-4">
+							Shareholders
+						</h2>
+						<span className="text-xl font-bold">
+							{/* ₦{total.toLocaleString()} */}
+							{data?.length || 0}
 						</span>
+					</div>
+					<div className="p-5 bg-white flex flex-col rounded-xl gap-2 border border-gray-200 hover:shadow-md">
+						<h2 className="text-gray-500 text-sm font-medium mb-4">
+							Total Investment
+						</h2>
 						<span className="text-xl font-bold">₦{total.toLocaleString()}</span>
 					</div>
 					<div
 						onClick={() => navigate('/dividend-rates')}
 						className="p-5 bg-white flex flex-col rounded-xl gap-2 border border-gray-200 hover:shadow-md"
 					>
-						<span className="text-gray-500 text-sm font-medium">Payments</span>
-						<span className="text-xl font-bold">
-							<span className="text-xl font-bold">
-								₦{total.toLocaleString()}
-							</span>
-						</span>
-					</div>
-					<div
-						onClick={() => navigate('/dividend-rates')}
-						className="p-5 bg-white flex flex-col rounded-xl gap-2 border border-gray-200 hover:shadow-md"
-					>
-						<div className="w-full flex gap-2 items-end mb-4 text-green-600">
+						<div className="w-full flex gap-2 justify-between items-end mb-4 text-green-600">
 							<h2 className="text-gray-500 text-sm font-medium">
 								Dividend Rate
 							</h2>
@@ -523,12 +534,12 @@ const Shareholders = () => {
 								>
 									Dividend Rate (%)
 								</button>
-								<button
+								{/* <button
 									onClick={() => navigate('/dividends')}
 									className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
 								>
 									Payments
-								</button>
+								</button> */}
 							</div>
 						</div>
 					</div>

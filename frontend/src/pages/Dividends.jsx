@@ -44,7 +44,6 @@ const Dividends = () => {
 		return years.sort((a, b) => b - a);
 	}, [dividends]);
 
-
 	// Sorting
 	const requestSort = (key) => {
 		let direction = 'asc';

@@ -322,7 +322,10 @@ export const createDividendRate = async (req, res) => {
 				year,
 				percentage,
 				description,
-				status: 'completed',
+				// status: 'completed',
+				// processedAt: new Date(),
+				// status: 'pending',
+				// processedAt: null,
 			},
 			{
 				new: true,
@@ -367,7 +370,7 @@ export const getDividendRates = async (req, res) => {
 			data: rates,
 		});
 	} catch (error) {
-		coonsole.log(error);
+		console.log(error);
 		res.status(500).json({
 			success: false,
 			message: error.message,
@@ -669,6 +672,226 @@ export const calculateMonthlyDividend = async (req, res) => {
 		).catch(() => {});
 
 		return res.status(500).json({
+			success: false,
+			message: error.message,
+		});
+	} finally {
+		await session.endSession();
+	}
+};
+
+export const shareholderMonthlyDividend = async (req, res) => {
+	const session = await mongoose.startSession();
+
+	try {
+		const { shareholderId, month, year } = req.body;
+
+		if (!shareholderId || !month || !year) {
+			return res.status(400).json({
+				success: false,
+				message: 'Shareholder, month and year are required',
+			});
+		}
+
+		await session.withTransaction(async () => {
+			/**
+			 * Shareholder
+			 */
+			const shareholder =
+				await Shareholder.findById(shareholderId).session(session);
+
+			if (!shareholder) {
+				throw new Error('Shareholder not found');
+			}
+
+			/**
+			 * Dividend Rate
+			 */
+			const rate = await DividendRate.findOne({
+				month: Number(month),
+				year: Number(year),
+			}).session(session);
+
+			if (!rate) {
+				throw new Error('Dividend rate not found');
+			}
+
+			/**
+			 * Prevent duplicate processing
+			 */
+			const existingDividend = await DividendLedger.findOne({
+				shareholder: shareholderId,
+				month: Number(month),
+				year: Number(year),
+			}).session(session);
+
+			if (existingDividend) {
+				throw new Error('Dividend already processed for this shareholder');
+			}
+
+			/**
+			 * Calculate net investment
+			 */
+			const balances = await ShareholderTransaction.aggregate([
+				{
+					$match: {
+						shareholder: new mongoose.Types.ObjectId(shareholderId),
+
+						$or: [
+							{
+								effectiveYear: {
+									$lt: Number(year),
+								},
+							},
+							{
+								effectiveYear: Number(year),
+
+								effectiveMonth: {
+									$lte: Number(month),
+								},
+							},
+						],
+					},
+				},
+
+				{
+					$group: {
+						_id: null,
+
+						deposits: {
+							$sum: {
+								$cond: [
+									{
+										$in: ['$type', ['opening', 'topup']],
+									},
+									'$amount',
+									0,
+								],
+							},
+						},
+
+						withdrawals: {
+							$sum: {
+								$cond: [
+									{
+										$eq: ['$type', 'withdrawal'],
+									},
+									'$amount',
+									0,
+								],
+							},
+						},
+					},
+				},
+			]).session(session);
+
+			const deposits = balances[0]?.deposits || 0;
+
+			const withdrawals = balances[0]?.withdrawals || 0;
+
+			const investment = deposits - withdrawals;
+
+			if (investment <= 0) {
+				throw new Error(
+					'No eligible investment found for dividend calculation',
+				);
+			}
+
+			/**
+			 * Calculate dividend
+			 */
+			const dividendAmount = (investment * rate.percentage) / 100;
+
+			/**
+			 * Previous dividends
+			 */
+			const previousDividend = await DividendLedger.aggregate([
+				{
+					$match: {
+						shareholder: new mongoose.Types.ObjectId(shareholderId),
+					},
+				},
+				{
+					$group: {
+						_id: null,
+
+						total: {
+							$sum: '$dividendAmount',
+						},
+					},
+				},
+			]).session(session);
+
+			const cumulativeDividend =
+				(previousDividend[0]?.total || 0) + dividendAmount;
+
+			/**
+			 * Create ledger
+			 */
+			const ledger = await DividendLedger.create(
+				[
+					{
+						shareholder: shareholderId,
+
+						month: Number(month),
+
+						year: Number(year),
+
+						percentage: rate.percentage,
+
+						investmentAmount: investment,
+
+						dividendAmount: Number(dividendAmount.toFixed(2)),
+
+						cumulativeDividend: Number(cumulativeDividend.toFixed(2)),
+
+						description: `${month}/${year} Dividend`,
+					},
+				],
+				{
+					session,
+				},
+			);
+
+			/**
+			 * Update shareholder summary
+			 */
+			await Shareholder.updateOne(
+				{
+					_id: shareholderId,
+				},
+				{
+					$inc: {
+						totalDividends: Number(dividendAmount.toFixed(2)),
+					},
+				},
+				{
+					session,
+				},
+			);
+
+			res.status(201).json({
+				success: true,
+
+				message: 'Dividend processed successfully',
+
+				shareholder: shareholder.name,
+
+				investment,
+
+				percentage: rate.percentage,
+
+				dividendAmount: Number(dividendAmount.toFixed(2)),
+
+				cumulativeDividend: Number(cumulativeDividend.toFixed(2)),
+
+				data: ledger[0],
+			});
+		});
+	} catch (error) {
+		console.error(error);
+
+		res.status(500).json({
 			success: false,
 			message: error.message,
 		});

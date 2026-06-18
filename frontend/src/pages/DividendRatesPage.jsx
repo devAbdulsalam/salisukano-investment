@@ -107,14 +107,14 @@ const DividendRatesPage = () => {
 						Manage monthly dividend percentages
 					</p>
 				</div>
-				<div>
+				{/* <div>
 					<button
 						onClick={() => navigate('/dividends')}
 						className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
 					>
 						Dividend Payments
 					</button>
-				</div>
+				</div> */}
 			</div>
 
 			{/* Summary Cards */}
@@ -157,7 +157,7 @@ const DividendRatesPage = () => {
 			{/* Rates Table */}
 
 			<div className="bg-white rounded-lg shadow overflow-hidden p-2">
-				<div className="flex justify-between items-center px-4 py-3 border-b">
+				<div className="flex justify-between items-center px-4 py-3">
 					<div className=" ">
 						<h2 className="font-semibold">
 							<span className="hidden md:inline">{year} </span>
@@ -180,7 +180,7 @@ const DividendRatesPage = () => {
 					</select>
 				</div>
 
-				<div className="overflow-x-auto">
+				<div className="overflow-x-auto px-4">
 					<table className="w-full rounded-lg border border-gray-200">
 						<thead>
 							<tr className="bg-gray-100">
