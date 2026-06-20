@@ -18,6 +18,7 @@ export const createShareholder = async (req, res) => {
 			address,
 			openingBalance,
 			currentInvestment: openingBalance,
+			date,
 		});
 
 		const effective = getEffectivePeriod(date);
@@ -69,12 +70,11 @@ export const getShareholders = async (req, res) => {
 
 		const [shareholders, total] = await Promise.all([
 			Shareholder.find(query)
-				.sort({ [sortBy]: order === 'asc' ? 1 : -1 })
+				.sort({ [sortBy]: order === 'asc' ? -1 : 1 })
 				.skip(skip)
 				.limit(Number(limit)),
 			Shareholder.countDocuments(query),
 		]);
-
 		// res.status(200).json({
 		// 	success: true,
 		// 	total,

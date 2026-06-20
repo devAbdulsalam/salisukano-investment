@@ -10,9 +10,14 @@ import Modal from './Modal';
 import { HiXMark } from 'react-icons/hi2';
 
 import { months } from '../../data';
-const EditDividendRatesModal = ({ show, setShow, selectedRate }) => {
+const EditDividendRatesModal = ({
+	show,
+	setShow,
+	selectedRate,
+	selectedYear,
+}) => {
 	const { user } = useContext(AuthContext);
-
+	console.log(selectedYear);
 	const queryClient = useQueryClient();
 
 	const currentYear = new Date().getFullYear();
@@ -21,7 +26,7 @@ const EditDividendRatesModal = ({ show, setShow, selectedRate }) => {
 
 	const [description, setDescription] = useState('');
 
-	const [year, setYear] = useState(currentYear);
+	const [year, setYear] = useState(selectedYear);
 
 	const [month, setMonth] = useState('');
 
@@ -134,9 +139,9 @@ const EditDividendRatesModal = ({ show, setShow, selectedRate }) => {
 								>
 									{Array.from(
 										{
-											length: 10,
+											length: 15,
 										},
-										(_, index) => currentYear - 2 + index,
+										(_, index) => year - 5 + index,
 									).map((yr) => (
 										<option key={yr} value={yr}>
 											{yr}

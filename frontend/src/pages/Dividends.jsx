@@ -38,6 +38,8 @@ const Dividends = () => {
 
 	const dividends = data?.dividends || data || [];
 
+	console.log(dividends);
+
 	const availableYears = useMemo(() => {
 		const years = [...new Set(dividends.map((item) => item.year))];
 

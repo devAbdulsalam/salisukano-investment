@@ -138,8 +138,14 @@ function App() {
 							<Route path="/financial-statement" element={<Statement />} />
 							<Route path="/shareholders" element={<Shareholders />} />
 							<Route path="/shareholders/:id" element={<Shareholder />} />
+							<Route path="/shareholders/:id/:year" element={<Shareholder />} />
 							<Route path="/dividends" element={<Dividends />} />
 							<Route path="/dividend-rates" element={<DividendRatesPage />} />
+							<Route path="/dividend-rates/" element={<DividendRatesPage />} />
+							<Route
+								path="/dividend-rates/:year"
+								element={<DividendRatesPage />}
+							/>
 						</Route>
 					</Route>
 				</Route>

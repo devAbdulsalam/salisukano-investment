@@ -30,6 +30,11 @@ const Shareholders = () => {
 	const queryClient = useQueryClient();
 	const { user } = useContext(AuthContext);
 
+	const currentYear = new Date().getFullYear();
+	const navigate = useNavigate();
+
+	const [year, setYear] = useState(currentYear);
+
 	// UI states
 	const [isAddModal, setIsAddModal] = useState(false);
 	const [isEditModal, setIsEditModal] = useState(false);
@@ -46,14 +51,22 @@ const Shareholders = () => {
 	const [startDate, setStartDate] = useState('');
 	const [sortConfig, setSortConfig] = useState({ key: '', direction: '' });
 
-	const navigate = useNavigate();
-
 	// Fetch Shareholders
 	const { data, isLoading, error } = useQuery({
 		queryKey: ['shareholders'],
 		queryFn: () => fetchShareholders(user),
 		enabled: !!user,
 	});
+
+	const years = useMemo(() => {
+		if (!data?.length) return [];
+		return [...new Set(data.map((d) => new Date(d.date).getFullYear()))].sort(
+			(a, b) => b - a,
+		);
+	}, [data]);
+
+	// console.log(years);
+	// console.log(data);
 
 	// console.log('Fetched user:', user); // Debug log
 
@@ -91,24 +104,38 @@ const Shareholders = () => {
 
 	// Filtering
 	const filteredShareholders = useMemo(() => {
-		if (!data || !data?.length) return [];
-		return data?.filter((shareholder) => {
+		if (!data?.length) return [];
+
+		// 1. Filter
+
+		const filtered = data.filter((shareholder) => {
+			const searchTermLower = searchTerm.toLowerCase();
+
 			const matchesSearch =
-				shareholder.description
-					?.toLowerCase()
-					.includes(searchTerm.toLowerCase()) ||
-				shareholder.serialNumber
-					?.toLowerCase()
-					.includes(searchTerm.toLowerCase()) ||
-				shareholder?.currentInvestment?.toString().includes(searchTerm) ||
-				moment(shareholder?.createdAt)
-					.format('DD-MM-YYYY')
-					.includes(searchTerm);
+				shareholder.description?.toLowerCase().includes(searchTermLower) ||
+				shareholder.serialNumber?.toLowerCase().includes(searchTermLower) ||
+				shareholder.currentInvestment?.toString().includes(searchTerm) ||
+				moment(shareholder.createdAt).format('DD-MM-YYYY').includes(searchTerm);
+
 			const matchesDate =
-				!startDate || new Date(shareholder.date) >= new Date(startDate);
-			return matchesSearch && matchesDate;
+				!startDate || new Date(shareholder.createdAt) >= new Date(startDate);
+
+			const yearMatches =
+				!year || new Date(shareholder.date).getFullYear() === year;
+
+			return matchesSearch && matchesDate && yearMatches;
 		});
-	}, [data, searchTerm, startDate]);
+
+		// 2. Add running total
+		let runningTotal = 0;
+		return filtered.map((item) => {
+			runningTotal += item.currentInvestment;
+			return {
+				...item,
+				total: runningTotal,
+			};
+		});
+	}, [data, year, searchTerm, startDate]);
 
 	// Sorting
 	const requestSort = (key) => {
@@ -472,12 +499,9 @@ const Shareholders = () => {
 						className="p-5 bg-white flex flex-col rounded-xl gap-2 border border-gray-200 hover:shadow-md"
 					>
 						<h2 className="text-gray-500 text-sm font-medium mb-4">
-							Shareholders
+							Shareholders ({data?.length || 0})
 						</h2>
-						<span className="text-xl font-bold">
-							{/* ₦{total.toLocaleString()} */}
-							{data?.length || 0}
-						</span>
+						<span className="text-xl font-bold">{year}</span>
 					</div>
 					<div className="p-5 bg-white flex flex-col rounded-xl gap-2 border border-gray-200 hover:shadow-md">
 						<h2 className="text-gray-500 text-sm font-medium mb-4">
@@ -500,7 +524,7 @@ const Shareholders = () => {
 				</div>
 				<div className="p-5 bg-white rounded-xl  border border-gray-200">
 					{/* Search and Date Filter */}
-					<div className="w-full md:flex gap-4  items-center mb-4">
+					<div className="w-full md:flex gap-4 items-center mb-4">
 						<div className="w-full">
 							<label className="text-sm text-gray-700 mb-1 block">Search</label>
 							<div className="flex items-center bg-white rounded-md shadow-sm border border-gray-200 p-0.5">
@@ -525,11 +549,30 @@ const Shareholders = () => {
 						</div>
 						<div className="">
 							<label className="text-sm text-gray-700 mb-1 block invisible">
+								Year
+							</label>
+							<select
+								className="border p-2 rounded text-sm"
+								value={year}
+								onChange={(e) => setYear(Number(e.target.value))}
+							>
+								<option value={year} disabled>
+									{year}
+								</option>
+								{years.map((yr) => (
+									<option key={yr} value={yr}>
+										{yr} Financial Year
+									</option>
+								))}
+							</select>
+						</div>
+						<div className="">
+							<label className="text-sm text-gray-700 mb-1 block invisible">
 								Date
 							</label>
 							<div className="flex justify-between items-center gap-2 text-sm">
 								<button
-									onClick={() => navigate('/dividend-rates')}
+									onClick={() => navigate(`/dividend-rates/${year}`)}
 									className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors whitespace-nowrap"
 								>
 									Dividend Rate (%)
@@ -579,18 +622,19 @@ const Shareholders = () => {
 											<ArrowUpDown size={14} />
 										</div>
 									</th>
+
 									<th
 										className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none"
-										onClick={() => requestSort('totalDividendEarned')}
+										onClick={() => requestSort('total')}
 									>
-										<div className="flex items-center gap-1 whitespace-nowrap">
-											Total Dividend Earned
+										<div className="flex items-center gap-1">
+											Total
 											<ArrowUpDown size={14} />
 										</div>
 									</th>
 									<th
 										className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none"
-										onClick={() => requestSort('date')}
+										onClick={() => requestSort('createdAt')}
 									>
 										<div className="flex items-center gap-1">
 											Date
@@ -620,7 +664,7 @@ const Shareholders = () => {
 											</td>
 											<td
 												onClick={() =>
-													navigate(`/shareholders/${shareholder._id}`)
+													navigate(`/shareholders/${shareholder._id}/${year}`)
 												}
 												className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
 											>
@@ -633,10 +677,10 @@ const Shareholders = () => {
 												{shareholder.currentInvestment?.toLocaleString()}
 											</td>
 											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-												{shareholder.totalDividendEarned?.toLocaleString()}
+												{shareholder.total?.toLocaleString()}
 											</td>
 											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-												{formatDate(shareholder.createdAt)}
+												{formatDate(shareholder.date)}
 											</td>
 											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
 												<div className="flex items-center gap-3">

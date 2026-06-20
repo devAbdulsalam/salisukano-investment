@@ -32,6 +32,10 @@ const shareholderSchema = new mongoose.Schema(
 			enum: ['active', 'inactive'],
 			default: 'active',
 		},
+		date: {
+			type: Date,
+			default: Date.now,
+		},
 	},
 	{ timestamps: true },
 );

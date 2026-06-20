@@ -11,12 +11,20 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import getError from '../hooks/getError.js';
 import toast from 'react-hot-toast';
-import { Plus, Download, Minus, List, ArrowDownWideNarrow } from 'lucide-react';
+import {
+	Plus,
+	Download,
+	Minus,
+	List,
+	ArrowDownWideNarrow,
+	ArrowRight,
+} from 'lucide-react';
 import formatDate from '../hooks/formatDate.js';
 import { useNavigate, useParams } from 'react-router-dom';
 import { months } from '../data.js';
 import TopupModal from '../components/modals/TopupModal.jsx';
 import ShareholderDividendModal from '../components/modals/ShareholderDividendModal.jsx';
+import NewYearModal from '../components/modals/NewYearModal.jsx';
 
 const currency = (amount) =>
 	Number(amount || 0).toLocaleString(undefined, {
@@ -25,17 +33,18 @@ const currency = (amount) =>
 	});
 
 const Shareholder = () => {
-	const { id } = useParams();
+	const { id, year: selectedYear } = useParams();
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 	const { user } = useContext(AuthContext);
 
 	const [shareholder, setShareholder] = useState(null);
-	const [year, setYear] = useState(new Date().getFullYear());
+	const [year, setYear] = useState(selectedYear || new Date().getFullYear());
 	const [loading, setLoading] = useState(false);
 	const [topupModal, setTopupModal] = useState(false);
 	const [isTopup, setIsTopup] = useState(false);
 	const [dividendModal, setDividendModal] = useState(false);
+	const [newYearModal, setNewYearModal] = useState(false);
 	const [logoBase64, setLogoBase64] = useState('');
 	const [sealBase64, setSealBase64] = useState('');
 	const [phoneBase64, setPhoneBase64] = useState('');
@@ -495,9 +504,14 @@ const Shareholder = () => {
 							₦{currency(stats.totalWithdrawals)}
 						</h3>
 					</div>
-
 					<div className="bg-white shadow rounded p-4">
-						<p className="text-gray-500 text-sm mb-4">Closing Balance</p>
+						<div
+							onClick={() => setNewYearModal(true)}
+							className="cursor-pointer w-full flex justify-between gap-2 items-end mb-4 text-blue-600"
+						>
+							<p className="text-gray-500 text-sm">Closing Balance</p>
+							<ArrowRight size={18} />
+						</div>
 						<h3 className="font-bold text-xl text-blue-700">
 							₦{currency(stats.closingBalance)}
 						</h3>
@@ -705,6 +719,16 @@ const Shareholder = () => {
 				setLoading={() => {}}
 				loading={false}
 				dividendRates={dividendRates?.data || []}
+				shareholder={shareholder}
+			/>
+			<NewYearModal
+				show={newYearModal}
+				setShow={setNewYearModal}
+				onClose={() => setNewYearModal(false)}
+				setLoading={() => {}}
+				loading={false}
+				closingBalance={stats.closingBalance}
+				year={year + 1}
 				shareholder={shareholder}
 			/>
 		</main>

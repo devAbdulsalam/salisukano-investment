@@ -9,18 +9,19 @@ import ShareDividendModal from '../components/modals/ShareDividendModal.jsx';
 import { fetchDividendRates } from '../hooks/axiosApis.js';
 import Loader from '../components/Loader';
 import getError from '../hooks/getError';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Check, Pencil } from 'lucide-react';
 import formatDate from '../hooks/formatDate.js';
 import { months } from '../data.js';
 
 const DividendRatesPage = () => {
+	const { year: selectedYear } = useParams();
 	const { user } = useContext(AuthContext);
 
 	const currentYear = new Date().getFullYear();
 	const navigate = useNavigate();
 
-	const [year, setYear] = useState(currentYear);
+	const [year, setYear] = useState(selectedYear || currentYear);
 	const [isEditModal, setIsEditModal] = useState(false);
 	const [selectedRate, setSelectedRate] = useState(null);
 	const [showModal, setShowModal] = useState(false);
@@ -166,7 +167,10 @@ const DividendRatesPage = () => {
 					</div>
 					<select
 						value={year}
-						onChange={(e) => setYear(Number(e.target.value))}
+						onChange={(e) => {
+							setYear(Number(e.target.value));
+							navigate(`/dividend-rates/${e.target.value}`);
+						}}
 						className="border rounded px-3 py-2 bg-white"
 					>
 						{Array.from(
@@ -267,6 +271,7 @@ const DividendRatesPage = () => {
 				setLoading={() => {}}
 				loading={false}
 				selectedRate={selectedRate}
+				selectedYear={year}
 				onClose={() => setSelectedRate(null)}
 			/>
 			<ShareDividendModal
