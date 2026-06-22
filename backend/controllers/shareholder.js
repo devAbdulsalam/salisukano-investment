@@ -11,7 +11,7 @@ export const createShareholder = async (req, res) => {
 	const session = await mongoose.startSession();
 
 	try {
-		const { name, phone, email, address, openingBalance, description, year } =
+		const { name, phone, email, address, openingBalance, description, date } =
 			req.body;
 
 		if (!name) {
@@ -30,7 +30,7 @@ export const createShareholder = async (req, res) => {
 
 		session.startTransaction();
 
-		const effective = getEffectivePeriod(new Date());
+		const effective = getEffectivePeriod(date || new Date());
 
 		const [shareholder] = await Shareholder.create(
 			[
@@ -64,7 +64,7 @@ export const createShareholder = async (req, res) => {
 			[
 				{
 					shareholderId: shareholder._id,
-					year,
+					year: effective.year,
 					openingBalance,
 					currentInvestment: openingBalance,
 					status: 'active',
@@ -189,6 +189,7 @@ export const getShareholder = async (req, res) => {
 		});
 	}
 };
+
 export const startNewFinancialYear = async (req, res) => {
 	const session = await mongoose.startSession();
 
@@ -199,6 +200,8 @@ export const startNewFinancialYear = async (req, res) => {
 			shareholderId,
 			description = `Opening balance for ${year}`,
 		} = req.body;
+
+		console.log(' Date(${year}-01-01)', new Date(`${year}-01-01`));
 
 		session.startTransaction();
 
@@ -230,7 +233,7 @@ export const startNewFinancialYear = async (req, res) => {
 			});
 		}
 
-		const effective = getEffectivePeriod(new Date());
+		const effective = getEffectivePeriod(`${year}-01-01` || new Date());
 
 		const [newFinancialYear] = await FinancialYear.create(
 			[
@@ -251,7 +254,7 @@ export const startNewFinancialYear = async (req, res) => {
 					type: 'opening_balance',
 					amount: Number(openingBalance),
 					description,
-					transactionDate: new Date(),
+					transactionDate: new Date(`${year}-01-01`),
 					effectiveMonth: effective.month,
 					effectiveYear: effective.year,
 				},
@@ -658,7 +661,7 @@ export const calculateMonthlyDividend = async (req, res) => {
 							$sum: {
 								$cond: [
 									{
-										$in: ['$type', ['opening', 'topup']],
+										$in: ['$type', ['opening_balance', 'topup']],
 									},
 									'$amount',
 									0,
@@ -971,6 +974,16 @@ export const shareholderMonthlyDividend = async (req, res) => {
 				throw new Error('Dividend rate not found');
 			}
 
+			// Get  active shareholder for the year
+			const financialYear = await FinancialYear.findOne({
+				shareholderId,
+				year,
+				status: 'active',
+			}).session(session);
+
+			if (!financialYear) {
+				throw new Error('Shareholder not found for this year');
+			}
 			/**
 			 * Prevent duplicate processing
 			 */
@@ -1017,7 +1030,7 @@ export const shareholderMonthlyDividend = async (req, res) => {
 							$sum: {
 								$cond: [
 									{
-										$in: ['$type', ['opening', 'topup']],
+										$in: ['$type', ['opening_balance', 'topup']],
 									},
 									'$amount',
 									0,
@@ -1087,6 +1100,8 @@ export const shareholderMonthlyDividend = async (req, res) => {
 				[
 					{
 						shareholder: shareholderId,
+
+						financialYearId: financialYear._id,
 
 						month: Number(month),
 
