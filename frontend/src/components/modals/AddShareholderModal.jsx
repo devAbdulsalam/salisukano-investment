@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { useContext, useState, useMemo } from 'react';
+import { useContext, useState } from 'react';
 import AuthContext from '../../context/authContext';
 import toast from 'react-hot-toast';
 import axios from 'axios';
@@ -12,11 +12,10 @@ const AddShareholderModal = ({ show, setShow }) => {
 	const { user } = useContext(AuthContext);
 	const queryClient = useQueryClient();
 
-	const currentYear = new Date().getFullYear();
 	// Form state
 	const [name, setName] = useState('');
 	const [phone, setPhone] = useState('');
-	const [year, setYear] = useState('');
+	const [date, setDate] = useState('');
 	const [email, setEmail] = useState('');
 	const [openingBalance, setOpeningBalance] = useState('');
 	const [address, setAddress] = useState('');
@@ -49,7 +48,7 @@ const AddShareholderModal = ({ show, setShow }) => {
 		setPhone('');
 		setOpeningBalance('');
 		setAddress('');
-		setYear('');
+		setDate('');
 		setEmail('');
 	};
 
@@ -72,8 +71,8 @@ const AddShareholderModal = ({ show, setShow }) => {
 			return toast.error('Opening Balance must be a valid positive number');
 		}
 
-		if (!year) {
-			return toast.error('Please select a year');
+		if (!date) {
+			return toast.error('Please select a date');
 		}
 		// Fire mutation
 		mutation.mutate({
@@ -82,19 +81,9 @@ const AddShareholderModal = ({ show, setShow }) => {
 			name: name.trim(),
 			phone: phone.trim(),
 			email: phone.trim(),
-			year: year,
+			date: date,
 		});
 	};
-
-	const yearOptions = useMemo(
-		() =>
-			Array.from({ length: 15 }, (_, i) => currentYear - 5 + i).map((yr) => (
-				<option key={yr} value={yr}>
-					{yr}
-				</option>
-			)),
-		[currentYear],
-	);
 
 	const isSubmitting = mutation.isPending;
 
@@ -189,15 +178,13 @@ const AddShareholderModal = ({ show, setShow }) => {
 									<label className="text-base text-black">
 										Date <span className="text-red-600">*</span>
 									</label>
-									<select
-										id="year-select"
-										value={year}
-										onChange={(e) => setYear(Number(e.target.value))}
-										className="w-full border rounded-md p-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+									<input
+										className="input w-full h-[44px] rounded-md border border-gray-300 px-4 text-base"
+										type="date"
+										value={date}
+										onChange={(e) => setDate(e.target.value)}
 										disabled={isSubmitting}
-									>
-										{yearOptions}
-									</select>
+									/>
 									<p className="text-xs mt-1 pl-1">
 										Dividend distribution date
 									</p>

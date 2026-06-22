@@ -17,7 +17,6 @@ const EditDividendRatesModal = ({
 	selectedYear,
 }) => {
 	const { user } = useContext(AuthContext);
-	console.log(selectedYear);
 	const queryClient = useQueryClient();
 
 	const currentYear = new Date().getFullYear();
@@ -38,9 +37,9 @@ const EditDividendRatesModal = ({
 
 			setMonth(selectedRate?.month || '');
 
-			setYear(selectedRate?.year || currentYear);
+			setYear(selectedRate?.year || selectedYear || currentYear);
 		}
-	}, [show, selectedRate, currentYear]);
+	}, [show, selectedRate, selectedYear, currentYear]);
 
 	const apiUrl = import.meta.env.VITE_API_URL;
 

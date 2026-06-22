@@ -519,7 +519,7 @@ const Shareholder = () => {
 				</div>
 
 				{/* Tabs */}
-				<nav className="inline-flex bg-white p-1 rounded-xl shadow-sm border border-gray-200 mb-4">
+				<nav className="inline-flex bg-white p-0.5 rounded-xl shadow-sm border border-gray-200 mb-4 gap-1">
 					<button
 						onClick={() => setActiveTab('dividends')}
 						className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
@@ -719,6 +719,7 @@ const Shareholder = () => {
 				onClose={() => setDividendModal(false)}
 				setLoading={() => {}}
 				loading={false}
+				year={year}
 				dividendRates={dividendRates?.data || []}
 				shareholder={shareholder}
 			/>

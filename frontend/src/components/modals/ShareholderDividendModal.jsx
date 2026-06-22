@@ -16,6 +16,7 @@ const ShareholderDividendModal = ({
 	setShow,
 	dividendRates,
 	shareholder,
+	year: selectedYear,
 }) => {
 	const { user } = useContext(AuthContext);
 	const queryClient = useQueryClient();
@@ -27,7 +28,7 @@ const ShareholderDividendModal = ({
 	// console.log('dividendRates', dividendRates);
 
 	// Local state for selected period
-	const [year, setYear] = useState(currentYear);
+	const [year, setYear] = useState(selectedYear || currentYear);
 	const [month, setMonth] = useState(currentMonth);
 
 	// Reset to current period when modal opens
@@ -41,10 +42,10 @@ const ShareholderDividendModal = ({
 	// Better: use useEffect to reset on show
 	useEffect(() => {
 		if (show) {
-			setYear(currentYear);
+			setYear(selectedYear || currentYear);
 			setMonth(currentMonth);
 		}
-	}, [show, currentYear, currentMonth]);
+	}, [show, currentYear, selectedYear, currentMonth]);
 
 	// Derive the selected rate from the given rates and current period
 	const selectedRate = useMemo(() => {

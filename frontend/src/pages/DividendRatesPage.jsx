@@ -516,7 +516,14 @@ const DividendRatesPage = () => {
 
 									{item.status === 'completed' ? (
 										<td className="flex text-green-400">
-											<button className="p-3 text-gray-500 text-sm">
+											<button
+												// onClick={() => handleEdit(item)}
+												onClick={() => {
+													setSelectedRate(item);
+													setShowModal(true);
+												}}
+												className="p-3 text-gray-500 text-sm"
+											>
 												<Check className="h-4 w-4 " />
 											</button>
 										</td>
