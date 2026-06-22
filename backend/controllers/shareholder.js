@@ -684,6 +684,11 @@ export const calculateMonthlyDividend = async (req, res) => {
 				},
 			]).session(session);
 
+			if (!investments.length) {
+				throw new Error('No investments found');
+			}
+			console.log(investments);
+
 			/**
 			 * Previous dividends
 			 */
