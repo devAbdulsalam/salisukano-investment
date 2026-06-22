@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { useContext, useState } from 'react';
+import { useContext, useState, useMemo } from 'react';
 import AuthContext from '../../context/authContext';
 import toast from 'react-hot-toast';
 import axios from 'axios';
@@ -12,10 +12,12 @@ const AddShareholderModal = ({ show, setShow }) => {
 	const { user } = useContext(AuthContext);
 	const queryClient = useQueryClient();
 
+	const currentYear = new Date().getFullYear();
 	// Form state
 	const [name, setName] = useState('');
 	const [phone, setPhone] = useState('');
-	const [date, setDate] = useState('');
+	const [year, setYear] = useState('');
+	const [email, setEmail] = useState('');
 	const [openingBalance, setOpeningBalance] = useState('');
 	const [address, setAddress] = useState('');
 
@@ -47,7 +49,8 @@ const AddShareholderModal = ({ show, setShow }) => {
 		setPhone('');
 		setOpeningBalance('');
 		setAddress('');
-		setDate('');
+		setYear('');
+		setEmail('');
 	};
 
 	const handleSubmit = (e) => {
@@ -69,8 +72,8 @@ const AddShareholderModal = ({ show, setShow }) => {
 			return toast.error('Opening Balance must be a valid positive number');
 		}
 
-		if (!date) {
-			return toast.error('Please select a date');
+		if (!year) {
+			return toast.error('Please select a year');
 		}
 		// Fire mutation
 		mutation.mutate({
@@ -78,9 +81,20 @@ const AddShareholderModal = ({ show, setShow }) => {
 			address: address.trim(),
 			name: name.trim(),
 			phone: phone.trim(),
-			date: date,
+			email: phone.trim(),
+			year: year,
 		});
 	};
+
+	const yearOptions = useMemo(
+		() =>
+			Array.from({ length: 15 }, (_, i) => currentYear - 5 + i).map((yr) => (
+				<option key={yr} value={yr}>
+					{yr}
+				</option>
+			)),
+		[currentYear],
+	);
 
 	const isSubmitting = mutation.isPending;
 
@@ -134,13 +148,38 @@ const AddShareholderModal = ({ show, setShow }) => {
 							<div className="md:flex gap-2">
 								<div className="mb-2 flex-1">
 									<label className="text-base text-black">
+										Email <span className="text-red-600">*</span>
+									</label>
+									<input
+										className="input w-full h-[44px] rounded-md border border-gray-300 px-4 text-base"
+										type="email"
+										value={email}
+										onChange={(e) => setEmail(e.target.value)}
+										disabled={isSubmitting}
+									/>
+								</div>
+								<div className="mb-2 flex-1">
+									<label className="text-base text-black">
+										Address <span className="text-red-600">*</span>
+									</label>
+									<input
+										className="input w-full h-[44px] rounded-md border border-gray-300 px-4 text-base"
+										type="address"
+										value={address}
+										onChange={(e) => setAddress(e.target.value)}
+										disabled={isSubmitting}
+									/>
+								</div>
+							</div>
+							<div className="md:flex gap-2">
+								<div className="mb-2 flex-1">
+									<label className="text-base text-black">
 										Opening Balance <span className="text-red-600">*</span>
 									</label>
 									<input
 										className="input w-full h-[44px] rounded-md border border-gray-300 px-4 text-base"
 										type="number"
 										min="0"
-										step="0.01"
 										value={openingBalance}
 										onChange={(e) => setOpeningBalance(e.target.value)}
 										disabled={isSubmitting}
@@ -150,26 +189,19 @@ const AddShareholderModal = ({ show, setShow }) => {
 									<label className="text-base text-black">
 										Date <span className="text-red-600">*</span>
 									</label>
-									<input
-										className="input w-full h-[44px] rounded-md border border-gray-300 px-4 text-base"
-										type="date"
-										value={date}
-										onChange={(e) => setDate(e.target.value)}
+									<select
+										id="year-select"
+										value={year}
+										onChange={(e) => setYear(Number(e.target.value))}
+										className="w-full border rounded-md p-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
 										disabled={isSubmitting}
-									/>
+									>
+										{yearOptions}
+									</select>
+									<p className="text-xs mt-1 pl-1">
+										Dividend distribution date
+									</p>
 								</div>
-							</div>
-							<div className="mb-2">
-								<label className="text-base text-black">
-									Address <span className="text-red-600">*</span>
-								</label>
-								<textarea
-									className="input w-full rounded-md border border-gray-300 px-4 py-2 text-base"
-									rows={3}
-									value={address}
-									onChange={(e) => setAddress(e.target.value)}
-									disabled={isSubmitting}
-								/>
 							</div>
 						</div>
 

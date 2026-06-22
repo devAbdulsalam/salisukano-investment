@@ -3,86 +3,120 @@ import Shareholder from '../models/Shareholder.js';
 import ShareholderTransaction from '../models/ShareholderTransaction.js';
 import DividendLedger from '../models/DividendLedger.js';
 import DividendRate from '../models/DividendRate.js';
+import FinancialYear from '../models/FinancialYear.js';
 
 import { getEffectivePeriod } from '../utils/dividendHelpers.js';
 
 export const createShareholder = async (req, res) => {
+	const session = await mongoose.startSession();
+
 	try {
-		const { name, phone, email, address, openingBalance, description, date } =
+		const { name, phone, email, address, openingBalance, description, year } =
 			req.body;
 
-		const shareholder = await Shareholder.create({
-			name,
-			phone,
-			email,
-			address,
-			openingBalance,
-			currentInvestment: openingBalance,
-			date,
-		});
+		if (!name) {
+			return res.status(400).json({
+				success: false,
+				message: 'Shareholder name is required',
+			});
+		}
 
-		const effective = getEffectivePeriod(date);
+		if (openingBalance === undefined || openingBalance < 0) {
+			return res.status(400).json({
+				success: false,
+				message: 'Valid opening balance is required',
+			});
+		}
 
-		await ShareholderTransaction.create({
-			shareholder: shareholder._id,
-			type: 'opening',
-			amount: openingBalance,
-			description: description || 'Opening Balance',
-			transactionDate: date,
-			effectiveMonth: effective.month,
-			effectiveYear: effective.year,
-		});
+		session.startTransaction();
+
+		const effective = getEffectivePeriod(new Date());
+
+		const [shareholder] = await Shareholder.create(
+			[
+				{
+					name,
+					phone,
+					email,
+					address,
+					joinDate: new Date(),
+				},
+			],
+			{ session },
+		);
+
+		await ShareholderTransaction.create(
+			[
+				{
+					shareholder: shareholder._id,
+					type: 'opening_balance',
+					amount: openingBalance,
+					description: description || 'Opening Balance',
+					transactionDate: new Date(),
+					effectiveMonth: effective.month,
+					effectiveYear: effective.year,
+				},
+			],
+			{ session },
+		);
+
+		await FinancialYear.create(
+			[
+				{
+					shareholderId: shareholder._id,
+					year,
+					openingBalance,
+					currentInvestment: openingBalance,
+					status: 'active',
+				},
+			],
+			{ session },
+		);
+
+		await session.commitTransaction();
 
 		res.status(201).json({
 			success: true,
+			message: 'Shareholder created successfully',
 			data: shareholder,
 		});
 	} catch (error) {
+		await session.abortTransaction();
+
 		console.error(error);
+
 		res.status(500).json({
 			success: false,
 			message: error.message,
 		});
+	} finally {
+		session.endSession();
 	}
 };
 
 export const getShareholders = async (req, res) => {
 	try {
-		const {
-			page = 1,
-			limit = 20,
-			search = '',
-			sortBy = 'createdAt',
-			order = 'desc',
-		} = req.query;
-
-		const query = {};
-
-		if (search) {
-			query.$or = [
-				{ name: { $regex: search, $options: 'i' } },
-				{ email: { $regex: search, $options: 'i' } },
-				{ phone: { $regex: search, $options: 'i' } },
-			];
-		}
-
-		const skip = (Number(page) - 1) * Number(limit);
-
-		const [shareholders, total] = await Promise.all([
-			Shareholder.find(query)
-				.sort({ [sortBy]: order === 'asc' ? -1 : 1 })
-				.skip(skip)
-				.limit(Number(limit)),
-			Shareholder.countDocuments(query),
-		]);
-		// res.status(200).json({
-		// 	success: true,
-		// 	total,
-		// 	page: Number(page),
-		// 	totalPages: Math.ceil(total / limit),
-		// 	data: shareholders,
-		// });
-		res.status(200).json(shareholders);
+		const shareholders = await FinancialYear.find().populate('shareholderId');
+		const cleanShareholders = shareholders.map((shareholder) => {
+			return {
+				_id: shareholder.shareholderId._id,
+				name: shareholder.shareholderId.name,
+				phone: shareholder.shareholderId.phone,
+				email: shareholder.shareholderId.email,
+				address: shareholder.shareholderId.address,
+				joinDate: shareholder.shareholderId.joinDate,
+				shareholderId: shareholder.shareholderId._id,
+				openingBalance: shareholder.openingBalance,
+				currentInvestment: shareholder.currentInvestment,
+				year: shareholder.year,
+				totalWithdrawal: shareholder.totalWithdrawal,
+				totalDividendPaid: shareholder.totalDividend,
+				totalDividendEarned: shareholder.totalDividend,
+				closingBalance: shareholder.closingBalance,
+				status: shareholder.status,
+			};
+		});
+		res.status(200).json(cleanShareholders);
 	} catch (error) {
 		res.status(500).json({
 			success: false,
@@ -139,9 +173,14 @@ export const getShareholder = async (req, res) => {
 			});
 		}
 
+		const financialYear = await FinancialYear.findOne({
+			shareholderId: shareholderId,
+			status: 'active',
+		});
+
 		res.status(200).json({
 			success: true,
-			data: shareholder,
+			data: { shareholder, financials: financialYear },
 		});
 	} catch (error) {
 		res.status(500).json({
@@ -150,7 +189,93 @@ export const getShareholder = async (req, res) => {
 		});
 	}
 };
+export const startNewFinancialYear = async (req, res) => {
+	const session = await mongoose.startSession();
 
+	try {
+		const {
+			openingBalance,
+			year,
+			shareholderId,
+			description = `Opening balance for ${year}`,
+		} = req.body;
+
+		session.startTransaction();
+
+		// Find shareholder
+		const shareholder =
+			await Shareholder.findById(shareholderId).session(session);
+
+		if (!shareholder) {
+			await session.abortTransaction();
+
+			return res.status(404).json({
+				success: false,
+				message: 'Shareholder not found',
+			});
+		}
+
+		// Check if financial year already exists
+		const existingYear = await FinancialYear.findOne({
+			shareholderId,
+			year,
+		}).session(session);
+
+		if (existingYear) {
+			await session.abortTransaction();
+
+			return res.status(400).json({
+				success: false,
+				message: `Financial year ${year} already exists for this shareholder`,
+			});
+		}
+
+		const effective = getEffectivePeriod(new Date());
+
+		const [newFinancialYear] = await FinancialYear.create(
+			[
+				{
+					shareholderId,
+					year,
+					openingBalance: Number(openingBalance),
+					currentInvestment: Number(openingBalance),
+				},
+			],
+			{ session },
+		);
+
+		await ShareholderTransaction.create(
+			[
+				{
+					shareholder: shareholderId,
+					type: 'opening_balance',
+					amount: Number(openingBalance),
+					description,
+					transactionDate: new Date(),
+					effectiveMonth: effective.month,
+					effectiveYear: effective.year,
+				},
+			],
+			{ session },
+		);
+
+		await session.commitTransaction();
+
+		return res.status(201).json({
+			success: true,
+			data: newFinancialYear,
+		});
+	} catch (error) {
+		await session.abortTransaction();
+
+		return res.status(500).json({
+			success: false,
+			message: error.message,
+		});
+	} finally {
+		await session.endSession();
+	}
+};
 export const addInvestment = async (req, res) => {
 	const session = await mongoose.startSession();
 
@@ -677,6 +802,136 @@ export const calculateMonthlyDividend = async (req, res) => {
 		});
 	} finally {
 		await session.endSession();
+	}
+};
+
+export const DividendCalculation = async (req, res) => {
+	const session = await mongoose.startSession();
+
+	try {
+		const { month, year } = req.body;
+
+		if (!month || !year) {
+			return res.status(400).json({
+				success: false,
+				message: 'Month and year are required',
+			});
+		}
+
+		session.startTransaction();
+
+		// Find dividend rate
+		const dividendRate = await DividendRate.findOne({
+			month,
+			year,
+		}).session(session);
+
+		if (!dividendRate) {
+			throw new Error(`Dividend rate not found for ${month}/${year}`);
+		}
+
+		if (dividendRate.status === 'completed') {
+			throw new Error(`Dividend already processed for ${month}/${year}`);
+		}
+
+		// Mark processing
+		dividendRate.status = 'processing';
+		await dividendRate.save({ session });
+
+		// Get all active shareholders for the year
+		const financialYears = await FinancialYear.find({
+			year,
+			status: 'active',
+		}).session(session);
+
+		let totalDividend = 0;
+		let processedCount = 0;
+
+		for (const financialYear of financialYears) {
+			// Prevent duplicates
+			const existingLedger = await DividendLedger.findOne({
+				shareholderYearId: shareholderYear._id,
+				month,
+				year,
+			}).session(session);
+
+			if (existingLedger) {
+				continue;
+			}
+
+			const capital =
+				financialYear.currentInvestment ||
+				financialYear.closingBalance ||
+				financialYear.openingBalance;
+
+			const dividendAmount = (capital * dividendRate.percentage) / 100;
+
+			await DividendLedger.create(
+				[
+					{
+						shareholderId: financialYear.shareholderId,
+
+						financialYearId: financialYear._id,
+
+						year,
+						month,
+
+						rate: dividendRate.percentage,
+
+						eligibleCapital: capital,
+
+						dividendAmount,
+
+						paidAmount: 0,
+
+						balance: dividendAmount,
+
+						status: 'pending',
+					},
+				],
+				{ session },
+			);
+
+			// Update yearly totals
+			financialYear.totalDividendEarned += dividendAmount;
+
+			await financialYear.save({
+				session,
+			});
+
+			totalDividend += dividendAmount;
+			processedCount++;
+		}
+
+		dividendRate.status = 'completed';
+		dividendRate.processedAt = new Date();
+
+		await dividendRate.save({
+			session,
+		});
+
+		await session.commitTransaction();
+
+		return res.status(200).json({
+			success: true,
+			message: 'Dividend calculated successfully',
+			data: {
+				month,
+				year,
+				rate: dividendRate.percentage,
+				shareholdersProcessed: processedCount,
+				totalDividend,
+			},
+		});
+	} catch (error) {
+		await session.abortTransaction();
+
+		return res.status(500).json({
+			success: false,
+			message: error.message,
+		});
+	} finally {
+		session.endSession();
 	}
 };
 

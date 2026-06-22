@@ -7,7 +7,11 @@ const dividendLedgerSchema = new mongoose.Schema(
 			ref: 'Shareholder',
 			required: true,
 		},
-
+		financialYearId: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'FinancialYear',
+			required: true,
+		},
 		year: Number,
 
 		month: Number,

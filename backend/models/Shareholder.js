@@ -11,31 +11,18 @@ const shareholderSchema = new mongoose.Schema(
 		email: String,
 		address: String,
 
-		openingBalance: {
-			type: Number,
-			required: true,
-			default: 0,
-		},
-
-		currentInvestment: {
-			type: Number,
-			default: 0,
-		},
-
-		totalDividendEarned: {
-			type: Number,
-			default: 0,
-		},
-
 		status: {
 			type: String,
-			enum: ['active', 'inactive'],
+			enum: ['active', 'inactive', 'exited'],
 			default: 'active',
 		},
-		date: {
+
+		joinDate: {
 			type: Date,
 			default: Date.now,
 		},
+
+		exitDate: Date,
 	},
 	{ timestamps: true },
 );

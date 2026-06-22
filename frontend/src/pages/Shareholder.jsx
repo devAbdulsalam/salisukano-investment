@@ -24,7 +24,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { months } from '../data.js';
 import TopupModal from '../components/modals/TopupModal.jsx';
 import ShareholderDividendModal from '../components/modals/ShareholderDividendModal.jsx';
-import NewYearModal from '../components/modals/NewYearModal.jsx';
+import NewYearFinModal from '../components/modals/NewYearFinModal.jsx';
 
 const currency = (amount) =>
 	Number(amount || 0).toLocaleString(undefined, {
@@ -462,7 +462,7 @@ const Shareholder = () => {
 					</div>
 				</div>
 
-				<div className="grid md:grid-cols-4 gap-4 mb-6">
+				<div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
 					<div className="bg-white shadow rounded p-4">
 						<div
 							onClick={() => setDividendModal(true)}
@@ -558,6 +558,7 @@ const Shareholder = () => {
 									<div className="flex gap-2  items-center">
 										{/* Year selector */}
 										<select
+											defaultValue={year}
 											className="border p-2 rounded text-sm"
 											value={year}
 											onChange={(e) => setYear(Number(e.target.value))}
@@ -721,14 +722,14 @@ const Shareholder = () => {
 				dividendRates={dividendRates?.data || []}
 				shareholder={shareholder}
 			/>
-			<NewYearModal
+			<NewYearFinModal
 				show={newYearModal}
 				setShow={setNewYearModal}
 				onClose={() => setNewYearModal(false)}
 				setLoading={() => {}}
 				loading={false}
 				closingBalance={stats.closingBalance}
-				year={year + 1}
+				year={year}
 				shareholder={shareholder}
 			/>
 		</main>

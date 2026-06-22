@@ -21,10 +21,10 @@ import {
 	Download,
 	Plus,
 } from 'lucide-react';
-import formatDate from '../hooks/formatDate.js';
 import DeleteConfirmationModal from '../components/modals/DeleteConfirmationModal.jsx';
 import moment from 'moment';
 import { useNavigate } from 'react-router-dom';
+// import formatDate from '../hooks/formatDate.js';
 
 const Shareholders = () => {
 	const queryClient = useQueryClient();
@@ -39,7 +39,7 @@ const Shareholders = () => {
 	const [isAddModal, setIsAddModal] = useState(false);
 	const [isEditModal, setIsEditModal] = useState(false);
 	const [selectedShareholder, setSelectedShareholder] = useState(null);
-	const [selectedShareholders, setSelectedShareholders] = useState([]);
+	// const [selectedShareholders, setSelectedShareholders] = useState([]);
 	const [deleteLoading, setDeleteLoading] = useState(false);
 	const [deleteModal, setDeleteModal] = useState(false);
 	const [loading, setLoading] = useState(false);
@@ -60,9 +60,7 @@ const Shareholders = () => {
 
 	const years = useMemo(() => {
 		if (!data?.length) return [];
-		return [...new Set(data.map((d) => new Date(d.date).getFullYear()))].sort(
-			(a, b) => b - a,
-		);
+		return [...new Set(data.map((d) => d.year))].sort((a, b) => b - a);
 	}, [data]);
 
 	// console.log(years);
@@ -94,14 +92,6 @@ const Shareholders = () => {
 		},
 	});
 
-	// Compute totals
-	const total = useMemo(() => {
-		if (!data?.length) {
-			return 0;
-		}
-		return data?.reduce((acc, exp) => acc + exp.currentInvestment, 0) || 0;
-	}, [data]);
-
 	// Filtering
 	const filteredShareholders = useMemo(() => {
 		if (!data?.length) return [];
@@ -112,16 +102,16 @@ const Shareholders = () => {
 			const searchTermLower = searchTerm.toLowerCase();
 
 			const matchesSearch =
-				shareholder.description?.toLowerCase().includes(searchTermLower) ||
-				shareholder.serialNumber?.toLowerCase().includes(searchTermLower) ||
+				shareholder?.name?.toLowerCase().includes(searchTermLower) ||
+				shareholder?.address?.toLowerCase().includes(searchTermLower) ||
+				shareholder?.email?.toLowerCase().includes(searchTermLower) ||
 				shareholder.currentInvestment?.toString().includes(searchTerm) ||
 				moment(shareholder.createdAt).format('DD-MM-YYYY').includes(searchTerm);
 
 			const matchesDate =
 				!startDate || new Date(shareholder.createdAt) >= new Date(startDate);
 
-			const yearMatches =
-				!year || new Date(shareholder.date).getFullYear() === year;
+			const yearMatches = !year || shareholder?.year === year;
 
 			return matchesSearch && matchesDate && yearMatches;
 		});
@@ -159,37 +149,49 @@ const Shareholders = () => {
 		});
 	}, [filteredShareholders, sortConfig]);
 
+	// Compute totals
+	const total = useMemo(() => {
+		if (!sortedShareholders?.length) {
+			return 0;
+		}
+		return (
+			sortedShareholders?.reduce(
+				(acc, exp) => acc + exp.currentInvestment,
+				0,
+			) || 0
+		);
+	}, [sortedShareholders]);
 	// Handlers
 	const handleEdit = (Shareholder) => {
 		setSelectedShareholder(Shareholder);
 		setIsEditModal(true);
 	};
 
-	const toggleSelect = (id) => {
-		setSelectedShareholders((prev) =>
-			prev.includes(id)
-				? prev.filter((selectedId) => selectedId !== id)
-				: [...prev, id],
-		);
-	};
+	// const toggleSelect = (id) => {
+	// 	setSelectedShareholders((prev) =>
+	// 		prev.includes(id)
+	// 			? prev.filter((selectedId) => selectedId !== id)
+	// 			: [...prev, id],
+	// 	);
+	// };
 
-	const toggleSelectAll = () => {
-		if (!filteredShareholders?.length) return;
+	// const toggleSelectAll = () => {
+	// 	if (!filteredShareholders?.length) return;
 
-		const allIds = filteredShareholders.map((Shareholder) => Shareholder._id);
-		const allSelected = allIds.every((id) => selectedShareholders.includes(id));
+	// 	const allIds = filteredShareholders.map((Shareholder) => Shareholder._id);
+	// 	const allSelected = allIds.every((id) => selectedShareholders.includes(id));
 
-		setSelectedShareholders(allSelected ? [] : allIds);
-	};
+	// 	setSelectedShareholders(allSelected ? [] : allIds);
+	// };
 
-	// Compute header checkbox state
-	const isAllSelected =
-		filteredShareholders?.length > 0 &&
-		filteredShareholders.every((Shareholder) =>
-			selectedShareholders.includes(Shareholder._id),
-		);
+	// // Compute header checkbox state
+	// const isAllSelected =
+	// 	filteredShareholders?.length > 0 &&
+	// 	filteredShareholders.every((Shareholder) =>
+	// 		selectedShareholders.includes(Shareholder._id),
+	// 	);
 
-	const isSomeSelected = selectedShareholders.length > 0 && !isAllSelected;
+	// const isSomeSelected = selectedShareholders.length > 0 && !isAllSelected;
 	// Load logo as base64
 	useEffect(() => {
 		const img = new Image();
@@ -231,11 +233,7 @@ const Shareholders = () => {
 		};
 	}, []);
 	const handleDownload = () => {
-		const selectedShareholdersData = selectedShareholders.map((id) => {
-			const Shareholder = data.find((exp) => exp._id === id);
-			return Shareholder;
-		});
-		console.log('Download Shareholders', selectedShareholdersData);
+		console.log('Download Shareholders', sortedShareholders);
 		setLoading(true);
 
 		try {
@@ -347,8 +345,8 @@ const Shareholders = () => {
 			// CALCULATIONS
 			// ===============================
 
-			const totalShareholders = selectedShareholdersData.reduce(
-				(total, Shareholder) => total + Shareholder?.currentInvestment,
+			const totalInvestment = sortedShareholders.reduce(
+				(total, investment) => total + investment?.currentInvestment,
 				0,
 			);
 
@@ -358,21 +356,22 @@ const Shareholders = () => {
 			const tableStartY = 50;
 
 			// Prepare filled rows
-			const filledRows = selectedShareholdersData.map((item, index) => [
+			const filledRows = sortedShareholders.map((item, index) => [
 				index + 1,
-				item.description,
+				item.name,
+				item.phone,
 				item?.currentInvestment?.toLocaleString() || '',
+				item?.total?.toLocaleString() || '',
 				item.date ? new Date(item.date).toISOString().split('T')[0] : '',
-				'',
 			]);
 			// Ensure minimum 10 rows
-			while (filledRows.length < 10) {
-				filledRows.push(['', '', '', '']);
-			}
+			// while (filledRows.length < 10) {
+			// 	filledRows.push(['', '', '', '']);
+			// }
 			autoTable(doc, {
 				startY: tableStartY,
 				head: [
-					['S/N', 'Description', 'Current Investment (NG)', 'Date', 'Remarks'],
+					['S/N', 'Name', 'Phone', 'Investment (NG)', 'Total (NG)', 'Date'],
 				],
 				body: filledRows,
 				theme: 'grid',
@@ -391,10 +390,11 @@ const Shareholders = () => {
 				},
 				columnStyles: {
 					0: { cellWidth: 12, halign: 'center' },
-					1: { cellWidth: 32, halign: 'left' },
+					1: { cellWidth: 'auto', halign: 'left' },
 					2: { cellWidth: 26, halign: 'left' },
-					3: { cellWidth: 26, halign: 'left' },
+					3: { cellWidth: 32, halign: 'left' },
 					4: { cellWidth: 'auto' },
+					5: { cellWidth: 'auto' },
 				},
 				didDrawPage: function (data) {
 					// Draw background and header on subsequent pages
@@ -417,9 +417,9 @@ const Shareholders = () => {
 
 			// Row 1
 			doc.setFont('helvetica', 'bold');
-			doc.text('Total Shareholders:', 15, currentY);
+			doc.text('Total Investment:', 15, currentY);
 			doc.setFont('helvetica', 'normal');
-			doc.text(`NGN ${totalShareholders.toLocaleString()}`, 45, currentY);
+			doc.text(`NGN ${totalInvestment.toLocaleString()}`, 50, currentY);
 
 			currentY += gap;
 
@@ -499,9 +499,11 @@ const Shareholders = () => {
 						className="p-5 bg-white flex flex-col rounded-xl gap-2 border border-gray-200 hover:shadow-md"
 					>
 						<h2 className="text-gray-500 text-sm font-medium mb-4">
-							Shareholders ({data?.length || 0})
+							{year} Financial Year
 						</h2>
-						<span className="text-xl font-bold">{year}</span>
+						<span className="text-lg md:text-xl font-bold">
+							{sortedShareholders?.length || 0} Shareholders
+						</span>
 					</div>
 					<div className="p-5 bg-white flex flex-col rounded-xl gap-2 border border-gray-200 hover:shadow-md">
 						<h2 className="text-gray-500 text-sm font-medium mb-4">
@@ -547,42 +549,52 @@ const Shareholders = () => {
 								className="w-full px-4 py-2 rounded-md border border-gray-200  text-sm"
 							/>
 						</div>
-						<div className="">
-							<label className="text-sm text-gray-700 mb-1 block invisible">
-								Year
-							</label>
-							<select
-								className="border p-2 rounded text-sm"
-								value={year}
-								onChange={(e) => setYear(Number(e.target.value))}
-							>
-								<option value={year} disabled>
-									{year}
-								</option>
-								{years.map((yr) => (
-									<option key={yr} value={yr}>
-										{yr} Financial Year
-									</option>
-								))}
-							</select>
-						</div>
-						<div className="">
-							<label className="text-sm text-gray-700 mb-1 block invisible">
-								Date
-							</label>
-							<div className="flex justify-between items-center gap-2 text-sm">
-								<button
-									onClick={() => navigate(`/dividend-rates/${year}`)}
-									className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors whitespace-nowrap"
+						<div className="flex jstify-between items-center gap-2">
+							<div className="">
+								<label className="text-sm text-gray-700 mb-1 block invisible">
+									Year
+								</label>
+								<select
+									className="border p-2 rounded text-sm"
+									value={year}
+									onChange={(e) => setYear(Number(e.target.value))}
 								>
-									Dividend Rate (%)
-								</button>
-								{/* <button
+									<option value={year} disabled>
+										{year}
+									</option>
+									{years.map((yr) => (
+										<option key={yr} value={yr}>
+											{yr}
+										</option>
+									))}
+								</select>
+							</div>
+							<div className="">
+								<label className="text-sm text-gray-700 mb-1 block invisible">
+									Date
+								</label>
+								<div className="flex justify-between items-center gap-2 text-sm">
+									<button
+										onClick={() => navigate(`/dividend-rates/${year}`)}
+										className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors whitespace-nowrap"
+									>
+										Dividend Rate (%)
+									</button>
+									<button
+										disabled={loading}
+										onClick={handleDownload}
+										className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center gap-2 whitespace-nowrap"
+									>
+										<Download size={16} />
+										Download
+									</button>
+									{/* <button
 									onClick={() => navigate('/dividends')}
 									className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
 								>
 									Payments
 								</button> */}
+								</div>
 							</div>
 						</div>
 					</div>
@@ -618,7 +630,7 @@ const Shareholders = () => {
 										onClick={() => requestSort('currentInvestment')}
 									>
 										<div className="flex items-center gap-1 whitespace-nowrap">
-											Current Investment
+											Investment
 											<ArrowUpDown size={14} />
 										</div>
 									</th>
@@ -629,15 +641,6 @@ const Shareholders = () => {
 									>
 										<div className="flex items-center gap-1">
 											Total
-											<ArrowUpDown size={14} />
-										</div>
-									</th>
-									<th
-										className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none"
-										onClick={() => requestSort('createdAt')}
-									>
-										<div className="flex items-center gap-1">
-											Date
 											<ArrowUpDown size={14} />
 										</div>
 									</th>
@@ -664,23 +667,20 @@ const Shareholders = () => {
 											</td>
 											<td
 												onClick={() =>
-													navigate(`/shareholders/${shareholder._id}/${year}`)
+													navigate(`/shareholders/${shareholder?._id}/${year}`)
 												}
 												className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
 											>
-												{shareholder.name?.toLocaleString()}
+												{shareholder?.name}
 											</td>
 											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-												{shareholder.phone}
+												{shareholder?.phone}
 											</td>
 											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
 												{shareholder.currentInvestment?.toLocaleString()}
 											</td>
 											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
 												{shareholder.total?.toLocaleString()}
-											</td>
-											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-												{formatDate(shareholder.date)}
 											</td>
 											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
 												<div className="flex items-center gap-3">
@@ -733,7 +733,7 @@ const Shareholders = () => {
 				setShow={setDeleteModal}
 				onConfirm={() => deleteMutation.mutate(selectedShareholder._id)}
 				isDeleting={deleteLoading}
-				itemName={selectedShareholder?.description || 'Shareholder'}
+				itemName={selectedShareholder?.name || 'Shareholder'}
 			/>
 
 			{/* Global loader for delete operation */}

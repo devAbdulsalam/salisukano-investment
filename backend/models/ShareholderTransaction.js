@@ -10,7 +10,7 @@ const shareholderTransactionSchema = new mongoose.Schema(
 
 		type: {
 			type: String,
-			enum: ['opening', 'topup', 'withdrawal'],
+			enum: ['opening_balance', 'deposit', 'withdrawal', 'capital_adjustment'],
 			required: true,
 		},
 

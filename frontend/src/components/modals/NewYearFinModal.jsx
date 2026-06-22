@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { useContext, useState, useMemo, useCallback } from 'react';
+import { useContext, useState, useMemo, useCallback, useEffect } from 'react';
 import AuthContext from '../../context/authContext.jsx';
 import toast from 'react-hot-toast';
 import axios from 'axios';
@@ -8,9 +8,8 @@ import { TriangleAlert } from 'lucide-react';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import Modal from './Modal.jsx';
 import { HiXMark } from 'react-icons/hi2';
-import { useNavigate } from 'react-router-dom';
 
-const NewYearModal = ({
+const NewYearFinModal = ({
 	show,
 	setShow,
 	closingBalance,
@@ -19,29 +18,31 @@ const NewYearModal = ({
 }) => {
 	const { user } = useContext(AuthContext);
 	const queryClient = useQueryClient();
-	const navigate = useNavigate();
 
 	const currentYear = new Date().getFullYear();
-	const [year, setYear] = useState(selectedYear || currentYear);
+	const [year, setYear] = useState(() => Number(selectedYear + 1));
+	const [openingBalance, setOpeningBalance] = useState(closingBalance);
+
+	useEffect(() => {
+		if (show) {
+			setYear(Number(selectedYear) + 1);
+		}
+	}, [selectedYear, show]);
 
 	const apiUrl = import.meta.env.VITE_API_URL;
 
 	const mutation = useMutation({
 		mutationFn: async (payload) => {
-			return axios.post(
-				`${apiUrl}/shareholders/new-financial-year/${shareholder._id}`,
-				payload,
-				{
-					headers: {
-						Authorization: `Bearer ${user?.token}`,
-					},
+			return axios.post(`${apiUrl}/shareholders/new-financial-year`, payload, {
+				headers: {
+					Authorization: `Bearer ${user?.token}`,
 				},
-			);
+			});
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['shareholders'] });
 			queryClient.invalidateQueries({
-				queryKey: ['shareholders', shareholder._id],
+				queryKey: ['shareholders', shareholder?._id],
 			});
 			queryClient.invalidateQueries({ queryKey: ['dividend-rates'] });
 			queryClient.invalidateQueries({ queryKey: ['dividends'] });
@@ -57,17 +58,18 @@ const NewYearModal = ({
 		(e) => {
 			e.preventDefault();
 
-			if (!closingBalance || isNaN(closingBalance)) {
-				return toast.error('Valid closing balance is required');
+			if (!openingBalance || isNaN(openingBalance)) {
+				return toast.error('Valid opening balance is required');
 			}
 
+			// 👇 backend expects "openingBalance" and "year"
 			mutation.mutate({
 				year: Number(year),
 				shareholderId: shareholder._id,
-				closingBalance: Number(closingBalance),
+				openingBalance: Number(openingBalance), // carry forward as opening balance
 			});
 		},
-		[year, closingBalance, mutation, shareholder?._id],
+		[year, closingBalance, mutation, shareholder],
 	);
 
 	const isSubmitting = mutation.isPending;
@@ -118,6 +120,19 @@ const NewYearModal = ({
 							>
 								{yearOptions}
 							</select>
+						</div>
+						<div className="my-2 flex-1">
+							<label className="block text-sm font-medium text-gray-700 mb-1">
+								Opening Balance <span className="text-red-600">*</span>
+							</label>
+							<input
+								className="input w-full h-[44px] rounded-md border border-gray-300 px-4 text-base"
+								type="number"
+								min="0"
+								value={openingBalance}
+								onChange={(e) => setOpeningBalance(e.target.value)}
+								disabled={isSubmitting}
+							/>
 						</div>
 
 						<div className="mt-4">
@@ -193,15 +208,4 @@ const NewYearModal = ({
 	);
 };
 
-// NewYearModal.propTypes = {
-// 	show: PropTypes.bool.isRequired,
-// 	setShow: PropTypes.func.isRequired,
-// 	closingBalance: PropTypes.number,
-// 	year: PropTypes.number,
-// 	shareholder: PropTypes.shape({
-// 		_id: PropTypes.string.isRequired,
-// 		name: PropTypes.string,
-// 	}).isRequired,
-// };
-
-export default NewYearModal;
+export default NewYearFinModal;
