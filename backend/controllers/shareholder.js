@@ -97,15 +97,17 @@ export const createShareholder = async (req, res) => {
 export const getShareholders = async (req, res) => {
 	try {
 		const shareholders = await FinancialYear.find().populate('shareholderId');
+		// console.log(shareholders);
 		const cleanShareholders = shareholders.map((shareholder) => {
 			return {
-				_id: shareholder.shareholderId._id,
-				name: shareholder.shareholderId.name,
-				phone: shareholder.shareholderId.phone,
-				email: shareholder.shareholderId.email,
-				address: shareholder.shareholderId.address,
-				joinDate: shareholder.shareholderId.joinDate,
-				shareholderId: shareholder.shareholderId._id,
+				_id: shareholder?.shareholderId?._id,
+				name: shareholder?.shareholderId?.name,
+				phone: shareholder?.shareholderId?.phone,
+				email: shareholder?.shareholderId?.email,
+				address: shareholder?.shareholderId?.address,
+				joinDate: shareholder?.shareholderId?.joinDate,
+				shareholderId: shareholder?.shareholderId?._id,
+				financialYearId: shareholder._id,
 				openingBalance: shareholder.openingBalance,
 				currentInvestment: shareholder.currentInvestment,
 				year: shareholder.year,
@@ -118,6 +120,7 @@ export const getShareholders = async (req, res) => {
 		});
 		res.status(200).json(cleanShareholders);
 	} catch (error) {
+		console.error(error);
 		res.status(500).json({
 			success: false,
 			message: error.message,
@@ -1231,39 +1234,43 @@ export const deleteShareholder = async (req, res) => {
 		const { shareholderId } = req.params;
 
 		// 1. Validate ObjectId format
-		if (!mongoose.Types.ObjectId.isValid(shareholderId)) {
-			return res.status(400).json({
-				success: false,
-				message: 'Invalid shareholder ID format',
-			});
-		}
-
-		// 2. Authorization (example – adjust to your auth logic)
-		// if (!req.user || !req.user.canDelete('shareholder')) {
-		//   return res.status(403).json({ success: false, message: 'Forbidden' });
+		// if (!mongoose.Types.ObjectId.isValid(shareholderId)) {
+		// 	return res.status(400).json({
+		// 		success: false,
+		// 		message: 'Invalid shareholder ID format',
+		// 	});
 		// }
 
-		// 3. Find and delete the shareholder atomically
-		const deletedShareholder = await Shareholder.findByIdAndDelete(
-			shareholderId,
-			{ session },
-		);
+		// // 2. Authorization (example – adjust to your auth logic)
+		// // if (!req.user || !req.user.canDelete('shareholder')) {
+		// //   return res.status(403).json({ success: false, message: 'Forbidden' });
+		// // }
 
-		if (!deletedShareholder) {
-			await session.abortTransaction();
-			return res.status(404).json({
-				success: false,
-				message: 'Shareholder not found',
-			});
-		}
+		// // 3. Find and delete the shareholder atomically
+		// const deletedShareholder = await Shareholder.findByIdAndDelete(
+		// 	shareholderId,
+		// 	{ session },
+		// );
 
-		// 4. Cascade delete all related records
-		await ShareholderTransaction.deleteMany(
-			{ shareholder: shareholderId },
-			{ session },
-		);
-		await DividendLedger.deleteMany(
-			{ shareholder: shareholderId },
+		// if (!deletedShareholder) {
+		// 	await session.abortTransaction();
+		// 	return res.status(404).json({
+		// 		success: false,
+		// 		message: 'Shareholder not found',
+		// 	});
+		// }
+
+		// // 4. Cascade delete all related records
+		// await ShareholderTransaction.deleteMany(
+		// 	{ shareholder: shareholderId },
+		// 	{ session },
+		// );
+		// await DividendLedger.deleteMany(
+		// 	{ shareholder: shareholderId },
+		// 	{ session },
+		// );
+		await FinancialYear.deleteMany(
+			{ shareholderId: shareholderId },
 			{ session },
 		);
 

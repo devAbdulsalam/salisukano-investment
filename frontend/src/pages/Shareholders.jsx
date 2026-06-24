@@ -362,7 +362,7 @@ const Shareholders = () => {
 				item.phone,
 				item?.currentInvestment?.toLocaleString() || '',
 				item?.total?.toLocaleString() || '',
-				item.date ? new Date(item.date).toISOString().split('T')[0] : '',
+				// item.date ? new Date(item.date).toISOString().split('T')[0] : '',
 			]);
 			// Ensure minimum 10 rows
 			// while (filledRows.length < 10) {
@@ -370,9 +370,7 @@ const Shareholders = () => {
 			// }
 			autoTable(doc, {
 				startY: tableStartY,
-				head: [
-					['S/N', 'Name', 'Phone', 'Investment (NG)', 'Total (NG)', 'Date'],
-				],
+				head: [['S/N', 'Name', 'Phone', 'Investment (NG)', 'Total (NG)']],
 				body: filledRows,
 				theme: 'grid',
 				margin: { top: 50, bottom: 20 },
@@ -683,7 +681,7 @@ const Shareholders = () => {
 												{shareholder.total?.toLocaleString()}
 											</td>
 											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-												<div className="flex items-center gap-3">
+												<div className="flex items-center gap-3 justify-center">
 													<button
 														onClick={() => handleEdit(shareholder)}
 														className="text-blue-600 hover:text-blue-800"
@@ -696,7 +694,7 @@ const Shareholders = () => {
 															setSelectedShareholder(shareholder); // store the Shareholder to be deleted
 															setDeleteModal(true);
 														}}
-														className="text-red-600 hover:text-red-800"
+														className="text-red-600 hover:text-red-800 hidden"
 														title="Delete"
 														disabled={deleteLoading}
 													>
