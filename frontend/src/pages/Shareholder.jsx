@@ -70,9 +70,9 @@ const Shareholder = () => {
 	}, [data]);
 
 	const years = useMemo(() => {
-		if (!data?.dividends) return [];
+		if (!data?.transactions) return [];
 
-		return [...new Set(data.dividends.map((d) => d.year))].sort(
+		return [...new Set(data.transactions.map((d) => d.effectiveYear))].sort(
 			(a, b) => b - a,
 		);
 	}, [data]);
