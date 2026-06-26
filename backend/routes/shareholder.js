@@ -5,7 +5,6 @@ import {
 	addInvestment,
 	withdrawInvestment,
 	createDividendRate,
-	calculateMonthlyDividend,
 	getShareholderStatement,
 	getShareholders,
 	updateShareholder,
@@ -15,6 +14,7 @@ import {
 	getDividends,
 	shareholderMonthlyDividend,
 	startNewFinancialYear,
+	updateDividendRate,
 } from '../controllers/shareholder.js';
 
 import { protect, admin } from '../middleware/requireAuth.js';
@@ -27,7 +27,9 @@ router.post('/new-financial-year', startNewFinancialYear);
 
 router.post('/dividend-rate', protect, admin, createDividendRate);
 
-router.post('/run-dividend', protect, admin, calculateMonthlyDividend);
+// router.post('/run-dividend', protect, admin, calculateMonthlyDividend);
+
+router.post('/update-dividend', protect, admin, updateDividendRate);
 
 router.post(
 	'/run-dividend/:shareholderId',

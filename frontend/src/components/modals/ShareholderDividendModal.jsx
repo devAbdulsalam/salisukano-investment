@@ -4,73 +4,70 @@ import AuthContext from '../../context/authContext.jsx';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 import getError from '../../hooks/getError.js';
-import { TriangleAlert } from 'lucide-react';
-import { useQueryClient, useMutation } from '@tanstack/react-query';
+import { TriangleAlert, Loader2 } from 'lucide-react';
+import { useQueryClient, useMutation, useQuery } from '@tanstack/react-query';
 import Modal from './Modal.jsx';
 import { HiXMark } from 'react-icons/hi2';
 import { months } from '../../data.js';
 import { useNavigate } from 'react-router-dom';
+import { fetchDividendRates } from '../../hooks/axiosApis.js';
 
 const ShareholderDividendModal = ({
 	show,
 	setShow,
-	dividendRates,
 	shareholder,
-	year: selectedYear,
+	year: propYear,
 }) => {
 	const { user } = useContext(AuthContext);
 	const queryClient = useQueryClient();
 	const navigate = useNavigate();
 
 	const currentYear = new Date().getFullYear();
-	const currentMonth = new Date().getMonth() + 1; // months are 1-indexed in your data
+	const currentMonth = new Date().getMonth() + 1;
 
-	// console.log('dividendRates', dividendRates);
-
-	// Local state for selected period
-	const [year, setYear] = useState(selectedYear || currentYear);
+	const [year, setYear] = useState(propYear || currentYear);
 	const [month, setMonth] = useState(currentMonth);
 
-	// Reset to current period when modal opens
-	useState(() => {
-		if (show) {
-			setYear(currentYear);
-			setMonth(currentMonth);
-		}
-	}, [show, currentYear, currentMonth]); // but we cannot use useState for effect, use useEffect
-
-	// Better: use useEffect to reset on show
+	// Reset period whenever the modal opens
 	useEffect(() => {
 		if (show) {
-			setYear(selectedYear || currentYear);
+			setYear(propYear || currentYear);
 			setMonth(currentMonth);
 		}
-	}, [show, currentYear, selectedYear, currentMonth]);
+	}, [show, propYear, currentYear, currentMonth]);
 
-	// Derive the selected rate from the given rates and current period
+	// Fetch rates for the selected year — re-fetches automatically when year changes
+	const {
+		data: ratesData,
+		isLoading: ratesLoading,
+		isError: ratesError,
+	} = useQuery({
+		queryKey: ['dividend-rates', year],
+		queryFn: () => fetchDividendRates(user, year),
+		enabled: !!user && show,
+		staleTime: 60 * 1000,
+	});
+
+	const rates = ratesData?.data || [];
+
+	// Auto-derive selected rate whenever rates, year, or month change
 	const selectedRate = useMemo(() => {
-		if (!dividendRates) return null;
+		if (!rates.length) return null;
 		return (
-			dividendRates.find(
-				(item) => item.month === month && item.year === year,
-			) || null
+			rates.find((r) => r.year === Number(year) && r.month === Number(month)) ??
+			null
 		);
-	}, [dividendRates, month, year]);
+	}, [rates, year, month]);
 
 	const apiUrl = import.meta.env.VITE_API_URL;
 
 	const mutation = useMutation({
-		mutationFn: async (payload) => {
-			return axios.post(
+		mutationFn: async (payload) =>
+			axios.post(
 				`${apiUrl}/shareholders/run-dividend/${shareholder._id}`,
 				payload,
-				{
-					headers: {
-						Authorization: `Bearer ${user?.token}`,
-					},
-				},
-			);
-		},
+				{ headers: { Authorization: `Bearer ${user?.token}` } },
+			),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['shareholders'] });
 			queryClient.invalidateQueries({
@@ -82,9 +79,7 @@ const ShareholderDividendModal = ({
 			toast.success('Dividend shared successfully');
 			setShow(false);
 		},
-		onError: (error) => {
-			toast.error(getError(error));
-		},
+		onError: (err) => toast.error(getError(err)),
 	});
 
 	const handleSubmit = useCallback(
@@ -94,39 +89,35 @@ const ShareholderDividendModal = ({
 			if (!selectedRate) {
 				return toast.error('No dividend rate found for the selected period');
 			}
-
-			const percentage = selectedRate.percentage;
-			if (!percentage || percentage <= 0) {
+			if (!selectedRate.percentage || selectedRate.percentage <= 0) {
 				return toast.error('Invalid percentage for this rate');
 			}
 
 			mutation.mutate({
 				year: Number(year),
 				month: Number(month),
-				percentage: percentage,
+				percentage: selectedRate.percentage,
 				shareholderId: shareholder._id,
 			});
 		},
-		[selectedRate, year, month, mutation],
+		[selectedRate, year, month, mutation, shareholder?._id],
 	);
 
 	const isSubmitting = mutation.isPending;
 
-	// Generate year options once
 	const yearOptions = useMemo(
 		() =>
-			Array.from({ length: 10 }, (_, i) => currentYear - 2 + i).map((yr) => (
-				<option key={yr} value={yr}>
-					{yr}
-				</option>
-			)),
+			Array.from({ length: 10 }, (_, i) => currentYear - 2 + i),
 		[currentYear],
 	);
+
+	const monthLabel = months.find((m) => m.value === Number(month))?.label ?? '';
 
 	return (
 		<Modal show={show}>
 			<div className="transform text-left align-middle transition-all font-josefin overflow-hidden rounded-2xl bg-white shadow-xl w-full min-w-[280px] md:min-w-[450px]">
 				<div className="p-5">
+					{/* Header */}
 					<div className="flex items-center justify-between">
 						<h2 className="text-xl font-semibold leading-6 text-green-600 flex items-center gap-2">
 							<TriangleAlert className="h-6 w-6 text-green-500" />
@@ -141,78 +132,118 @@ const ShareholderDividendModal = ({
 						</button>
 					</div>
 
-					<div className="grid md:grid-cols-2 gap-4 mt-4">
+					{/* Period selectors */}
+					<div className="grid grid-cols-2 gap-4 mt-4">
 						<div>
-							<label className="block mb-1 text-left">Year</label>
+							<label className="block mb-1 text-sm font-medium text-gray-700">
+								Year
+							</label>
 							<select
 								value={year}
 								onChange={(e) => setYear(Number(e.target.value))}
-								className="w-full border rounded-md p-2"
+								className="w-full border rounded-md p-2 text-sm"
 								disabled={isSubmitting}
 							>
-								{yearOptions}
-							</select>
-						</div>
-
-						<div>
-							<label className="block mb-1 text-left">Month</label>
-							<select
-								value={month}
-								onChange={(e) => setMonth(Number(e.target.value))}
-								className="w-full border rounded-md p-2"
-								disabled={isSubmitting}
-							>
-								<option value="">Select Month</option>
-								{months.map((item) => (
-									<option key={item.value} value={item.value}>
-										{item.label}
+								{yearOptions.map((yr) => (
+									<option key={yr} value={yr}>
+										{yr}
 									</option>
 								))}
 							</select>
 						</div>
+
+						<div>
+							<label className="block mb-1 text-sm font-medium text-gray-700">
+								Month
+							</label>
+							<select
+								value={month}
+								onChange={(e) => setMonth(Number(e.target.value))}
+								className="w-full border rounded-md p-2 text-sm"
+								disabled={isSubmitting}
+							>
+								{months
+									.filter((m) => m.value !== '')
+									.map((m) => (
+										<option key={m.value} value={m.value}>
+											{m.label}
+										</option>
+									))}
+							</select>
+						</div>
 					</div>
 
-					{/* Body */}
+					{/* Rate info / feedback */}
 					<div className="mt-4">
-						{!selectedRate ? (
+						{ratesLoading ? (
+							<div className="flex items-center gap-2 text-sm text-gray-500 bg-gray-50 p-4 rounded-md">
+								<Loader2 className="h-4 w-4 animate-spin" />
+								Loading rates for {year}…
+							</div>
+						) : ratesError ? (
+							<div className="bg-red-50 p-4 rounded-md text-sm text-red-700">
+								Failed to load dividend rates. Please try again.
+							</div>
+						) : !selectedRate ? (
 							<div className="bg-yellow-50 p-4 rounded-md">
 								<p className="text-sm text-yellow-800">
-									No dividend rate exists for this period. Please create one
-									first.
+									No dividend rate exists for{' '}
+									<strong>
+										{monthLabel} {year}
+									</strong>
+									. Please create one first.
 								</p>
 								<button
 									onClick={() => {
 										setShow(false);
-										navigate('/dividend-rates');
+										navigate(`/dividend-rates/${year}`);
 									}}
 									className="mt-2 text-sm font-medium text-green-600 hover:underline"
 								>
-									Go to Dividend Rates
+									Go to Dividend Rates →
 								</button>
 							</div>
 						) : (
 							<>
 								<p className="text-sm text-gray-600">
-									Are you sure you want to share the dividend for the following
-									period?
+									Share dividend for{' '}
+									<strong>
+										{monthLabel} {year}
+									</strong>{' '}
+									to{' '}
+									<strong>
+										{shareholder?.name || 'this shareholder'}
+									</strong>
+									?
 								</p>
-								<div className="mt-4 space-y-3 rounded-lg bg-gray-50 p-4">
+
+								<div className="mt-3 space-y-2 rounded-lg bg-gray-50 p-4">
 									<div className="flex justify-between border-b border-gray-200 pb-2">
-										<span className="text-sm font-medium text-gray-500">
-											Percentage
+										<span className="text-sm text-gray-500">Period</span>
+										<span className="text-sm font-semibold">
+											{monthLabel} {year}
 										</span>
+									</div>
+									<div className="flex justify-between border-b border-gray-200 pb-2">
+										<span className="text-sm text-gray-500">Rate</span>
 										<span className="text-sm font-semibold text-blue-600">
 											{selectedRate.percentage}%
 										</span>
 									</div>
-									<div className="flex justify-between">
-										<span className="text-sm font-medium text-gray-500">
-											Period
-										</span>
-										<span className="text-sm font-semibold">
-											{months.find((m) => m.value === month)?.label} {year}
-										</span>
-									</div>
+									{selectedRate.status && (
+										<div className="flex justify-between">
+											<span className="text-sm text-gray-500">Status</span>
+											<span
+												className={`text-xs font-semibold px-2 py-0.5 rounded-full capitalize ${
+													selectedRate.status === 'completed'
+														? 'bg-green-100 text-green-700'
+														: 'bg-yellow-100 text-yellow-700'
+												}`}
+											>
+												{selectedRate.status}
+											</span>
+										</div>
+									)}
 								</div>
 							</>
 						)}
@@ -231,32 +262,13 @@ const ShareholderDividendModal = ({
 						<button
 							type="button"
 							onClick={handleSubmit}
-							disabled={!selectedRate || isSubmitting}
-							className="inline-flex justify-center rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+							disabled={!selectedRate || isSubmitting || ratesLoading}
+							className="inline-flex items-center justify-center gap-2 rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
 						>
 							{isSubmitting ? (
 								<>
-									<svg
-										className="mr-2 h-4 w-4 animate-spin text-white"
-										xmlns="http://www.w3.org/2000/svg"
-										fill="none"
-										viewBox="0 0 24 24"
-									>
-										<circle
-											className="opacity-25"
-											cx="12"
-											cy="12"
-											r="10"
-											stroke="currentColor"
-											strokeWidth="4"
-										/>
-										<path
-											className="opacity-75"
-											fill="currentColor"
-											d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-										/>
-									</svg>
-									Sharing...
+									<Loader2 className="h-4 w-4 animate-spin" />
+									Sharing…
 								</>
 							) : (
 								'Share Dividend'

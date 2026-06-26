@@ -5,7 +5,11 @@ import DividendLedger from '../models/DividendLedger.js';
 import DividendRate from '../models/DividendRate.js';
 import FinancialYear from '../models/FinancialYear.js';
 
-import { getEffectivePeriod } from '../utils/dividendHelpers.js';
+import {
+	getEffectivePeriod,
+	recalculateShareholderDividends,
+} from '../utils/dividendHelpers.js';
+
 
 export const createShareholder = async (req, res) => {
 	const session = await mongoose.startSession();
@@ -30,7 +34,7 @@ export const createShareholder = async (req, res) => {
 
 		session.startTransaction();
 
-		const effective = getEffectivePeriod(date || new Date());
+		const effective = getEffectivePeriod(date);
 
 		const [shareholder] = await Shareholder.create(
 			[
@@ -39,7 +43,7 @@ export const createShareholder = async (req, res) => {
 					phone,
 					email,
 					address,
-					joinDate: new Date(),
+					joinDate: date,
 				},
 			],
 			{ session },
@@ -52,7 +56,7 @@ export const createShareholder = async (req, res) => {
 					type: 'opening_balance',
 					amount: openingBalance,
 					description: description || 'Opening Balance',
-					transactionDate: new Date(),
+					transactionDate: date,
 					effectiveMonth: effective.month,
 					effectiveYear: effective.year,
 				},
@@ -112,8 +116,8 @@ export const getShareholders = async (req, res) => {
 				currentInvestment: shareholder.currentInvestment,
 				year: shareholder.year,
 				totalWithdrawal: shareholder.totalWithdrawal,
-				totalDividendPaid: shareholder.totalDividend,
-				totalDividendEarned: shareholder.totalDividend,
+				totalDividendPaid: shareholder.totalDividendPaid,
+				totalDividendEarned: shareholder.totalDividendEarned,
 				closingBalance: shareholder.closingBalance,
 				status: shareholder.status,
 			};
@@ -300,6 +304,8 @@ export const addInvestment = async (req, res) => {
 
 		const effective = getEffectivePeriod(date);
 
+		let dividendSummary;
+
 		await session.withTransaction(async () => {
 			const shareholder =
 				await Shareholder.findById(shareholderId).session(session);
@@ -308,11 +314,11 @@ export const addInvestment = async (req, res) => {
 				throw new Error('Shareholder not found');
 			}
 
-			const transaction = await ShareholderTransaction.create(
+			const [transaction] = await ShareholderTransaction.create(
 				[
 					{
 						shareholder: shareholderId,
-						type: 'topup',
+						type: 'deposit',
 						amount: investmentAmount,
 						description,
 						transactionDate: date,
@@ -323,24 +329,25 @@ export const addInvestment = async (req, res) => {
 				{ session },
 			);
 
-			await Shareholder.updateOne(
-				{
-					_id: shareholderId,
-				},
-				{
-					$inc: {
-						currentInvestment: investmentAmount,
-					},
-				},
-				{
-					session,
-				},
+			// Keep FinancialYear.currentInvestment in sync
+			await FinancialYear.updateOne(
+				{ shareholderId, year: effective.year },
+				{ $inc: { currentInvestment: investmentAmount } },
+				{ session },
+			);
+
+			// Recalculate dividends for this shareholder's year
+			dividendSummary = await recalculateShareholderDividends(
+				shareholderId,
+				effective.year,
+				session,
 			);
 
 			res.status(201).json({
 				success: true,
-				message: 'Investment added successfully',
-				data: transaction[0],
+				message: 'Investment added and dividends recalculated',
+				data: transaction,
+				dividends: dividendSummary,
 			});
 		});
 	} catch (error) {
@@ -358,7 +365,6 @@ export const withdrawInvestment = async (req, res) => {
 
 	try {
 		const { shareholderId } = req.params;
-
 		const { amount, date, description } = req.body;
 
 		const withdrawalAmount = Number(amount);
@@ -372,64 +378,55 @@ export const withdrawInvestment = async (req, res) => {
 
 		const effective = getEffectivePeriod(date);
 
-		await session.withTransaction(async () => {
-			/**
-			 * Atomic balance check
-			 */
-			const shareholder = await Shareholder.findOneAndUpdate(
-				{
-					_id: shareholderId,
+		let dividendSummary;
 
-					currentInvestment: {
-						$gte: withdrawalAmount,
-					},
-				},
+		await session.withTransaction(async () => {
+			// Atomic balance check + decrement on FinancialYear
+			const financialYear = await FinancialYear.findOneAndUpdate(
 				{
-					$inc: {
-						currentInvestment: -withdrawalAmount,
-					},
+					shareholderId,
+					year: effective.year,
+					status: 'active',
+					currentInvestment: { $gte: withdrawalAmount },
 				},
-				{
-					new: true,
-					session,
-				},
+				{ $inc: { currentInvestment: -withdrawalAmount } },
+				{ new: true, session },
 			);
 
-			if (!shareholder) {
-				throw new Error('Insufficient investment or shareholder not found');
+			if (!financialYear) {
+				throw new Error(
+					'Insufficient investment balance or no active financial year found',
+				);
 			}
 
-			const transaction = await ShareholderTransaction.create(
+			const [transaction] = await ShareholderTransaction.create(
 				[
 					{
 						shareholder: shareholderId,
-
 						type: 'withdrawal',
-
 						amount: withdrawalAmount,
-
 						description,
-
 						transactionDate: date,
-
 						effectiveMonth: effective.month,
-
 						effectiveYear: effective.year,
 					},
 				],
-				{
-					session,
-				},
+				{ session },
+			);
+
+			// Recalculate dividends for this shareholder's year
+			dividendSummary = await recalculateShareholderDividends(
+				shareholderId,
+				effective.year,
+				session,
 			);
 
 			res.status(201).json({
 				success: true,
-
-				message: 'Withdrawal processed successfully',
-
-				currentInvestment: shareholder.currentInvestment,
-
-				data: transaction[0],
+				message: 'Withdrawal processed and dividends recalculated',
+				currentInvestment: financialYear.currentInvestment,
+				data: transaction,
+				dividends: dividendSummary,
 			});
 		});
 	} catch (error) {
@@ -453,10 +450,6 @@ export const createDividendRate = async (req, res) => {
 				year,
 				percentage,
 				description,
-				// status: 'completed',
-				// processedAt: new Date(),
-				// status: 'pending',
-				// processedAt: null,
 			},
 			{
 				new: true,
@@ -474,6 +467,293 @@ export const createDividendRate = async (req, res) => {
 			success: false,
 			message: error.message,
 		});
+	}
+};
+
+export const updateDividendRate = async (req, res) => {
+	const session = await mongoose.startSession();
+
+	try {
+		const { year, dividend } = req.body;
+
+		if (!year || !Array.isArray(dividend) || dividend.length === 0) {
+			return res.status(400).json({
+				success: false,
+				message: 'Year and a non-empty dividend array are required.',
+			});
+		}
+
+		// Validate every entry up-front before touching the DB
+		const invalid = dividend.find((d) => !d.month || d.percentage == null);
+		if (invalid) {
+			return res.status(400).json({
+				success: false,
+				message: 'Each dividend entry must have a month and percentage.',
+			});
+		}
+
+		const numYear = Number(year);
+
+		await session.withTransaction(async () => {
+			// ── 1. Bulk-upsert the new rates ──────────────────────────────────
+			const rateOps = dividend.map(({ month, percentage, description }) => ({
+				updateOne: {
+					filter: { year: numYear, month: Number(month) },
+					update: {
+						$set: {
+							percentage: Number(percentage),
+							...(description !== undefined && { description }),
+							// allow re-processing after a rate change
+							status: 'pending',
+							processedAt: null,
+						},
+					},
+					upsert: true,
+				},
+			}));
+
+			await DividendRate.bulkWrite(rateOps, { session });
+
+			// ── 2. Load the now-current rates for this year ───────────────────
+			const rates = await DividendRate.find({ year: numYear })
+				.sort({ month: 1 })
+				.session(session);
+
+			// ── 3. Load all active shareholders for this financial year ───────
+			const financialYears = await FinancialYear.find({
+				year: numYear,
+				status: 'active',
+			}).session(session);
+
+			if (!financialYears.length) {
+				// No shareholders → just return the updated rates
+				return res.json({
+					success: true,
+					message: 'Rates updated. No active shareholders found for this year.',
+					data: rates,
+				});
+			}
+
+			const shareholderIds = financialYears.map((fy) => fy.shareholderId);
+
+			// ── 4. Compute net investment per shareholder per month ───────────
+			// We need all transactions ≤ each month, grouped by shareholder.
+			// Do one aggregate pass for all months at once: group by
+			// (shareholder, effectiveMonth) so we can roll it up per month later.
+
+			const txAgg = await ShareholderTransaction.aggregate([
+				{
+					$match: {
+						shareholder: { $in: shareholderIds },
+						$or: [
+							{ effectiveYear: { $lt: numYear } },
+							{ effectiveYear: numYear },
+						],
+					},
+				},
+				{
+					$group: {
+						_id: {
+							shareholder: '$shareholder',
+							effectiveYear: '$effectiveYear',
+							effectiveMonth: '$effectiveMonth',
+						},
+						deposits: {
+							$sum: {
+								$cond: [
+									{ $in: ['$type', ['opening_balance', 'topup', 'deposit']] },
+									'$amount',
+									0,
+								],
+							},
+						},
+						withdrawals: {
+							$sum: {
+								$cond: [{ $eq: ['$type', 'withdrawal'] }, '$amount', 0],
+							},
+						},
+					},
+				},
+				{ $sort: { '_id.effectiveYear': 1, '_id.effectiveMonth': 1 } },
+			]).session(session);
+
+			// console.log('txAgg', txAgg);
+			// Build a cumulative investment map:
+			// runningBalance[shareholderId.toString()][month] = net investment at end of that month
+			const runningBalance = {};
+
+			for (const sh of shareholderIds) {
+				runningBalance[sh.toString()] = {};
+			}
+
+			// console.log('runningBalance', runningBalance);
+			// Group by shareholder, sort chronologically, accumulate
+			const byShareHolder = {};
+			for (const entry of txAgg) {
+				const sid = entry._id.shareholder.toString();
+				if (!byShareHolder[sid]) byShareHolder[sid] = [];
+				byShareHolder[sid].push(entry);
+			}
+			// console.log('byShareHolder', byShareHolder);
+			// For every rate month, compute each shareholder's balance up to that month
+			const rateMonths = rates.map((r) => r.month);
+
+			// investment snapshot[sid][month] = cumulative net investment up to that month
+			const investmentAt = {};
+
+			for (const sid of Object.keys(runningBalance)) {
+				const entries = byShareHolder[sid] || [];
+				let cumulative = 0;
+				let entryIdx = 0;
+				investmentAt[sid] = {};
+
+				// Walk months 1..12 tracking running balance
+				for (let m = 1; m <= 12; m++) {
+					// Add all entries whose (year < numYear) or (year === numYear && month <= m)
+					while (entryIdx < entries.length) {
+						const e = entries[entryIdx];
+						const ey = e._id.effectiveYear;
+						const em = e._id.effectiveMonth;
+						if (ey < numYear || (ey === numYear && em <= m)) {
+							cumulative += e.deposits - e.withdrawals;
+							entryIdx++;
+						} else {
+							break;
+						}
+					}
+					investmentAt[sid][m] = cumulative > 0 ? cumulative : 0;
+				}
+			}
+
+			// console.log('investmentAt', investmentAt);
+
+			// ── 5. Upsert DividendLedger entries for every (shareholder × month) ──
+			const ledgerOps = [];
+			let totalDividend = 0;
+			let totalEntries = 0;
+
+			// Map financialYearId by shareholderId for quick lookup
+			const fyByShareholderId = {};
+			for (const fy of financialYears) {
+				fyByShareholderId[fy.shareholderId.toString()] = fy;
+			}
+
+			for (const rate of rates) {
+				for (const fy of financialYears) {
+					const sid = fy.shareholderId.toString();
+					const investment = investmentAt[sid]?.[rate.month] ?? 0;
+
+					if (investment <= 0) continue;
+
+					const dividendAmount = Number(
+						((investment * rate.percentage) / 100).toFixed(2),
+					);
+
+					totalDividend += dividendAmount;
+					totalEntries++;
+
+					ledgerOps.push({
+						updateOne: {
+							filter: {
+								shareholder: fy.shareholderId,
+								year: numYear,
+								month: rate.month,
+							},
+							update: {
+								$set: {
+									percentage: rate.percentage,
+									investmentAmount: investment,
+									dividendAmount,
+									description: `${rate.month}/${numYear} Dividend`,
+								},
+								$setOnInsert: {
+									financialYearId: fy._id,
+									cumulativeDividend: 0,
+								},
+							},
+							upsert: true,
+						},
+					});
+				}
+			}
+
+			// console.log('ledgerOps', ledgerOps);
+			if (ledgerOps.length) {
+				await DividendLedger.bulkWrite(ledgerOps, { session });
+			}
+
+			// ── 6. Recompute cumulativeDividend and FinancialYear totals ────────
+			for (const fy of financialYears) {
+				const sid = fy.shareholderId;
+
+				// Fetch all ledger entries for this shareholder-year sorted by month
+				const ledgerEntries = await DividendLedger.find({
+					shareholder: sid,
+					year: numYear,
+				})
+					.sort({ month: 1 })
+					.session(session);
+
+				let running = 0;
+				const cumulativeOps = [];
+
+				for (const entry of ledgerEntries) {
+					running += entry.dividendAmount;
+					cumulativeOps.push({
+						updateOne: {
+							filter: { _id: entry._id },
+							update: {
+								$set: { cumulativeDividend: Number(running.toFixed(2)) },
+							},
+						},
+					});
+				}
+
+				if (cumulativeOps.length) {
+					await DividendLedger.bulkWrite(cumulativeOps, { session });
+				}
+
+				// Update the FinancialYear summary
+				const totalDividendEarned = Number(running.toFixed(2));
+				await FinancialYear.updateOne(
+					{ _id: fy._id },
+					{ $set: { totalDividendEarned } },
+					{ session },
+				);
+			}
+
+			// ── 7. Mark rates as completed ───────────────────────────────────
+			await DividendRate.updateMany(
+				{ year: numYear, month: { $in: rateMonths } },
+				{ $set: { status: 'completed', processedAt: new Date() } },
+				{ session },
+			);
+
+			const updatedRates = await DividendRate.find({ year: numYear })
+				.sort({ month: 1 })
+				.session(session);
+
+			res.json({
+				success: true,
+				message: 'Dividend rates updated and recalculated successfully.',
+				data: updatedRates,
+				summary: {
+					year: numYear,
+					totalShareholders: financialYears.length,
+					totalEntries,
+					totalDividend: Number(totalDividend.toFixed(2)),
+				},
+			});
+		});
+	} catch (error) {
+		console.error('updateDividendRate error:', error);
+
+		res.status(500).json({
+			success: false,
+			message: error.message,
+		});
+	} finally {
+		await session.endSession();
 	}
 };
 
@@ -591,228 +871,6 @@ export const getDividends = async (req, res) => {
 			success: false,
 			message: error.message || 'Failed to fetch dividends',
 		});
-	}
-};
-
-export const calculateMonthlyDividend = async (req, res) => {
-	const session = await mongoose.startSession();
-
-	try {
-		const { month, year } = req.body;
-
-		if (!month || !year) {
-			return res.status(400).json({
-				success: false,
-				message: 'Month and year are required',
-			});
-		}
-
-		await session.withTransaction(async () => {
-			/**
-			 * Lock dividend processing
-			 */
-			const rate = await DividendRate.findOneAndUpdate(
-				{
-					month: Number(month),
-					year: Number(year),
-					status: 'pending',
-				},
-				{
-					$set: {
-						status: 'processing',
-					},
-				},
-				{
-					new: true,
-					session,
-				},
-			);
-
-			if (!rate) {
-				throw new Error(
-					'Dividend already processed, processing, or rate not found',
-				);
-			}
-
-			/**
-			 * Aggregate all shareholder investments
-			 */
-			const investments = await ShareholderTransaction.aggregate([
-				{
-					$match: {
-						$or: [
-							{
-								effectiveYear: {
-									$lt: Number(year),
-								},
-							},
-							{
-								effectiveYear: Number(year),
-								effectiveMonth: {
-									$lte: Number(month),
-								},
-							},
-						],
-					},
-				},
-
-				{
-					$group: {
-						_id: '$shareholder',
-
-						deposits: {
-							$sum: {
-								$cond: [
-									{
-										$in: ['$type', ['opening_balance', 'topup']],
-									},
-									'$amount',
-									0,
-								],
-							},
-						},
-
-						withdrawals: {
-							$sum: {
-								$cond: [
-									{
-										$eq: ['$type', 'withdrawal'],
-									},
-									'$amount',
-									0,
-								],
-							},
-						},
-					},
-				},
-			]).session(session);
-
-			if (!investments.length) {
-				throw new Error('No investments found');
-			}
-			console.log(investments);
-
-			/**
-			 * Previous dividends
-			 */
-			const previousDividends = await DividendLedger.aggregate([
-				{
-					$group: {
-						_id: '$shareholder',
-
-						total: {
-							$sum: '$dividendAmount',
-						},
-					},
-				},
-			]).session(session);
-
-			const dividendMap = new Map(
-				previousDividends.map((item) => [String(item._id), item.total]),
-			);
-
-			/**
-			 * Generate dividend records
-			 */
-			const ledgerEntries = investments
-				.filter((item) => item.deposits - item.withdrawals > 0)
-				.map((item) => {
-					const investment = item.deposits - item.withdrawals;
-
-					const dividend = (investment * rate.percentage) / 100;
-
-					const previousTotal = dividendMap.get(String(item._id)) || 0;
-
-					return {
-						shareholder: item._id,
-
-						month: Number(month),
-
-						year: Number(year),
-
-						percentage: rate.percentage,
-
-						investmentAmount: investment,
-
-						dividendAmount: Number(dividend.toFixed(2)),
-
-						cumulativeDividend: Number((previousTotal + dividend).toFixed(2)),
-
-						description: `${month}/${year} Dividend`,
-					};
-				});
-
-			/**
-			 * Insert dividends
-			 */
-			if (ledgerEntries.length > 0) {
-				await DividendLedger.insertMany(ledgerEntries, {
-					session,
-					ordered: false,
-				});
-			}
-
-			/**
-			 * Complete processing
-			 */
-			await DividendRate.updateOne(
-				{
-					_id: rate._id,
-				},
-				{
-					$set: {
-						status: 'completed',
-
-						processedAt: new Date(),
-					},
-				},
-				{
-					session,
-				},
-			);
-
-			const totalDividend = ledgerEntries.reduce(
-				(sum, item) => sum + item.dividendAmount,
-				0,
-			);
-
-			res.status(200).json({
-				success: true,
-				message: 'Monthly dividend processed successfully',
-
-				month,
-				year,
-
-				percentage: rate.percentage,
-
-				totalShareholders: ledgerEntries.length,
-
-				totalDividend: Number(totalDividend.toFixed(2)),
-			});
-		});
-	} catch (error) {
-		console.error('Dividend Processing Error:', error);
-
-		// Reset stuck processing status
-		await DividendRate.updateOne(
-			{
-				month: req.body.month,
-				year: req.body.year,
-				status: 'processing',
-			},
-			{
-				$set: {
-					status: 'pending',
-				},
-			},
-		).catch(() => {});
-
-		return res.status(500).json({
-			success: false,
-			message: error.message,
-		});
-	} finally {
-		await session.endSession();
 	}
 };
 
@@ -1038,7 +1096,7 @@ export const shareholderMonthlyDividend = async (req, res) => {
 							$sum: {
 								$cond: [
 									{
-										$in: ['$type', ['opening_balance', 'topup']],
+										$in: ['$type', ['opening_balance', 'deposit']],
 									},
 									'$amount',
 									0,
@@ -1231,46 +1289,46 @@ export const deleteShareholder = async (req, res) => {
 	session.startTransaction();
 
 	try {
-		const { shareholderId } = req.params;
+		const { shareholderId, year } = req.params;
 
 		// 1. Validate ObjectId format
-		// if (!mongoose.Types.ObjectId.isValid(shareholderId)) {
-		// 	return res.status(400).json({
-		// 		success: false,
-		// 		message: 'Invalid shareholder ID format',
-		// 	});
-		// }
+		if (!mongoose.Types.ObjectId.isValid(shareholderId)) {
+			return res.status(400).json({
+				success: false,
+				message: 'Invalid shareholder ID format',
+			});
+		}
 
-		// // 2. Authorization (example – adjust to your auth logic)
-		// // if (!req.user || !req.user.canDelete('shareholder')) {
-		// //   return res.status(403).json({ success: false, message: 'Forbidden' });
-		// // }
+		// 2. Authorization (example – adjust to your auth logic)
+		if (!req.user || !req.user.canDelete('shareholder')) {
+			return res.status(403).json({ success: false, message: 'Forbidden' });
+		}
 
-		// // 3. Find and delete the shareholder atomically
-		// const deletedShareholder = await Shareholder.findByIdAndDelete(
-		// 	shareholderId,
-		// 	{ session },
-		// );
+		// 3. Find and delete the shareholder atomically
+		const deletedShareholder = await Shareholder.findByIdAndDelete(
+			shareholderId,
+			{ session },
+		);
 
-		// if (!deletedShareholder) {
-		// 	await session.abortTransaction();
-		// 	return res.status(404).json({
-		// 		success: false,
-		// 		message: 'Shareholder not found',
-		// 	});
-		// }
+		if (!deletedShareholder) {
+			await session.abortTransaction();
+			return res.status(404).json({
+				success: false,
+				message: 'Shareholder not found',
+			});
+		}
 
-		// // 4. Cascade delete all related records
-		// await ShareholderTransaction.deleteMany(
-		// 	{ shareholder: shareholderId },
-		// 	{ session },
-		// );
-		// await DividendLedger.deleteMany(
-		// 	{ shareholder: shareholderId },
-		// 	{ session },
-		// );
+		// 4. Cascade delete all related records
+		await ShareholderTransaction.deleteMany(
+			{ shareholder: shareholderId, year },
+			{ session },
+		);
+		await DividendLedger.deleteMany(
+			{ shareholder: shareholderId, year },
+			{ session },
+		);
 		await FinancialYear.deleteMany(
-			{ shareholderId: shareholderId },
+			{ shareholderId: shareholderId, year: year },
 			{ session },
 		);
 

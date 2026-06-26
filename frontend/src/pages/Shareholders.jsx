@@ -26,14 +26,18 @@ import moment from 'moment';
 import { useNavigate } from 'react-router-dom';
 // import formatDate from '../hooks/formatDate.js';
 
+import { useSearchParams } from 'react-router-dom';
+
 const Shareholders = () => {
 	const queryClient = useQueryClient();
 	const { user } = useContext(AuthContext);
-
-	const currentYear = new Date().getFullYear();
 	const navigate = useNavigate();
-
-	const [year, setYear] = useState(currentYear);
+	const [searchParams, setSearchParams] = useSearchParams();
+	const currentYear = new Date().getFullYear();
+	const yearFromUrl = searchParams.get('year');
+	const [year, setYear] = useState(
+		yearFromUrl ? parseInt(yearFromUrl, 10) : currentYear,
+	);
 
 	// UI states
 	const [isAddModal, setIsAddModal] = useState(false);
@@ -482,10 +486,10 @@ const Shareholders = () => {
 					</h1>
 					<button
 						onClick={() => setIsAddModal(true)}
-						className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+						className="text-sm px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
 					>
-						<span className="hidden md:inline">Add </span>
-						<Plus className="inline md:hidden" />
+						<span className="hidden md:inline">Add </span>{' '}
+						<Plus size={16} className="inline md:hidden" />
 						Shareholder
 					</button>
 				</div>
@@ -522,7 +526,7 @@ const Shareholders = () => {
 						<span className="text-xl font-bold">1%</span>
 					</div>
 				</div>
-				<div className="p-5 bg-white rounded-xl  border border-gray-200">
+				<div className="p-3 md:p-5 bg-white rounded-xl  border border-gray-200">
 					{/* Search and Date Filter */}
 					<div className="w-full md:flex gap-4 items-center mb-4">
 						<div className="w-full">
@@ -555,7 +559,10 @@ const Shareholders = () => {
 								<select
 									className="border p-2 rounded text-sm"
 									value={year}
-									onChange={(e) => setYear(Number(e.target.value))}
+									onChange={(e) => {
+										setYear(Number(e.target.value));
+										setSearchParams({});
+									}}
 								>
 									<option value={year} disabled>
 										{year}
@@ -574,9 +581,10 @@ const Shareholders = () => {
 								<div className="flex justify-between items-center gap-2 text-sm">
 									<button
 										onClick={() => navigate(`/dividend-rates/${year}`)}
-										className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors whitespace-nowrap"
+										className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors whitespace-nowrap flex items-center gap-1"
 									>
-										Dividend Rate (%)
+										Dividend
+										<span className="hidden md:block">Rate</span> (%)
 									</button>
 									<button
 										disabled={loading}
@@ -584,7 +592,7 @@ const Shareholders = () => {
 										className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center gap-2 whitespace-nowrap"
 									>
 										<Download size={16} />
-										Download
+										<span className="hidden md:block">Download</span>
 									</button>
 									{/* <button
 									onClick={() => navigate('/dividends')}
@@ -621,6 +629,15 @@ const Shareholders = () => {
 										<div className="flex items-center gap-1">
 											Phone
 											<ArrowUpDown size={14} />
+										</div>
+									</th>
+									<th
+										className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none"
+										onClick={() => requestSort('name')}
+									>
+										<div className="flex items-center gap-1">
+											Dividend
+											{/* <ArrowUpDown size={14} /> */}
 										</div>
 									</th>
 									<th
@@ -673,6 +690,9 @@ const Shareholders = () => {
 											</td>
 											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
 												{shareholder?.phone}
+											</td>
+											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+												{shareholder.totalDividendEarned?.toLocaleString()}
 											</td>
 											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
 												{shareholder.currentInvestment?.toLocaleString()}

@@ -1,9 +1,8 @@
-import React from 'react';
 import { useContext, useState, useMemo, useEffect } from 'react';
 import Loader from '../components/Loader.jsx';
 import AuthContext from '../context/authContext.jsx';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchDividendRates, fetchShareholder } from '../hooks/axiosApis.js';
+import { useQuery } from '@tanstack/react-query';
+import { fetchShareholder } from '../hooks/axiosApis.js';
 import logo from '../assets/logo.png';
 import seal from '../assets/seal.png';
 import phone from '../assets/call.png';
@@ -20,7 +19,7 @@ import {
 	ArrowRight,
 } from 'lucide-react';
 import formatDate from '../hooks/formatDate.js';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { months } from '../data.js';
 import TopupModal from '../components/modals/TopupModal.jsx';
 import ShareholderDividendModal from '../components/modals/ShareholderDividendModal.jsx';
@@ -34,8 +33,8 @@ const currency = (amount) =>
 
 const Shareholder = () => {
 	const { id, year: selectedYear } = useParams();
-	const navigate = useNavigate();
-	const queryClient = useQueryClient();
+	// const navigate = useNavigate();
+	// const queryClient = useQueryClient();
 	const { user } = useContext(AuthContext);
 
 	const [shareholder, setShareholder] = useState(null);
@@ -57,11 +56,11 @@ const Shareholder = () => {
 		enabled: !!user,
 	});
 
-	const { data: dividendRates } = useQuery({
-		queryKey: ['dividend-rates'],
-		queryFn: () => fetchDividendRates(user),
-		enabled: !!user,
-	});
+	// const { data: dividendRates } = useQuery({
+	// 	queryKey: ['dividend-rates'],
+	// 	queryFn: () => fetchDividendRates(user),
+	// 	enabled: !!user,
+	// });
 
 	useEffect(() => {
 		if (data?.shareholder) {
@@ -406,7 +405,7 @@ const Shareholder = () => {
 			// SAVE
 			// ===============================
 
-			doc.save(`Shareholders-${new Date().toISOString()}.pdf`);
+			doc.save(`Shareholder-${new Date().toISOString()}.pdf`);
 		} catch (error) {
 			console.error(error);
 			toast.error('Failed to generate PDF');
@@ -564,7 +563,7 @@ const Shareholder = () => {
 											onChange={(e) => setYear(Number(e.target.value))}
 										>
 											<option value={year} disabled>
-												{year}
+												{year} Financial Year
 											</option>
 											{years.map((yr) => (
 												<option key={yr} value={yr}>
@@ -716,11 +715,7 @@ const Shareholder = () => {
 			<ShareholderDividendModal
 				show={dividendModal}
 				setShow={setDividendModal}
-				onClose={() => setDividendModal(false)}
-				setLoading={() => {}}
-				loading={false}
 				year={year}
-				dividendRates={dividendRates?.data || []}
 				shareholder={shareholder}
 			/>
 			<NewYearFinModal
