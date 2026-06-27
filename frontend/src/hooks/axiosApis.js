@@ -726,6 +726,21 @@ export const fetchExpenses = async (prop) => {
 	}
 };
 
+export const fetchMonthlyExpenses = async (user) => {
+	try {
+		const config = {
+			headers: {
+				Authorization: `Bearer ${user?.token}`,
+			},
+		};
+		const { data } = await axios.get(`${apiUrl}/expenses/monthly`, config);
+		return data.data;
+	} catch (error) {
+		console.log(error.message);
+		return error;
+	}
+};
+
 export const fetchStatements = async () => {
 	try {
 		const { data } = await axios.get(`${apiUrl}/statements`);

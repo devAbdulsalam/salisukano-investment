@@ -156,12 +156,10 @@ export const getWaybill = async (req, res) => {
 
 /**
  * @desc    Update Waybill
- * @route   PUT /api/waybills/:id
+ * @route   PUT /api/waybill-registers/:id
  */
 export const updateWaybill = async (req, res) => {
 	try {
-		const { net = 0, dust = 0, tare = 0 } = req.body;
-
 		const waybill = await WaybillRegister.findById(req.params.id);
 
 		if (!waybill) {
@@ -171,14 +169,10 @@ export const updateWaybill = async (req, res) => {
 			});
 		}
 
-		// Update fields
+		// Apply all provided fields; net is recalculated by the pre-save hook
 		Object.assign(waybill, req.body);
 
-		// Recalculate gross if weight fields are updated
-		waybill.gross =
-			Number(waybill.net) + Number(waybill.dust) + Number(waybill.tare);
-
-		await waybill.save();
+		await waybill.save(); // pre-save hook recalculates net = gross - tare - dust
 
 		res.status(200).json({
 			success: true,

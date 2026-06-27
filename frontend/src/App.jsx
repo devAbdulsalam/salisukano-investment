@@ -49,6 +49,7 @@ import Shareholders from './pages/Shareholders';
 import Shareholder from './pages/Shareholder';
 import Dividends from './pages/Dividends';
 import MonthlyWaybill from './pages/MonthlyWaybill';
+import MonthlyExpenses from './pages/MonthlyExpenses';
 import DividendRatesPage from './pages/DividendRatesPage';
 function App() {
 	const [loading, setLoading] = useState(true);
@@ -125,6 +126,7 @@ function App() {
 							<Route path="/settings" element={<Settings />} />
 							<Route path="/users" element={<Users />} />
 							<Route path="/monthly-waybills" element={<MonthlyWaybill />} />
+							<Route path="/monthly-expenses" element={<MonthlyExpenses />} />
 							<Route path="/waybills" element={<Waybills />} />
 							<Route path="/waybill" element={<Waybill />} />
 							<Route path="/waybill/:id" element={<Waybill />} />

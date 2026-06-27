@@ -9,6 +9,36 @@ export const getExpenses = async (req, res) => {
 		res.status(500).json({ error: 'Internal Server Error' });
 	}
 };
+export const getMonthlyExpenses = async (req, res) => {
+	try {
+		const expenses = await Expense.aggregate([
+			{
+				$group: {
+					_id: {
+						month: { $month: '$date' },
+						year: { $year: '$date' },
+					},
+					total: { $sum: '$amount' },
+					count: { $sum: 1 },
+				},
+			},
+			{
+				$project: {
+					month: '$_id.month',
+					year: '$_id.year',
+					total: 1,
+					count: 1,
+					_id: 0,
+				},
+			},
+			{ $sort: { year: -1, month: -1 } },
+		]);
+		res.status(200).json({ success: true, data: expenses });
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ success: false, error: 'Internal Server Error' });
+	}
+};
 
 export const getExpense = async (req, res) => {
 	const { id } = req.params;

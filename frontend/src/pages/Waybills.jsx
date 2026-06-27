@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useContext } from 'react';
+import { useEffect, useState, useMemo, useContext, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
@@ -11,7 +11,6 @@ import {
 	Search,
 	ArrowUpDown,
 	Download,
-	Info,
 	Plus,
 } from 'lucide-react';
 import Loader from '../components/Loader';
@@ -25,53 +24,78 @@ import autoTable from 'jspdf-autotable';
 import { fetchRegisteredWaybills } from '../hooks/axiosApis';
 import AddCommissionModal from '../components/modals/AddIncentiveModal';
 import { months } from '../data.js';
+
+/** Load an image src into a base64 data URL via an offscreen canvas. */
+const loadImageAsBase64 = (src) =>
+	new Promise((resolve) => {
+		const img = new Image();
+		img.crossOrigin = 'anonymous';
+		img.src = src;
+		img.onload = () => {
+			const canvas = document.createElement('canvas');
+			canvas.width = img.width;
+			canvas.height = img.height;
+			canvas.getContext('2d').drawImage(img, 0, 0);
+			resolve(canvas.toDataURL('image/png'));
+		};
+		img.onerror = () => resolve('');
+	});
 const API_URL = import.meta.env.VITE_API_URL;
-// jonney english reborn
+
+/** Returns YYYY-MM-DD strings for the first/last day of a given year+month. */
+const getMonthBounds = (y, m) => ({
+	start: `${y}-${String(m).padStart(2, '0')}-01`,
+	end: `${y}-${String(m).padStart(2, '0')}-31`,
+});
 
 const InvoicesPage = () => {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 	const { user } = useContext(AuthContext);
-	const [loading, setLoading] = useState(false);
-	const [isCommissioned, setIsCommissioned] = useState(false);
+	const [pdfLoading, setPdfLoading] = useState(false);
 	const [isCommissionModal, setIsCommissionModal] = useState(false);
 	const [commission, setCommission] = useState(1);
-	const [logoBase64, setLogoBase64] = useState('');
-	const [sealBase64, setSealBase64] = useState('');
-	const [phoneBase64, setPhoneBase64] = useState('');
-	const [endDate, setEndDate] = useState('');
-	const [startDate, setStartDate] = useState('');
-	const [searchParams, setSearchParams] = useSearchParams();
-	const yearFromUrl = searchParams.get('year');
-	const monthFromUrl = searchParams.get('month');
-	// Convert to numbers and validate
-	const year = yearFromUrl ? parseInt(yearFromUrl, 10) : null;
-	const month = monthFromUrl ? parseInt(monthFromUrl, 10) : null;
+	const [images, setImages] = useState({ logo: '', seal: '', phone: '' });
+	const [searchParams] = useSearchParams();
 
+	const year = searchParams.get('year') ? parseInt(searchParams.get('year'), 10) : null;
+	const month = searchParams.get('month') ? parseInt(searchParams.get('month'), 10) : null;
 	const monthLabel = months.find((m) => m.value === month)?.label || '';
-	useEffect(() => {
+
+	// Derive initial date bounds from URL params or current month
+	const getInitialDates = useCallback(() => {
 		if (year && month && month >= 1 && month <= 12) {
-			// Format as YYYY-MM-DD (first day of month)
-			setStartDate(`${year}-${String(month).padStart(2, '0')}-01`);
-			setEndDate(`${year}-${String(month).padStart(2, '0')}-31`);
-		} else {
-			// Optionally set a default (e.g., current month)
-			const now = new Date();
-			setStartDate(
-				`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`,
-			);
-			setEndDate(
-				`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-31`,
-			);
+			return getMonthBounds(year, month);
 		}
+		const now = new Date();
+		return getMonthBounds(now.getFullYear(), now.getMonth() + 1);
 	}, [year, month]);
 
-	// State for search and sort
+	const { start: defaultStart, end: defaultEnd } = getInitialDates();
+	const [startDate, setStartDate] = useState(defaultStart);
+	const [endDate, setEndDate] = useState(defaultEnd);
+
+	// Sync dates when URL params change
+	useEffect(() => {
+		const { start, end } = getInitialDates();
+		setStartDate(start);
+		setEndDate(end);
+	}, [getInitialDates]);
+
+	// Load all PDF images in parallel once on mount
+	useEffect(() => {
+		Promise.all([
+			loadImageAsBase64(logo),
+			loadImageAsBase64(seal),
+			loadImageAsBase64(phone),
+		]).then(([logoB64, sealB64, phoneB64]) => {
+			setImages({ logo: logoB64, seal: sealB64, phone: phoneB64 });
+		});
+	}, []);
+
+	// Search and sort state
 	const [searchTerm, setSearchTerm] = useState('');
-	const [sortConfig, setSortConfig] = useState({
-		key: 'createdAt', // default sort by date
-		direction: 'desc',
-	});
+	const [sortConfig, setSortConfig] = useState({ key: 'createdAt', direction: 'desc' });
 
 	// Fetch invoices
 	const {
@@ -83,31 +107,27 @@ const InvoicesPage = () => {
 		queryFn: async () => fetchRegisteredWaybills(user),
 	});
 
-	const config = {
-		headers: { Authorization: `Bearer ${user.token}` },
-	};
+	const authConfig = useMemo(
+		() => ({ headers: { Authorization: `Bearer ${user.token}` } }),
+		[user.token],
+	);
+
 	// Delete mutation
 	const deleteMutation = useMutation({
-		mutationFn: async (id) => {
-			await axios.delete(`${API_URL}/waybill-registers/${id}`, config);
-		},
+		mutationFn: (id) => axios.delete(`${API_URL}/waybill-registers/${id}`, authConfig),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['waybill-registers'] });
-			toast.success('Invoice deleted successfully');
+			toast.success('Waybill deleted successfully');
 		},
-		onError: (err) => {
-			toast.error(getError(err));
-		},
+		onError: (err) => toast.error(getError(err)),
 	});
 
-	// Handle delete with confirmation
 	const handleDelete = (id) => {
-		if (window.confirm('Are you sure you want to delete this invoice?')) {
+		if (window.confirm('Are you sure you want to delete this waybill?')) {
 			deleteMutation.mutate(id);
 		}
 	};
 
-	// Format date for display
 	const formatDate = (dateString) => {
 		if (!dateString) return '';
 		return format(new Date(dateString), 'dd/MM/yyyy');
@@ -117,7 +137,7 @@ const InvoicesPage = () => {
 	const filteredAndSortedWaybills = useMemo(() => {
 		let filtered = [...waybills];
 
-		// Apply search filter
+		// Search filter
 		if (searchTerm) {
 			const lowerSearch = searchTerm.toLowerCase();
 			filtered = filtered.filter(
@@ -128,66 +148,47 @@ const InvoicesPage = () => {
 			);
 		}
 
-		// Apply date filter
+		// Date range filter
 		if (startDate || endDate) {
-			let startOfDay = null;
-			let endOfDay = null;
+			const startOfDay = startDate
+				? Object.assign(new Date(startDate), { setHours: undefined }) && (() => {
+						const d = new Date(startDate);
+						d.setHours(0, 0, 0, 0);
+						return d;
+					})()
+				: null;
 
-			if (startDate) {
-				startOfDay = new Date(startDate);
-				startOfDay.setHours(0, 0, 0, 0);
-				endOfDay = new Date(startDate);
-				endOfDay.setHours(23, 59, 59, 999);
-			}
-
-			if (endDate && !startDate) {
-				// Only endDate provided: up to and including that day
-				endOfDay = new Date(endDate);
-				endOfDay.setHours(23, 59, 59, 999);
-			} else if (endDate && startDate) {
-				// Both provided: endDate becomes the end of its day
-				const tempEnd = new Date(endDate);
-				tempEnd.setHours(23, 59, 59, 999);
-				endOfDay = tempEnd;
-			}
+			const endOfDay = endDate
+				? (() => {
+						const d = new Date(endDate);
+						d.setHours(23, 59, 59, 999);
+						return d;
+					})()
+				: startDate
+				? (() => {
+						const d = new Date(startDate);
+						d.setHours(23, 59, 59, 999);
+						return d;
+					})()
+				: null;
 
 			filtered = filtered.filter((inv) => {
 				if (!inv?.date) return false;
 				const invDate = new Date(inv.date);
 				if (isNaN(invDate.getTime())) return false;
-
-				if (startOfDay && endOfDay) {
-					// Both start and end (either from date+date or date+endDate)
-					return invDate >= startOfDay && invDate <= endOfDay;
-				} else if (startOfDay && !endOfDay) {
-					// Should not happen per logic, but safe fallback
-					return invDate >= startOfDay && invDate <= startOfDay;
-				} else if (!startOfDay && endOfDay) {
-					// Only endDate (and no date)
-					return invDate <= endOfDay;
-				}
+				if (startOfDay && endOfDay) return invDate >= startOfDay && invDate <= endOfDay;
+				if (startOfDay) return invDate >= startOfDay;
+				if (endOfDay) return invDate <= endOfDay;
 				return true;
 			});
 		}
 
-		// Apply sorting
+		// Sort
 		if (sortConfig.key) {
+			const isDate = sortConfig.key === 'date' || sortConfig.key === 'createdAt';
 			filtered.sort((a, b) => {
-				let aVal = a[sortConfig.key];
-				let bVal = b[sortConfig.key];
-
-				// Handle dates
-				if (sortConfig.key === 'date' || sortConfig.key === 'createdAt') {
-					aVal = new Date(aVal).getTime();
-					bVal = new Date(bVal).getTime();
-				}
-
-				// Handle numbers (net)
-				if (sortConfig.key === 'net') {
-					aVal = aVal || 0;
-					bVal = bVal || 0;
-				}
-
+				let aVal = isDate ? new Date(a[sortConfig.key]).getTime() : (a[sortConfig.key] ?? 0);
+				let bVal = isDate ? new Date(b[sortConfig.key]).getTime() : (b[sortConfig.key] ?? 0);
 				if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
 				if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
 				return 0;
@@ -197,33 +198,25 @@ const InvoicesPage = () => {
 		return filtered;
 	}, [waybills, searchTerm, startDate, endDate, sortConfig]);
 
-	useEffect(() => {
-		if (
-			searchTerm &&
-			startDate &&
-			endDate &&
-			filteredAndSortedWaybills.length > 0
-		) {
-			// Do something
-			setIsCommissioned(true);
-		}
-	}, [searchTerm, startDate, endDate, filteredAndSortedWaybills]);
-	// calculate stats from filtered and sorted waybills
-	const gross = filteredAndSortedWaybills.reduce(
-		(acc, inv) => acc + inv.gross,
-		0,
-	);
-	const tare = filteredAndSortedWaybills.reduce(
-		(acc, inv) => acc + inv.tare,
-		0,
-	);
-	const net = filteredAndSortedWaybills.reduce((acc, inv) => acc + inv.net, 0);
-	const dust = filteredAndSortedWaybills.reduce(
-		(acc, inv) => acc + inv.dust,
-		0,
-	);
+	// Show commission card when there's an active name search with results
+	const isCommissioned = searchTerm.trim().length > 0 && filteredAndSortedWaybills.length > 0;
 
-	// Toggle sort direction
+	// Aggregate stats from filtered data
+	const stats = useMemo(
+		() =>
+			filteredAndSortedWaybills.reduce(
+				(acc, inv) => ({
+					gross: acc.gross + (inv.gross || 0),
+					tare: acc.tare + (inv.tare || 0),
+					net: acc.net + (inv.net || 0),
+					dust: acc.dust + (inv.dust || 0),
+				}),
+				{ gross: 0, tare: 0, net: 0, dust: 0 },
+			),
+		[filteredAndSortedWaybills],
+	);
+	const { gross, tare, net, dust } = stats;
+
 	const requestSort = (key) => {
 		setSortConfig((prev) => ({
 			key,
@@ -232,168 +225,67 @@ const InvoicesPage = () => {
 	};
 
 	const handleReset = () => {
-		setStartDate('');
-		setEndDate('');
+		const { start, end } = getInitialDates();
+		setStartDate(start);
+		setEndDate(end);
 		setSearchTerm('');
 	};
-
-	// Load logo as base64
-	useEffect(() => {
-		const img = new Image();
-		img.crossOrigin = 'anonymous';
-		img.src = logo;
-		img.onload = () => {
-			const canvas = document.createElement('canvas');
-			canvas.width = img.width;
-			canvas.height = img.height;
-			const ctx = canvas.getContext('2d');
-			ctx?.drawImage(img, 0, 0);
-			setLogoBase64(canvas.toDataURL('image/png'));
-		};
-	}, []);
-	useEffect(() => {
-		const img = new Image();
-		img.crossOrigin = 'anonymous';
-		img.src = seal;
-		img.onload = () => {
-			const canvas = document.createElement('canvas');
-			canvas.width = img.width;
-			canvas.height = img.height;
-			const ctx = canvas.getContext('2d');
-			ctx?.drawImage(img, 0, 0);
-			setSealBase64(canvas.toDataURL('image/png'));
-		};
-	}, []);
-	useEffect(() => {
-		const img = new Image();
-		img.crossOrigin = 'anonymous';
-		img.src = phone;
-		img.onload = () => {
-			const canvas = document.createElement('canvas');
-			canvas.width = img.width;
-			canvas.height = img.height;
-			const ctx = canvas.getContext('2d');
-			ctx?.drawImage(img, 0, 0);
-			setPhoneBase64(canvas.toDataURL('image/png'));
-		};
-	}, []);
-
 	const handleDownloadWaybills = async () => {
 		if (!filteredAndSortedWaybills.length) return;
-		setLoading(true);
+		setPdfLoading(true);
 
 		try {
 			const doc = new jsPDF('p', 'mm', 'a4');
 			const pageWidth = doc.internal.pageSize.getWidth();
 			const pageHeight = doc.internal.pageSize.getHeight();
 
-			// ===============================
-			// REUSABLE DRAWING FUNCS
-			// ===============================
-			const addBackgroundAndHeader = (currentDoc) => {
-				// WATERMARK
-				if (logoBase64) {
-					const watermarkWidth = 120; // large size
-					const watermarkHeight = 120;
-					const centerX = (pageWidth - watermarkWidth) / 2;
-					const centerY = (pageHeight - watermarkHeight) / 2;
-
+			// Shared header/watermark drawn on every page
+			const addBackgroundAndHeader = (currentDoc, title = 'INCENTIVES') => {
+				if (images.logo) {
+					const wm = 120;
 					if (currentDoc.setGState) {
 						currentDoc.setGState(new currentDoc.GState({ opacity: 0.04 }));
 					}
-					currentDoc.addImage(
-						logoBase64,
-						'PNG',
-						centerX,
-						centerY,
-						watermarkWidth,
-						watermarkHeight,
-					);
+					currentDoc.addImage(images.logo, 'PNG', (pageWidth - wm) / 2, (pageHeight - wm) / 2, wm, wm);
 					if (currentDoc.setGState) {
 						currentDoc.setGState(new currentDoc.GState({ opacity: 1 }));
 					}
-				}
-
-				// HEADER
-				if (logoBase64) {
-					currentDoc.addImage(logoBase64, 'PNG', 14, 10, 25, 25);
+					currentDoc.addImage(images.logo, 'PNG', 14, 10, 25, 25);
 				}
 
 				currentDoc.setFont('helvetica', 'bold');
 				currentDoc.setFontSize(16);
-				currentDoc.text(
-					'SALISU KANO INTERNATIONAL LIMITED',
-					pageWidth / 2,
-					18,
-					{
-						align: 'center',
-					},
-				);
-
+				currentDoc.text('SALISU KANO INTERNATIONAL LIMITED', pageWidth / 2, 18, { align: 'center' });
 				currentDoc.setFontSize(10);
 				currentDoc.setFont('helvetica', 'normal');
-				currentDoc.text(
-					"Scrap Materials' Suppliers and General Contractors",
-					pageWidth / 2,
-					24,
-					{ align: 'center' },
-				);
+				currentDoc.text("Scrap Materials' Suppliers and General Contractors", pageWidth / 2, 24, { align: 'center' });
+				currentDoc.text('No. 2 & 3 Block P, Dalar Gyade Market, Kano State', pageWidth / 2, 29, { align: 'center' });
 
-				currentDoc.text(
-					'No. 2 & 3 Block P, Dalar Gyade Market, Kano State',
-					pageWidth / 2,
-					29,
-					{ align: 'center' },
-				);
-				// Phone Numbers
 				const phoneX = pageWidth - 14;
-
 				currentDoc.text('08023239018', phoneX, 22, { align: 'right' });
-
-				// Second number with icon
 				currentDoc.text('08067237273', phoneX, 26, { align: 'right' });
-
-				// Small phone icon before second number
-				if (phoneBase64) {
-					currentDoc.addImage(
-						phoneBase64,
-						'PNG',
-						phoneX - 30, // move left from right margin
-						18, // slightly above 23 for vertical center
-						10, // width (small)
-						10, // height
-					);
+				if (images.phone) {
+					currentDoc.addImage(images.phone, 'PNG', phoneX - 30, 18, 10, 10);
 				}
 
-				// Title
 				currentDoc.setFont('helvetica', 'bold');
 				currentDoc.setFontSize(14);
 				currentDoc.setFillColor(0);
 				currentDoc.rect(pageWidth / 2 - 30, 35, 60, 10, 'F');
 				currentDoc.setTextColor(255);
-
 				currentDoc.setLineWidth(0.4);
 				currentDoc.line(14, 40, pageWidth - 14, 40);
-
-				currentDoc.text('INCENTIVES', pageWidth / 2, 42, { align: 'center' });
+				currentDoc.text(title, pageWidth / 2, 42, { align: 'center' });
 				currentDoc.setTextColor(0);
-				// Divider line
-				// currentDoc.setLineWidth(0.6);
-				// currentDoc.line(14, 32, pageWidth - 14, 32);
-
 				currentDoc.setFontSize(11);
 			};
 
 			// Initialize first page
 			addBackgroundAndHeader(doc);
 
-			// ===============================
-			// CALCULATIONS
-			// ===============================
-			const _tare = Number(tare) || 0;
 			const _gross = Number(gross) || 0;
+			const _tare = Number(tare) || 0;
 			const _dust = Number(dust) || 0;
-
 			const _net = _gross - _tare - _dust;
 			const totalCommission = commission * _net;
 
@@ -533,249 +425,133 @@ const InvoicesPage = () => {
 			doc.text('Authorized Signature', pageWidth - 80, footerY + 5);
 			doc.text("For: Salisu Kano Int'l Ltd", pageWidth - 80, footerY + 10);
 
-			if (sealBase64) {
-				doc.addImage(sealBase64, 'PNG', pageWidth - 86, footerY - 32, 80, 50);
+			if (images.seal) {
+				doc.addImage(images.seal, 'PNG', pageWidth - 86, footerY - 32, 80, 50);
 			}
 
-			// ===============================
-			// SAVE
-			// ===============================
-
-			doc.save(`Waybills-${date || searchTerm || endDate}.pdf`);
+			doc.save(`Waybills-${searchTerm || startDate || endDate}.pdf`);
 		} catch (error) {
 			console.error(error);
 			toast.error('Failed to generate PDF');
 		} finally {
-			setLoading(false);
+			setPdfLoading(false);
 		}
 	};
 
-	// Handle PDF download
-	const handleDownloadPDF = async (formData) => {
-		setLoading(true);
-
+	// Handle single waybill PDF download
+	const handleDownloadPDF = (formData) => {
+		setPdfLoading(true);
 		try {
 			const doc = new jsPDF('p', 'mm', 'a4');
 			const pageWidth = doc.internal.pageSize.getWidth();
 			const pageHeight = doc.internal.pageSize.getHeight();
 
-			// ===============================
-			// WATERMARK (CENTER BACKGROUND)
-			// ===============================
-
-			if (logoBase64) {
-				// const watermarkWidth = 90; // mini size
-				// const watermarkHeight = 90;
-				const watermarkWidth = 120; // large size
-				const watermarkHeight = 120;
-
-				const centerX = (pageWidth - watermarkWidth) / 2;
-				const centerY = (pageHeight - watermarkHeight) / 2;
-
-				// Set low opacity (requires jsPDF v2+)
-				if (doc.setGState) {
-					doc.setGState(new doc.GState({ opacity: 0.04 }));
-				}
-
-				doc.addImage(
-					logoBase64,
-					'PNG',
-					centerX,
-					centerY,
-					watermarkWidth,
-					watermarkHeight,
-				);
-
-				// Reset opacity
-				if (doc.setGState) {
-					doc.setGState(new doc.GState({ opacity: 1 }));
-				}
+			// Watermark
+			if (images.logo) {
+				const wm = 120;
+				if (doc.setGState) doc.setGState(new doc.GState({ opacity: 0.04 }));
+				doc.addImage(images.logo, 'PNG', (pageWidth - wm) / 2, (pageHeight - wm) / 2, wm, wm);
+				if (doc.setGState) doc.setGState(new doc.GState({ opacity: 1 }));
+				doc.addImage(images.logo, 'PNG', 14, 10, 25, 25);
 			}
 
-			// ===============================
-			// CALCULATIONS
-			// ===============================
-			const tare = Number(formData.tare) || 0;
-			const gross = Number(formData.gross) || 0;
-			const dust = Number(formData.dust) || 0;
-
-			const net = gross - tare - dust;
-			// ===============================
-			// HEADER SECTION
-			// ===============================
-
-			if (logoBase64) {
-				doc.addImage(logoBase64, 'PNG', 14, 10, 25, 25);
-			}
-
+			// Header
 			doc.setFont('helvetica', 'bold');
 			doc.setFontSize(16);
-			doc.text('SALISU KANO INTERNATIONAL LIMITED', pageWidth / 2, 18, {
-				align: 'center',
-			});
-
+			doc.text('SALISU KANO INTERNATIONAL LIMITED', pageWidth / 2, 18, { align: 'center' });
 			doc.setFontSize(10);
 			doc.setFont('helvetica', 'normal');
-			doc.text(
-				"Scrap Materials' Suppliers and General Contractors",
-				pageWidth / 2,
-				24,
-				{ align: 'center' },
-			);
-
-			doc.text(
-				'No. 2 & 3 Block P, Dalar Gyade Market, Kano State',
-				pageWidth / 2,
-				29,
-				{ align: 'center' },
-			);
-			// Phone Numbers
+			doc.text("Scrap Materials' Suppliers and General Contractors", pageWidth / 2, 24, { align: 'center' });
+			doc.text('No. 2 & 3 Block P, Dalar Gyade Market, Kano State', pageWidth / 2, 29, { align: 'center' });
 			const phoneX = pageWidth - 14;
-
 			doc.text('08023239018', phoneX, 22, { align: 'right' });
-
-			// Second number with icon
 			doc.text('08067237273', phoneX, 26, { align: 'right' });
-
-			// Small phone icon before second number
-			if (phoneBase64) {
-				doc.addImage(
-					phoneBase64,
-					'PNG',
-					phoneX - 30, // move left from right margin
-					18, // slightly above 23 for vertical center
-					10, // width (small)
-					10, // height
-				);
-			}
-
-			// Title
+			if (images.phone) doc.addImage(images.phone, 'PNG', phoneX - 30, 18, 10, 10);
 			doc.setFont('helvetica', 'bold');
 			doc.setFontSize(14);
 			doc.setFillColor(0);
 			doc.rect(pageWidth / 2 - 30, 35, 60, 10, 'F');
 			doc.setTextColor(255);
-
 			doc.setLineWidth(0.4);
 			doc.line(14, 40, pageWidth - 14, 40);
-
 			doc.text('WAYBILL / RECEIPT', pageWidth / 2, 42, { align: 'center' });
 			doc.setTextColor(0);
-			// Divider line
-			// doc.setLineWidth(0.6);
-			// doc.line(14, 32, pageWidth - 14, 32);
 
-			// ===============================
-			// MAIN CONTENT BOX
-			// ===============================
-
-			let startY = 55;
-
-			// doc.setLineWidth(0.4);
-			// doc.rect(14, startY - 8, pageWidth - 28, 70);
+			// Body
+			const wTare = Number(formData.tare) || 0;
+			const wGross = Number(formData.gross) || 0;
+			const wDust = Number(formData.dust) || 0;
+			const wNet = wGross - wTare - wDust;
+			const gap = 10;
+			let y = 55;
 
 			doc.setFontSize(11);
-
-			// Row spacing
-			const gap = 10;
-
-			// Row 1
 			doc.setFont('helvetica', 'bold');
-			doc.text('Customer Name:', 20, startY);
+			doc.text('Customer Name:', 20, y);
 			doc.setFont('helvetica', 'normal');
-			doc.text(formData.name || '-', 55, startY);
-
+			doc.text(formData.name || '-', 55, y);
 			doc.setFont('helvetica', 'bold');
-			doc.text('Date:', pageWidth - 90, startY);
+			doc.text('Date:', pageWidth - 90, y);
 			doc.setFont('helvetica', 'normal');
-			doc.text(
-				new Date(formData.date).toISOString().split('T')[0] || '-',
-				pageWidth - 75,
-				startY,
-			);
+			doc.text(formData.date ? new Date(formData.date).toISOString().split('T')[0] : '-', pageWidth - 75, y);
+			y += gap;
 
-			startY += gap;
-
-			// Row 2
 			doc.setFont('helvetica', 'bold');
-			doc.text('Vehicle No:', 20, startY);
+			doc.text('Vehicle No:', 20, y);
 			doc.setFont('helvetica', 'normal');
-			doc.text(formData.vehicle || '-', 55, startY);
+			doc.text(formData.vehicle || '-', 55, y);
+			y += gap;
 
-			startY += gap;
-
-			// Row 3
 			doc.setFont('helvetica', 'bold');
-			doc.text('Gross Weight:', 20, startY);
+			doc.text('Gross Weight:', 20, y);
 			doc.setFont('helvetica', 'normal');
-			doc.text(`${gross.toLocaleString()} kg`, 55, startY);
-
+			doc.text(`${wGross.toLocaleString()} kg`, 55, y);
 			doc.setFont('helvetica', 'bold');
-			doc.text('Tare Weight:', pageWidth - 90, startY);
+			doc.text('Tare Weight:', pageWidth - 90, y);
 			doc.setFont('helvetica', 'normal');
-			doc.text(`${tare.toLocaleString()} kg`, pageWidth - 65, startY);
+			doc.text(`${wTare.toLocaleString()} kg`, pageWidth - 65, y);
+			y += gap;
 
-			startY += gap;
-
-			// Row 4
 			doc.setFont('helvetica', 'bold');
-			doc.text('Dust:', 20, startY);
+			doc.text('Dust:', 20, y);
 			doc.setFont('helvetica', 'normal');
-			doc.text(`${dust.toLocaleString()} kg`, 55, startY);
-
+			doc.text(`${wDust.toLocaleString()} kg`, 55, y);
 			doc.setFont('helvetica', 'bold');
-			doc.text('Net Weight:', pageWidth - 90, startY);
+			doc.text('Net Weight:', pageWidth - 90, y);
+			doc.text(`${wNet.toLocaleString()} kg`, pageWidth - 65, y);
+			y += gap;
+
+			// Note
 			doc.setFont('helvetica', 'bold');
-			doc.text(`${net.toLocaleString()} kg`, pageWidth - 65, startY);
-
-			startY += gap;
-
-			// ===============================
-			// NOTE SECTION
-			// ===============================
-
-			doc.setFont('helvetica', 'bold');
-			doc.text('Note:', 20, startY);
-
+			doc.text('Note:', 20, y);
 			doc.setLineWidth(0.3);
-			doc.rect(20, startY + 3, pageWidth - 40, 20);
-
+			doc.rect(20, y + 3, pageWidth - 40, 20);
 			if (formData.note) {
 				doc.setFont('helvetica', 'normal');
 				doc.setFontSize(9);
-				const noteLines = doc.splitTextToSize(formData.note, pageWidth - 44);
-				doc.text(noteLines, 22, startY + 10);
+				doc.text(doc.splitTextToSize(formData.note, pageWidth - 44), 22, y + 10);
 			}
 
-			// ===============================
-			// SIGNATURE SECTION
-			// ===============================
-			// 25
-			const footerY = startY + 45;
-
+			// Signatures
+			const footerY = y + 45;
 			doc.setLineWidth(0.4);
-
 			doc.line(20, footerY, 80, footerY);
+			doc.setFont('helvetica', 'normal');
+			doc.setFontSize(10);
 			doc.text("Customer's Signature", 20, footerY + 5);
-
 			doc.line(pageWidth - 80, footerY, pageWidth - 20, footerY);
 			doc.text('Authorized Signature', pageWidth - 80, footerY + 5);
 			doc.text("For: Salisu Kano Int'l Ltd", pageWidth - 80, footerY + 10);
-
-			if (sealBase64) {
-				doc.addImage(sealBase64, 'PNG', pageWidth - 86, footerY - 32, 80, 50);
+			if (images.seal) {
+				doc.addImage(images.seal, 'PNG', pageWidth - 86, footerY - 32, 80, 50);
 			}
-
-			// ===============================
-			// SAVE
-			// ===============================
 
 			doc.save(`Waybill-${formData.name || 'Customer'}.pdf`);
 		} catch (error) {
 			console.error(error);
 			toast.error('Failed to generate PDF');
 		} finally {
-			setLoading(false);
+			setPdfLoading(false);
 		}
 	};
 	if (isLoading) return <Loader />;
@@ -801,66 +577,28 @@ const InvoicesPage = () => {
 				</button>
 			</div>
 
-			<div className="w-full grid sm:grid-cols-2 md:grid-cols-4 gap-4  col-span-12 mb-2">
-				<div className="p-5  bg-white flex flex-col md:max-w-md w-full rounded-xl gap-2 border border-[#E7E7E7] hover:shadow-xl cursor-pointer">
-					<div className={`flex justify-between `}>
-						<span className="text-[#637381] text-sm font-medium">
-							Gross (KG)
-						</span>
-					</div>
+			<div className="w-full grid sm:grid-cols-2 md:grid-cols-4 gap-4 col-span-12 mb-2">
+				{[
+					{ label: 'Gross (KG)', value: gross },
+					{ label: 'Tare (KG)', value: tare },
+					{ label: 'Dust (KG)', value: dust },
+					{ label: 'Net (KG)', value: net },
+				].map(({ label, value }) => (
 					<div
-						className={`flex gap-4 justify-between flex-nowrap items-center`}
+						key={label}
+						className="p-5 bg-white flex flex-col md:max-w-md w-full rounded-xl gap-2 border border-[#E7E7E7] hover:shadow-xl"
 					>
+						<span className="text-[#637381] text-sm font-medium">{label}</span>
 						<span className="text-xl font-bold whitespace-nowrap">
-							{gross || 0}
+							{(value || 0).toLocaleString()}
 						</span>
 					</div>
-				</div>
-				<div className="p-5 mb-4  bg-white flex flex-col md:max-w-md w-full rounded-xl gap-2 border border-[#E7E7E7] hover:shadow-xl cursor-pointer">
-					<div className={`flex justify-between `}>
-						<span className="text-[#637381] text-sm font-medium">
-							Tare (KG)
-						</span>
-					</div>
-					<div
-						className={`flex gap-4 justify-between flex-nowrap items-center`}
-					>
-						<span className="text-xl font-bold whitespace-nowrap">
-							{tare || 0}
-						</span>
-					</div>
-				</div>
-				<div className="p-5 mb-4  bg-white flex flex-col md:max-w-md w-full rounded-xl gap-2 border border-[#E7E7E7] hover:shadow-xl cursor-pointer">
-					<div className={`flex justify-between `}>
-						<span className="text-[#637381] text-sm font-medium">
-							Dust (KG)
-						</span>
-					</div>
-					<div
-						className={`flex gap-4 justify-between flex-nowrap items-center`}
-					>
-						<span className="text-xl font-bold whitespace-nowrap">
-							{dust || 0}
-						</span>
-					</div>
-				</div>
-				<div className="p-5 mb-4  bg-white flex flex-col md:max-w-md w-full rounded-xl gap-2 border border-[#E7E7E7] hover:shadow-xl cursor-pointer">
-					<div className={`flex justify-between `}>
-						<span className="text-[#637381] text-sm font-medium">Net (KG)</span>
-					</div>
-					<div
-						className={`flex gap-4 justify-between flex-nowrap items-center`}
-					>
-						<span className="text-xl font-bold whitespace-nowrap">
-							{net || 0}
-						</span>
-					</div>
-				</div>
+				))}
 				{isCommissioned && (
-					<div className="p-5 mb-4  bg-white flex flex-col md:max-w-md w-full rounded-xl gap-2 border border-[#E7E7E7] hover:shadow-xl cursor-pointer">
-						<div className={`flex justify-between `}>
+					<div className="p-5 bg-white flex flex-col md:max-w-md w-full rounded-xl gap-2 border border-[#E7E7E7] hover:shadow-xl">
+						<div className="flex justify-between">
 							<span className="text-[#637381] text-sm font-medium">
-								Commission ({commission})
+								Commission (×{commission})
 							</span>
 							<button onClick={() => setIsCommissionModal(true)}>
 								<Plus size={24} />
@@ -870,7 +608,7 @@ const InvoicesPage = () => {
 							className={`flex gap-4 justify-between flex-nowrap items-center`}
 						>
 							<span className="text-xl font-bold whitespace-nowrap">
-								₦ {net * commission}
+								₦ {(net * commission).toLocaleString()}
 							</span>
 						</div>
 					</div>
@@ -912,8 +650,10 @@ const InvoicesPage = () => {
 						/>
 					</div>
 					<button
-						className="h-[42px] px-2 mt-6 my-1 bg-blue-600 text-white w-fit rounded-md hover:bg-blue-700 transition-colors"
+						className="h-[42px] px-2 mt-6 my-1 bg-blue-600 text-white w-fit rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
 						onClick={handleDownloadWaybills}
+						disabled={pdfLoading}
+						title="Download filtered waybills as PDF"
 					>
 						<Download size={18} />
 					</button>

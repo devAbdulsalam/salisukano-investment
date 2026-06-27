@@ -2,6 +2,7 @@ import express from 'express';
 import {
 	getExpenses,
 	getExpense,
+	getMonthlyExpenses,
 	createExpense,
 	editExpense,
 	deleteExpense,
@@ -10,6 +11,7 @@ import { protect } from '../middleware/requireAuth.js';
 
 const router = express.Router();
 
+router.get('/monthly', getMonthlyExpenses);
 router.get('/', getExpenses);
 router.get('/:id', getExpense);
 router.post('/', createExpense);

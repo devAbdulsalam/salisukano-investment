@@ -57,7 +57,7 @@ const navigationList = [
 	},
 	{
 		name: 'Expenses',
-		link: '/expenses',
+		link: '/monthly-expenses',
 		svg: <HandCoins className="h-4 w-4" />,
 		roles: ['admin'],
 	},

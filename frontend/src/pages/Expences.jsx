@@ -17,10 +17,19 @@ import { Pencil, Trash2, Search, ArrowUpDown, Download } from 'lucide-react';
 import formatDate from '../hooks/formatDate.js';
 import DeleteConfirmationModal from '../components/modals/DeleteConfirmationModal.jsx';
 import moment from 'moment';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { months } from '../data.js';
 
 const Expences = () => {
 	const queryClient = useQueryClient();
 	const { user } = useContext(AuthContext);
+	const navigate = useNavigate();
+	const [searchParams] = useSearchParams();
+
+	// Read month/year from URL (set by MonthlyExpenses navigation)
+	const urlMonth = searchParams.get('month') ? parseInt(searchParams.get('month'), 10) : null;
+	const urlYear = searchParams.get('year') ? parseInt(searchParams.get('year'), 10) : null;
+	const monthLabel = urlMonth ? months.find((m) => m.value === urlMonth)?.label : null;
 
 	// UI states
 	const [isAddModal, setIsAddModal] = useState(false);
@@ -104,9 +113,17 @@ const Expences = () => {
 				moment(expense?.createdAt).format('DD-MM-YYYY').includes(searchTerm);
 			const matchesDate =
 				!startDate || new Date(expense.date) >= new Date(startDate);
-			return matchesSearch && matchesDate;
+
+			// Apply URL month/year filter from MonthlyExpenses navigation
+			const matchesUrlMonth = (() => {
+				if (!urlMonth || !urlYear) return true;
+				const d = new Date(expense.date);
+				return d.getMonth() + 1 === urlMonth && d.getFullYear() === urlYear;
+			})();
+
+			return matchesSearch && matchesDate && matchesUrlMonth;
 		});
-	}, [data, searchTerm, startDate]);
+	}, [data, searchTerm, startDate, urlMonth, urlYear]);
 
 	// Sorting
 	const requestSort = (key) => {
@@ -446,9 +463,21 @@ const Expences = () => {
 			<div className="p-3 md:p-6 bg-gray-50 min-h-screen">
 				{/* Header */}
 				<div className="flex justify-between items-center mb-6">
-					<h1 className="text-xl md:text-3xl font-bold text-gray-800">
-						Expenses
-					</h1>
+					<div>
+						<h1 className="text-xl md:text-3xl font-bold text-gray-800">
+							{monthLabel && urlYear
+								? `Expenses — ${monthLabel} ${urlYear}`
+								: 'Expenses'}
+						</h1>
+						{monthLabel && (
+							<button
+								onClick={() => navigate('/monthly-expenses')}
+								className="text-sm text-blue-600 hover:underline mt-1"
+							>
+								← Back to Monthly Overview
+							</button>
+						)}
+					</div>
 					<button
 						onClick={() => setIsAddModal(true)}
 						className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
