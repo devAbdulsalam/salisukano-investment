@@ -51,7 +51,7 @@ export const createWaybill = async (req, res) => {
  */
 export const getWaybills = async (req, res) => {
 	try {
-		const { page = 1, limit = 10, name, from, to } = req.query;
+		const { page = 1, limit, name, from, to } = req.query;
 
 		const filter = {};
 
