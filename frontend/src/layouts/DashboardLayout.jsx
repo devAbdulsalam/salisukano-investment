@@ -51,7 +51,7 @@ const navigationList = [
 	},
 	{
 		name: 'Register',
-		link: '/waybills',
+		link: '/monthly-waybills',
 		svg: <FilePlus className="h-4 w-4" />,
 		roles: ['admin', 'operation'],
 	},

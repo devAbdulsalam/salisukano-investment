@@ -90,6 +90,42 @@ export const getWaybills = async (req, res) => {
 	}
 };
 
+export const getMonthlyWaybills = async (req, res) => {
+	try {
+		const waybills = await WaybillRegister.aggregate([
+			{
+				$group: {
+					_id: {
+						month: { $month: '$date' },
+						year: { $year: '$date' },
+					},
+					total: { $sum: 1 },
+				},
+			},
+			{
+				$project: {
+					month: '$_id.month',
+					year: '$_id.year',
+					total: 1,
+					_id: 0,
+				},
+			},
+			{ $sort: { year: 1, month: 1 } }, // ensure chronological order
+		]);
+
+		res.status(200).json({
+			success: true,
+			data: waybills,
+		});
+	} catch (error) {
+		res.status(500).json({
+			success: false,
+			message: error.message,
+		});
+	}
+};
+
+
 /**
  * @desc    Get Single Waybill
  * @route   GET /api/waybills/:id

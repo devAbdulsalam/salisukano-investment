@@ -151,10 +151,11 @@ const Waybill = () => {
 			}
 
 			// Invalidate relevant queries
+			queryClient.invalidateQueries({ queryKey: ['monthly-waybills'] });
 			queryClient.invalidateQueries({ queryKey: ['waybill-registers'] });
 			queryClient.invalidateQueries({ queryKey: ['waybill-registers', id] });
 
-			navigate('/waybills'); // adjust route as needed
+			navigate('/monthly-waybills'); // adjust route as needed
 		} catch (error) {
 			const message = getError(error);
 			toast.error(message);

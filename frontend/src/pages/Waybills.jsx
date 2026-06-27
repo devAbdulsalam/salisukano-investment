@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo, useContext } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
@@ -24,8 +24,9 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { fetchRegisteredWaybills } from '../hooks/axiosApis';
 import AddCommissionModal from '../components/modals/AddIncentiveModal';
-
+import { months } from '../data.js';
 const API_URL = import.meta.env.VITE_API_URL;
+// jonney english reborn
 
 const InvoicesPage = () => {
 	const navigate = useNavigate();
@@ -38,8 +39,32 @@ const InvoicesPage = () => {
 	const [logoBase64, setLogoBase64] = useState('');
 	const [sealBase64, setSealBase64] = useState('');
 	const [phoneBase64, setPhoneBase64] = useState('');
-	const [date, setDate] = useState('');
 	const [endDate, setEndDate] = useState('');
+	const [startDate, setStartDate] = useState('');
+	const [searchParams, setSearchParams] = useSearchParams();
+	const yearFromUrl = searchParams.get('year');
+	const monthFromUrl = searchParams.get('month');
+	// Convert to numbers and validate
+	const year = yearFromUrl ? parseInt(yearFromUrl, 10) : null;
+	const month = monthFromUrl ? parseInt(monthFromUrl, 10) : null;
+
+	const monthLabel = months.find((m) => m.value === month)?.label || '';
+	useEffect(() => {
+		if (year && month && month >= 1 && month <= 12) {
+			// Format as YYYY-MM-DD (first day of month)
+			setStartDate(`${year}-${String(month).padStart(2, '0')}-01`);
+			setEndDate(`${year}-${String(month).padStart(2, '0')}-31`);
+		} else {
+			// Optionally set a default (e.g., current month)
+			const now = new Date();
+			setStartDate(
+				`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`,
+			);
+			setEndDate(
+				`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-31`,
+			);
+		}
+	}, [year, month]);
 
 	// State for search and sort
 	const [searchTerm, setSearchTerm] = useState('');
@@ -104,22 +129,22 @@ const InvoicesPage = () => {
 		}
 
 		// Apply date filter
-		if (date || endDate) {
+		if (startDate || endDate) {
 			let startOfDay = null;
 			let endOfDay = null;
 
-			if (date) {
-				startOfDay = new Date(date);
+			if (startDate) {
+				startOfDay = new Date(startDate);
 				startOfDay.setHours(0, 0, 0, 0);
-				endOfDay = new Date(date);
+				endOfDay = new Date(startDate);
 				endOfDay.setHours(23, 59, 59, 999);
 			}
 
-			if (endDate && !date) {
+			if (endDate && !startDate) {
 				// Only endDate provided: up to and including that day
 				endOfDay = new Date(endDate);
 				endOfDay.setHours(23, 59, 59, 999);
-			} else if (endDate && date) {
+			} else if (endDate && startDate) {
 				// Both provided: endDate becomes the end of its day
 				const tempEnd = new Date(endDate);
 				tempEnd.setHours(23, 59, 59, 999);
@@ -170,14 +195,19 @@ const InvoicesPage = () => {
 		}
 
 		return filtered;
-	}, [waybills, searchTerm, date, endDate, sortConfig]);
+	}, [waybills, searchTerm, startDate, endDate, sortConfig]);
 
 	useEffect(() => {
-		if (searchTerm && date && endDate && filteredAndSortedWaybills.length > 0) {
+		if (
+			searchTerm &&
+			startDate &&
+			endDate &&
+			filteredAndSortedWaybills.length > 0
+		) {
 			// Do something
 			setIsCommissioned(true);
 		}
-	}, [searchTerm, date, endDate, filteredAndSortedWaybills]);
+	}, [searchTerm, startDate, endDate, filteredAndSortedWaybills]);
 	// calculate stats from filtered and sorted waybills
 	const gross = filteredAndSortedWaybills.reduce(
 		(acc, inv) => acc + inv.gross,
@@ -202,7 +232,7 @@ const InvoicesPage = () => {
 	};
 
 	const handleReset = () => {
-		setDate('');
+		setStartDate('');
 		setEndDate('');
 		setSearchTerm('');
 	};
@@ -760,27 +790,15 @@ const InvoicesPage = () => {
 		<div className="p-6 bg-gray-50 min-h-screen">
 			{/* Header */}
 			<div className="flex justify-between items-center mb-6">
-				<h1 className="text-xl md:text-3xl font-bold text-gray-800">
-					{/* <span onClick={() => navigate(`/registered-invoices`)}>Invoice</span>{' '}
-					/{' '}
-					<span className="text-blue-600" onClick={() => navigate(`/waybills`)}> */}
-					Register
-					{/* </span> */}
+				<h1 className="text-lg md:text-xl font-bold text-gray-800">
+					Register for {monthLabel} {year}
 				</h1>
-				{/* <div className="flex gap-2 flex-col md:flex-row">
-					<button
-						onClick={() => navigate('/register-invoices')}
-						className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-					>
-						Invoice
-					</button> */}
 				<button
 					onClick={() => navigate('/waybill')}
 					className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
 				>
 					Register
 				</button>
-				{/* </div> */}
 			</div>
 
 			<div className="w-full grid sm:grid-cols-2 md:grid-cols-4 gap-4  col-span-12 mb-2">
@@ -878,8 +896,8 @@ const InvoicesPage = () => {
 					<p className="text-black text-sm">Start date</p>
 					<input
 						type="date"
-						value={date}
-						onChange={(e) => setDate(e.target.value)}
+						value={startDate}
+						onChange={(e) => setStartDate(e.target.value)}
 						className="input w-full h-[46px] rounded-md border border-gray6 px-2 text-base"
 					/>
 				</div>
@@ -988,7 +1006,7 @@ const InvoicesPage = () => {
 						{filteredAndSortedWaybills.length === 0 ? (
 							<tr>
 								<td colSpan="7" className="px-6 py-4 text-center text-gray-500">
-									No invoices found.
+									No waybill found.
 								</td>
 							</tr>
 						) : (

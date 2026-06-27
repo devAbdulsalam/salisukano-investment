@@ -40,6 +40,24 @@ export const fetchRegisteredWaybills = async (user) => {
 		return error;
 	}
 };
+export const fetchMonthlyWaybills = async (user) => {
+	try {
+		const config = {
+			headers: {
+				Authorization: `Bearer ${user?.token}`,
+			},
+		};
+		const { data } = await axios.get(
+			`${apiUrl}/waybill-registers/monthly`,
+			config,
+		);
+		console.log('monthly waybills', data);
+		return data.data;
+	} catch (error) {
+		console.log(error.message);
+		return error;
+	}
+};
 export const fetchRegisteredWaybill = async (id, user) => {
 	try {
 		const config = {
