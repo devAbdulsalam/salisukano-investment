@@ -116,6 +116,7 @@ const Shareholder = () => {
 				closingBalance: 0,
 				totalDeposits: 0,
 				totalWithdrawals: 0,
+				totalDividendRate: 0,
 			};
 		}
 
@@ -136,12 +137,18 @@ const Shareholder = () => {
 
 		const closingBalance = investment + totalDividend;
 
+		const totalDividendRate = filteredDividends.reduce(
+			(acc, item) => acc + Number(item.percentage || 0),
+			0,
+		);
+
 		return {
 			totalDeposits,
 			totalWithdrawals,
 			investment,
 			totalDividend,
 			closingBalance,
+			totalDividendRate,
 		};
 	}, [data, filteredTransactions, filteredDividends]);
 
@@ -467,7 +474,9 @@ const Shareholder = () => {
 							onClick={() => setDividendModal(true)}
 							className="cursor-pointer w-full flex justify-between gap-2 items-end mb-4 text-green-600"
 						>
-							<p className="text-gray-500 text-sm ">Total Dividends</p>
+							<p className="text-gray-500 text-sm ">
+								Total Dividend ({stats.totalDividendRate}%)
+							</p>
 							<Plus size={18} />
 						</div>
 						<h3 className="font-bold text-xl text-green-600">
@@ -585,35 +594,41 @@ const Shareholder = () => {
 								<table className="w-full rounded-lg border border-gray-200 overflow-x-auto">
 									<thead>
 										<tr className="bg-gray-100">
+											<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+												S/N
+											</th>
 											<th className="px-4 py-2 text-left font-medium text-gray-500">
 												Month
 											</th>
 											<th className="px-4 py-2 text-left font-medium text-gray-500">
-												Rate
+												Rate (%)
 											</th>
 											<th className="px-4 py-2 text-left font-medium text-gray-500">
-												Dividend
+												Dividend (₦)
 											</th>
 											<th className="px-4 py-2 text-left font-medium text-gray-500">
-												Total
+												Total (₦)
 											</th>
 										</tr>
 									</thead>
 
 									<tbody>
-										{filteredDividends.map((dividend) => (
+										{filteredDividends.map((dividend, index) => (
 											<tr
 												key={dividend._id}
 												className="border-t hover:bg-gray-50"
 											>
+												<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+													{index + 1}
+												</td>
 												<td className="p-3">{getMonth(dividend.month)}</td>
 
 												<td className="p-3">{dividend.percentage}%</td>
 
 												<td className="p-3 text-green-600 font-medium">
-													₦{currency(dividend.dividendAmount)}
+													{currency(dividend.dividendAmount)}
 												</td>
-												<td className="p-3">₦{currency(dividend.total)}</td>
+												<td className="p-3">{currency(dividend.total)}</td>
 											</tr>
 										))}
 									</tbody>
@@ -632,6 +647,9 @@ const Shareholder = () => {
 								<table className="min-w-full rounded-lg border text-sm">
 									<thead className="bg-gray-100 ">
 										<tr>
+											<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+												S/N
+											</th>
 											<th className="px-4 py-2 text-left font-medium text-gray-500">
 												Date
 											</th>
@@ -639,7 +657,7 @@ const Shareholder = () => {
 												Type
 											</th>
 											<th className="px-4 py-2 text-left font-medium text-gray-500">
-												Amount
+												Amount (₦)
 											</th>
 											<th className="px-4 py-2 text-left font-medium text-gray-500">
 												Effective Month/Year
@@ -662,6 +680,9 @@ const Shareholder = () => {
 										) : (
 											filteredTransactions.map((tx, idx) => (
 												<tr key={idx} className="hover:bg-gray-50">
+													<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+														{idx + 1}
+													</td>
 													<td className="px-4 py-2 whitespace-nowrap">
 														{formatDate(tx.createdAt)}
 													</td>
@@ -689,7 +710,9 @@ const Shareholder = () => {
 															{currency(tx.amount)}
 														</span>
 													</td>
-													<td className="p-3">{getMonth(tx.effectiveMonth)}</td>
+													<td className="p-3">
+														{getMonth(tx.effectiveMonth)}, {tx.effectiveYear}
+													</td>
 													<td className="px-4 py-2 whitespace-nowrap">
 														{tx.description || '—'}
 													</td>

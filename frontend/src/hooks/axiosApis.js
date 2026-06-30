@@ -851,3 +851,23 @@ export const fetchDividendRates = async (prop, year) => {
 		return error;
 	}
 };
+
+export const createShareholderApi = async (payload, user) => {
+	const config = {
+		headers: { Authorization: `Bearer ${user?.token}` },
+	};
+	const { data } = await axios.post(`${apiUrl}/shareholders`, payload, config);
+	return data;
+};
+
+export const startNewFinancialYearApi = async (payload, user) => {
+	const config = {
+		headers: { Authorization: `Bearer ${user?.token}` },
+	};
+	const { data } = await axios.post(
+		`${apiUrl}/shareholders/new-financial-year`,
+		payload,
+		config,
+	);
+	return data;
+};

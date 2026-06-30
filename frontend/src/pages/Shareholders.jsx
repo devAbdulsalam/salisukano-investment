@@ -28,6 +28,12 @@ import { useNavigate } from 'react-router-dom';
 
 import { useSearchParams } from 'react-router-dom';
 
+const currency = (amount) =>
+	Number(amount || 0).toLocaleString(undefined, {
+		minimumFractionDigits: 2,
+		maximumFractionDigits: 2,
+	});
+
 const Shareholders = () => {
 	const queryClient = useQueryClient();
 	const { user } = useContext(AuthContext);
@@ -154,17 +160,29 @@ const Shareholders = () => {
 	}, [filteredShareholders, sortConfig]);
 
 	// Compute totals
-	const total = useMemo(() => {
+	const stats = useMemo(() => {
 		if (!sortedShareholders?.length) {
-			return 0;
+			return { total: 0, dividendRate: 0 };
 		}
-		return (
-			sortedShareholders?.reduce(
-				(acc, exp) => acc + exp.currentInvestment,
-				0,
-			) || 0
+
+		const totalDividends = sortedShareholders.reduce(
+			(acc, s) => acc + s.totalDividendEarned,
+			0,
 		);
+		const totalInvestment = sortedShareholders.reduce(
+			(acc, s) => acc + s.currentInvestment,
+			0,
+		);
+		const dividendRate =
+			totalInvestment > 0 ? (totalDividends / totalInvestment) * 100 : 0;
+
+		return {
+			total: totalInvestment,
+			totalDividends,
+			dividendRate,
+		};
 	}, [sortedShareholders]);
+	console.log('stats', stats);
 	// Handlers
 	const handleEdit = (Shareholder) => {
 		setSelectedShareholder(Shareholder);
@@ -485,21 +503,18 @@ const Shareholders = () => {
 						Shareholders
 					</h1>
 					<button
-						onClick={() => setIsAddModal(true)}
+						onClick={() => navigate('/new-shareholders')}
 						className="text-sm px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
 					>
 						<span className="hidden md:inline">Add </span>{' '}
 						<Plus size={16} className="inline md:hidden" />
-						Shareholder
+						Shareholders
 					</button>
 				</div>
 
 				{/* Summary Cards */}
 				<div className="w-full grid sm:grid-cols-2 md:grid-cols-3 gap-4 mb-4">
-					<div
-						// onClick={() => navigate('/dividend-rates')}
-						className="p-5 bg-white flex flex-col rounded-xl gap-2 border border-gray-200 hover:shadow-md"
-					>
+					<div className="p-5 bg-white flex flex-col rounded-xl gap-2 border border-gray-200 hover:shadow-md">
 						<h2 className="text-gray-500 text-sm font-medium mb-4">
 							{year} Financial Year
 						</h2>
@@ -511,10 +526,12 @@ const Shareholders = () => {
 						<h2 className="text-gray-500 text-sm font-medium mb-4">
 							Total Investment
 						</h2>
-						<span className="text-xl font-bold">₦{total.toLocaleString()}</span>
+						<span className="text-xl font-bold text-blue-600">
+							₦{stats.total.toLocaleString()}
+						</span>
 					</div>
 					<div
-						onClick={() => navigate('/dividend-rates')}
+						onClick={() => navigate(`/dividend-rates/${year}`)}
 						className="p-5 bg-white flex flex-col rounded-xl gap-2 border border-gray-200 hover:shadow-md"
 					>
 						<div className="w-full flex gap-2 justify-between items-end mb-4 text-green-600">
@@ -523,7 +540,9 @@ const Shareholders = () => {
 							</h2>
 							<Pencil size={18} />
 						</div>
-						<span className="text-xl font-bold">1%</span>
+						<span className="text-xl font-bold text-green-600">
+							{stats.dividendRate}%
+						</span>
 					</div>
 				</div>
 				<div className="p-3 md:p-5 bg-white rounded-xl  border border-gray-200">
@@ -580,13 +599,6 @@ const Shareholders = () => {
 								</label>
 								<div className="flex justify-between items-center gap-2 text-sm">
 									<button
-										onClick={() => navigate(`/dividend-rates/${year}`)}
-										className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors whitespace-nowrap flex items-center gap-1"
-									>
-										Dividend
-										<span className="hidden md:block">Rate</span> (%)
-									</button>
-									<button
 										disabled={loading}
 										onClick={handleDownload}
 										className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center gap-2 whitespace-nowrap"
@@ -636,7 +648,7 @@ const Shareholders = () => {
 										onClick={() => requestSort('name')}
 									>
 										<div className="flex items-center gap-1">
-											Dividend
+											Dividend (₦)
 											{/* <ArrowUpDown size={14} /> */}
 										</div>
 									</th>
@@ -726,6 +738,34 @@ const Shareholders = () => {
 									))
 								)}
 							</tbody>
+							{/* Footer totals */}
+							{sortedShareholders.length > 0 && (
+								<tfoot className="bg-gray-50 border-t">
+									<tr>
+										<td
+											colSpan={3}
+											className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase"
+										>
+											Total ({sortedShareholders.length} shareholder
+											{sortedShareholders.length !== 1 ? 's' : ''})
+										</td>
+										{stats.totalDividends > 0 && (
+											<td
+												// colSpan={3}
+												className="px-4 py-3 text-xs text-left font-bold text-green-600"
+											>
+												₦{currency(stats.totalDividends)}
+											</td>
+										)}
+										<td
+											colSpan={3}
+											className="px-4 py-3 text-xs font-bold text-gray-800"
+										>
+											₦{currency(stats.total)}
+										</td>
+									</tr>
+								</tfoot>
+							)}
 						</table>
 					</div>
 				</div>

@@ -22,7 +22,7 @@ const Receipt = () => {
 		queryKey: ['debtors', id],
 		queryFn: async () => fetchDebtor({ user, id }),
 	});
-	const title = "Debtor's Receipt";
+	const title = "Debtor's Ledger";
 	useEffect(() => {
 		// if (data && data.length > 0) {
 		if (data) {
@@ -157,7 +157,7 @@ const Receipt = () => {
 															{item.balance}
 														</td>
 													</tr>
-											  ))
+												))
 											: ''}
 									</tbody>
 								</table>

@@ -21,9 +21,16 @@ const MonthlyExpenses = () => {
 	const navigate = useNavigate();
 	const { user } = useContext(AuthContext);
 
-	const [sortConfig, setSortConfig] = useState({ key: 'month', direction: 'desc' });
+	const [sortConfig, setSortConfig] = useState({
+		key: 'month',
+		direction: 'desc',
+	});
 
-	const { data = [], isLoading, error } = useQuery({
+	const {
+		data = [],
+		isLoading,
+		error,
+	} = useQuery({
 		queryKey: ['monthly-expenses'],
 		queryFn: () => fetchMonthlyExpenses(user),
 		enabled: !!user,
@@ -67,10 +74,13 @@ const MonthlyExpenses = () => {
 
 	/** Returns the appropriate sort icon for a column header. */
 	const SortIcon = ({ colKey }) => {
-		if (sortConfig.key !== colKey) return <ArrowUpDown size={14} className="text-gray-400" />;
-		return sortConfig.direction === 'asc'
-			? <ArrowUp size={14} className="text-blue-500" />
-			: <ArrowDown size={14} className="text-blue-500" />;
+		if (sortConfig.key !== colKey)
+			return <ArrowUpDown size={14} className="text-gray-400" />;
+		return sortConfig.direction === 'asc' ? (
+			<ArrowUp size={14} className="text-blue-500" />
+		) : (
+			<ArrowDown size={14} className="text-blue-500" />
+		);
 	};
 
 	if (isLoading) return <Loader />;
@@ -99,17 +109,21 @@ const MonthlyExpenses = () => {
 			{/* Summary Cards */}
 			<div className="w-full grid sm:grid-cols-3 gap-4 mb-6">
 				<div className="p-5 bg-white flex flex-col rounded-xl gap-2 border border-gray-200 hover:shadow-md">
-					<span className="text-gray-500 text-sm font-medium">Total Months</span>
+					<span className="text-gray-500 text-sm font-medium">
+						Total Months
+					</span>
 					<span className="text-xl font-bold">{data.length}</span>
 				</div>
 				<div className="p-5 bg-white flex flex-col rounded-xl gap-2 border border-gray-200 hover:shadow-md">
-					<span className="text-gray-500 text-sm font-medium">Grand Total (NGN)</span>
+					<span className="text-gray-500 text-sm font-medium">Grand Total</span>
 					<span className="text-xl font-bold">
-						{grandTotal.toLocaleString()}
+						₦{grandTotal.toLocaleString()}
 					</span>
 				</div>
 				<div className="p-5 bg-white flex flex-col rounded-xl gap-2 border border-gray-200 hover:shadow-md">
-					<span className="text-gray-500 text-sm font-medium">Highest Month</span>
+					<span className="text-gray-500 text-sm font-medium">
+						Highest Month
+					</span>
 					<span className="text-xl font-bold">
 						{peakMonth
 							? `${getMonthLabel(peakMonth.month)} ${peakMonth.year}`
@@ -117,7 +131,7 @@ const MonthlyExpenses = () => {
 					</span>
 					{peakMonth && (
 						<span className="text-sm text-gray-400">
-							NGN {peakMonth.total.toLocaleString()}
+							₦{peakMonth.total.toLocaleString()}
 						</span>
 					)}
 				</div>
@@ -132,23 +146,29 @@ const MonthlyExpenses = () => {
 								S/N
 							</th>
 							<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer">
-								<div 
-									onClick={() => requestSort('month')} className="flex items-center gap-1 cursor-pointer select-none">
+								<div
+									onClick={() => requestSort('month')}
+									className="flex items-center gap-1 cursor-pointer select-none"
+								>
 									Month
 									<SortIcon colKey="month" />
 								</div>
 							</th>
 							<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer cursor-pointer select-none">
-								<div 
-									onClick={() => requestSort('count')} className="flex items-center gap-1">
+								<div
+									onClick={() => requestSort('count')}
+									className="flex items-center gap-1"
+								>
 									No. of Records
 									<SortIcon colKey="count" />
 								</div>
 							</th>
 							<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer">
-								<div 
-									onClick={() => requestSort('total')} className="flex items-center gap-1">
-									Total (NGN)
+								<div
+									onClick={() => requestSort('total')}
+									className="flex items-center gap-1"
+								>
+									Total (₦)
 									<SortIcon colKey="total" />
 								</div>
 							</th>
@@ -189,7 +209,10 @@ const MonthlyExpenses = () => {
 					{data.length > 0 && (
 						<tfoot className="bg-gray-50 border-t border-gray-200">
 							<tr>
-								<td colSpan={3} className="px-6 py-3 text-sm font-bold text-gray-700 text-right">
+								<td
+									colSpan={3}
+									className="px-6 py-3 text-sm font-bold text-gray-700 text-right"
+								>
 									Grand Total
 								</td>
 								<td className="px-6 py-3 text-sm font-bold text-gray-900">

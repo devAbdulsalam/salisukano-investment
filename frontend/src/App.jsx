@@ -51,6 +51,7 @@ import Dividends from './pages/Dividends';
 import MonthlyWaybill from './pages/MonthlyWaybill';
 import MonthlyExpenses from './pages/MonthlyExpenses';
 import DividendRatesPage from './pages/DividendRatesPage';
+import AddShareholders from './pages/AddShareholders';
 function App() {
 	const [loading, setLoading] = useState(true);
 
@@ -141,6 +142,7 @@ function App() {
 							/>
 							<Route path="/financial-statement" element={<Statement />} />
 							<Route path="/shareholders" element={<Shareholders />} />
+							<Route path="/new-shareholders" element={<AddShareholders />} />
 							<Route path="/shareholders/:id" element={<Shareholder />} />
 							<Route path="/shareholders/:id/:year" element={<Shareholder />} />
 							<Route path="/dividends" element={<Dividends />} />

@@ -34,7 +34,7 @@ const Dashboard = ({ openSideBar }) => {
 	};
 	return (
 		<>
-			<main className=" w-full py-3 pl-7 pr-5 grid xl:grid-cols-12 lg:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-5 justify-start">
+			<main className="w-full py-3 pl-7 pr-5 grid xl:grid-cols-12 lg:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-5 justify-start md:justify-center">
 				<Cards openSideBar={openSideBar} data={data} />
 				<Charts data={data} />
 				<RecentTransactions

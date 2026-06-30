@@ -27,9 +27,15 @@ const Expences = () => {
 	const [searchParams] = useSearchParams();
 
 	// Read month/year from URL (set by MonthlyExpenses navigation)
-	const urlMonth = searchParams.get('month') ? parseInt(searchParams.get('month'), 10) : null;
-	const urlYear = searchParams.get('year') ? parseInt(searchParams.get('year'), 10) : null;
-	const monthLabel = urlMonth ? months.find((m) => m.value === urlMonth)?.label : null;
+	const urlMonth = searchParams.get('month')
+		? parseInt(searchParams.get('month'), 10)
+		: null;
+	const urlYear = searchParams.get('year')
+		? parseInt(searchParams.get('year'), 10)
+		: null;
+	const monthLabel = urlMonth
+		? months.find((m) => m.value === urlMonth)?.label
+		: null;
 
 	// UI states
 	const [isAddModal, setIsAddModal] = useState(false);
@@ -492,14 +498,16 @@ const Expences = () => {
 						<span className="text-gray-500 text-sm font-medium">
 							Total Expenses
 						</span>
-						<span className="text-xl font-bold">{total.toLocaleString()}</span>
+						<span className="text-xl font-bold">
+							₦{total.toLocaleString()}
+						</span>
 					</div>
 					<div className="p-5 bg-white flex flex-col rounded-xl gap-2 border border-gray-200 hover:shadow-md">
 						<span className="text-gray-500 text-sm font-medium">
 							This Month
 						</span>
 						<span className="text-xl font-bold">
-							{thisMonthExpense.toLocaleString()}
+							₦{thisMonthExpense.toLocaleString()}
 						</span>
 					</div>
 				</div>
@@ -566,7 +574,7 @@ const Expences = () => {
 									className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none"
 								>
 									<div className="flex items-center gap-1">
-										Amount
+										Amount (₦)
 										<ArrowUpDown size={14} />
 									</div>
 								</th>

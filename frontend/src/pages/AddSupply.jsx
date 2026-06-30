@@ -67,7 +67,7 @@ const AddSupply = () => {
 			const normalizedMonth = new Date(
 				new Date(data?.account?.month).getFullYear(),
 				new Date(data?.account?.month).getMonth(),
-				1
+				1,
 			);
 			// console.log(data);
 			const month = normalizedMonth.toLocaleDateString('en-GB', {
@@ -79,7 +79,7 @@ const AddSupply = () => {
 			const min = new Date(
 				normalizedMonth.getFullYear(),
 				normalizedMonth.getMonth(),
-				1
+				1,
 			);
 			setMinDate(min?.toISOString().split('T')[0]);
 
@@ -87,7 +87,7 @@ const AddSupply = () => {
 			const max = new Date(
 				normalizedMonth.getFullYear(),
 				normalizedMonth.getMonth() + 1,
-				1
+				1,
 			);
 			setMaxDate(max.toISOString().split('T')[0]);
 		}
@@ -99,7 +99,7 @@ const AddSupply = () => {
 
 	const total = useMemo(() => {
 		return Math.ceil(
-			materials.reduce((acc, material) => acc + material.cost, 0)
+			materials.reduce((acc, material) => acc + material.cost, 0),
 		);
 	}, [materials]);
 
@@ -116,17 +116,33 @@ const AddSupply = () => {
 	};
 
 	const addMaterials = () => {
-		if (materials.length >= 3) return;
-		setMaterials((prevMaterials) => [
-			...prevMaterials,
-			{ product: '', qty: '', rate: '', cost: 0 },
+		// 1. Get the list of product names already in the state
+		const usedProducts = materials.map((item) => item.product);
+
+		// 2. Find the first product from materialsData that hasn't been added yet
+		const nextProduct = materialsData.find(
+			(dataItem) => !usedProducts.includes(dataItem.name),
+		);
+
+		// 3. If none left, do nothing (or optionally show a message)
+		if (!nextProduct) return;
+
+		// 4. Add the new material with the product name and default values
+		setMaterials((prev) => [
+			...prev,
+			{
+				product: nextProduct.name,
+				qty: '',
+				rate: '',
+				cost: 0,
+			},
 		]);
 	};
 
 	const removeMaterial = (indexToRemove) => {
 		if (materials.length <= 1) return;
 		setMaterials((prevMaterials) =>
-			prevMaterials.filter((_, index) => index !== indexToRemove)
+			prevMaterials.filter((_, index) => index !== indexToRemove),
 		);
 	};
 
@@ -254,6 +270,13 @@ const AddSupply = () => {
 								<h4 className="text-sm mb-0 font-semibold text-black">
 									Products
 								</h4>
+
+								<button
+									onClick={addMaterials}
+									className="text-center rounded-sm h-8 w-8 bg-green-50 hover:bg-green-500 text-green-500 hover:text-green-50 flex items-center justify-center"
+								>
+									<FaPlus className="text-xl" />
+								</button>
 							</div>
 							{materials.map((item, index) => (
 								<div
@@ -369,7 +392,7 @@ const AddSupply = () => {
 									/>
 									<button
 										onClick={addMaterials}
-										className=" hover:bg-green-500 hover:text-white bg-gray-100 text-green-500 rounded-sm w-6 h-6 flex items-center justify-center"
+										className="text-center rounded-sm h-8 w-8 bg-green-50 hover:bg-green-500 text-green-500 hover:text-green-50 flex items-center justify-center"
 									>
 										<FaPlus className="text-xl" />
 									</button>

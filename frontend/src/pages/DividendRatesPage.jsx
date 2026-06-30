@@ -87,7 +87,18 @@ const DividendRatesPage = () => {
 				? Math.min(...existing.map((item) => item.percentage))
 				: 0;
 
-		return { totalMonths, averageRate, highestRate, lowestRate };
+		const totalDividend =
+			totalMonths > 0
+				? existing.reduce((acc, item) => acc + Number(item.percentage), 0)
+				: 0;
+
+		return {
+			totalMonths,
+			averageRate,
+			highestRate,
+			lowestRate,
+			totalDividend,
+		};
 	}, [rates]);
 
 	// Derive a stable sorted array from the editable map for rendering / PDF
@@ -364,7 +375,7 @@ const DividendRatesPage = () => {
 			</div>
 
 			{/* Summary Cards */}
-			<div className="grid md:grid-cols-4 gap-4 mb-6">
+			<div className="grid md:grid-cols-5 gap-4 mb-6">
 				<div className="bg-white rounded-lg shadow p-4">
 					<p className="text-sm text-gray-500">Year</p>
 					<h2 className="text-2xl font-bold">{year}</h2>
@@ -372,6 +383,12 @@ const DividendRatesPage = () => {
 				<div className="bg-white rounded-lg shadow p-4">
 					<p className="text-sm text-gray-500">Months Configured</p>
 					<h2 className="text-2xl font-bold">{stats.totalMonths}/12</h2>
+				</div>
+				<div className="bg-white rounded-lg shadow p-4">
+					<p className="text-sm text-gray-500">Total Dividend</p>
+					<h2 className="text-2xl font-bold text-green-600">
+						{stats.totalDividend}%
+					</h2>
 				</div>
 				<div className="bg-white rounded-lg shadow p-4">
 					<p className="text-sm text-gray-500">Highest Rate</p>
@@ -407,7 +424,7 @@ const DividendRatesPage = () => {
 								(_, index) => currentYear - 5 + index,
 							).map((yr) => (
 								<option key={yr} value={yr}>
-									{yr}
+									{yr} Financial Year
 								</option>
 							))}
 						</select>
@@ -425,6 +442,9 @@ const DividendRatesPage = () => {
 					<table className="w-full rounded-lg border border-gray-200">
 						<thead>
 							<tr className="bg-gray-100">
+								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+									S/N
+								</th>
 								<th className="p-3 text-left">Month</th>
 								<th className="border p-3 text-left whitespace-nowrap">
 									Dividend %
@@ -432,17 +452,20 @@ const DividendRatesPage = () => {
 							</tr>
 						</thead>
 						<tbody>
-							{yearlyRates.map((item) => (
+							{yearlyRates.map((item, index) => (
 								<tr key={item.month} className="border-t hover:bg-gray-50">
+									<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+										{index + 1}
+									</td>
 									<td className="p-3">{item.name}</td>
 
 									<td className="border px-1 whitespace-nowrap min-w-[130px]">
 										<input
 											type="number"
 											step="0.01"
-											className="w-full p-1 bg-transparent"
 											value={item.percentage}
 											onChange={(e) => updateRow(item.month, e.target.value)}
+											className="border rounded px-2 py-1 w-full text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-blue-400"
 										/>
 									</td>
 								</tr>
