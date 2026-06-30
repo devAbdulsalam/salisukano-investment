@@ -99,7 +99,7 @@ const Receipt = () => {
 										</p>
 										{InvoiceDate && (
 											<p className="text-sm font-normal text-[#637381]">
-												From:{InvoiceDate}{' '}
+												From:{InvoiceDate?.toLocaleDateString()}
 											</p>
 										)}
 										<p className="text-sm font-normal text-[#637381]">
