@@ -418,17 +418,17 @@ const VtcInvoice = () => {
 			doc.text('Plaza 5th Avenue', 14, 47);
 			doc.text('Gwarimpa, Abuja, Nigeria.', 14, 51);
 			doc.setFontSize(10);
-			doc.text('GSM: 08023239018, 08067237273', pageWidth / 2, 40, {
+			doc.text('GSM: 08023239018, 08067237273', pageWidth / 2, 39, {
 				align: 'center',
 			});
 
 			doc.setFontSize(12);
-			doc.text('No:', pageWidth - 72, 45);
+			doc.text('No:', pageWidth - 72, 51);
 			// Title
 			doc.setFont('helvetica', 'bold');
 			doc.setFontSize(14);
 			doc.setFillColor(0);
-			doc.rect(pageWidth / 2 - 29, 42, 56, 10, 'F');
+			doc.rect(pageWidth / 2 - 29, 41, 56, 10, 'F');
 			doc.setTextColor(255);
 
 			doc.setLineWidth(0.4);
@@ -447,31 +447,31 @@ const VtcInvoice = () => {
 
 			doc.setFont('helvetica', 'bold');
 			doc.text('Customer Name:', 14, infoY);
-			doc.text('Date:', pageWidth - 60, infoY);
+			doc.text('Date:', pageWidth - 100, infoY);
 
 			doc.setFont('helvetica', 'normal');
 			doc.text(formData.name || '-', 45, infoY);
-			doc.text(formData.date || '-', pageWidth - 40, infoY);
+			doc.text(formData.date || '-', pageWidth - 80, infoY);
 
 			infoY += 8;
 
 			doc.setFont('helvetica', 'bold');
-			doc.text('Vehicle Reg. No:', 14, infoY);
-			doc.text('Time In:', pageWidth - 60, infoY);
+			doc.text('Vehicle Reg. No.:', 14, infoY);
+			doc.text('Time In:', pageWidth - 100, infoY);
 
 			doc.setFont('helvetica', 'normal');
 			doc.text(formData.vehicle || '-', 45, infoY);
-			doc.text(formData.timeIn || '-', pageWidth - 40, infoY);
+			doc.text(formData.timeIn || '-', pageWidth - 80, infoY);
 
 			infoY += 8;
 
 			doc.setFont('helvetica', 'bold');
 			doc.text('Destination:', 14, infoY);
-			doc.text('Time Out:', pageWidth - 60, infoY);
+			doc.text('Time Out:', pageWidth - 100, infoY);
 
 			doc.setFont('helvetica', 'normal');
 			doc.text(formData.destination || '-', 45, infoY);
-			doc.text(formData.timeOut || '-', pageWidth - 40, infoY);
+			doc.text(formData.timeOut || '-', pageWidth - 80, infoY);
 
 			// doc.setLineWidth(0.4);
 			// doc.line(14, infoY + 5, pageWidth - 14, infoY + 5);
@@ -621,7 +621,7 @@ const VtcInvoice = () => {
 
 			doc.line(pageWidth - 80, footerY, pageWidth - 14, footerY);
 			doc.text("Agent's Signature", pageWidth - 80, footerY + 5);
-			doc.text("For: Salisu Kano Int'l Ltd", pageWidth - 80, footerY + 10);
+			doc.text('For: V.T.C. Limited', pageWidth - 80, footerY + 10);
 
 			if (sealBase64) {
 				doc.addImage(sealBase64, 'PNG', pageWidth - 76, footerY - 32, 50, 50);
@@ -1142,7 +1142,7 @@ const VtcInvoice = () => {
 
 							<p>_________________________</p>
 							<strong>Agent's Sign</strong>
-							<em>For: VTC Limited</em>
+							<em>For: V.T.C. Limited</em>
 						</div>
 					</div>
 				</div>
