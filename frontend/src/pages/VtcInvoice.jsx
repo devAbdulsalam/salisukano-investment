@@ -1,0 +1,1189 @@
+import React, { useState, useEffect, useMemo, useContext } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import jsPDF from 'jspdf';
+import { Phone, Plus, Trash2 } from 'lucide-react';
+import toast from 'react-hot-toast';
+import axios from 'axios';
+import getError from '../hooks/getError';
+import Loader from '../components/Loader';
+import autoTable from 'jspdf-autotable';
+import { fetchWaybill } from '../hooks/axiosApis';
+import logo from '../assets/vtc-logo.jpeg';
+import seal from '../assets/seal.png';
+import phone from '../assets/call.png';
+import AuthContext from '../context/authContext';
+
+// Helper: generate a unique filename suffix
+const generateFileSuffix = () =>
+	Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+
+// Time slots for selects
+const TIME_SLOTS = [
+	'08:00 AM',
+	'09:00 AM',
+	'10:00 AM',
+	'11:00 AM',
+	'12:00 PM',
+	'01:00 PM',
+	'02:00 PM',
+	'03:00 PM',
+	'04:00 PM',
+	'05:00 PM',
+	'06:00 PM',
+	'07:00 PM',
+	'08:00 PM',
+	'09:00 PM',
+	'10:00 PM',
+	'11:00 PM',
+	'12:00 AM',
+	'01:00 AM',
+	'02:00 AM',
+	'03:00 AM',
+	'04:00 AM',
+	'05:00 AM',
+	'06:00 AM',
+	'07:00 AM',
+];
+
+// Number to words (simplified, can be extracted to a util)
+const numberToWords = (num) => {
+	if (num === 0) return 'Zero';
+	const ones = [
+		'',
+		'One',
+		'Two',
+		'Three',
+		'Four',
+		'Five',
+		'Six',
+		'Seven',
+		'Eight',
+		'Nine',
+	];
+	const tens = [
+		'',
+		'',
+		'Twenty',
+		'Thirty',
+		'Forty',
+		'Fifty',
+		'Sixty',
+		'Seventy',
+		'Eighty',
+		'Ninety',
+	];
+	const teens = [
+		'Ten',
+		'Eleven',
+		'Twelve',
+		'Thirteen',
+		'Fourteen',
+		'Fifteen',
+		'Sixteen',
+		'Seventeen',
+		'Eighteen',
+		'Nineteen',
+	];
+	const convertLessThanThousand = (n) => {
+		if (n === 0) return '';
+		if (n < 10) return ones[n];
+		if (n < 20) return teens[n - 10];
+		if (n < 100)
+			return tens[Math.floor(n / 10)] + (n % 10 ? ' ' + ones[n % 10] : '');
+		return (
+			ones[Math.floor(n / 100)] +
+			' Hundred' +
+			(n % 100 ? ' and ' + convertLessThanThousand(n % 100) : '')
+		);
+	};
+	const chunks = [];
+	let n = num;
+	while (n > 0) {
+		chunks.push(n % 1000);
+		n = Math.floor(n / 1000);
+	}
+	const units = [
+		'',
+		'Thousand',
+		'Million',
+		'Billion',
+		'Trillion',
+		'Quadrillion',
+		'Quintillion',
+	];
+	let words = [];
+	for (let i = 0; i < chunks.length; i++) {
+		if (chunks[i] !== 0) {
+			words.unshift(convertLessThanThousand(chunks[i]) + ' ' + units[i]);
+		}
+	}
+	return words.join(' ').trim() + ' Naira Only';
+};
+
+const VtcInvoice = () => {
+	const { id } = useParams();
+	const navigate = useNavigate();
+	const queryClient = useQueryClient();
+	const apiUrl = import.meta.env.VITE_API_URL;
+	const isEdit = Boolean(id);
+	const { user } = useContext(AuthContext);
+	const [loading, setLoading] = useState(false);
+	const [logoBase64, setLogoBase64] = useState('');
+	const [sealBase64, setSealBase64] = useState('');
+	const [phoneBase64, setPhoneBase64] = useState('');
+	// Fetch invoice data if editing
+	const { data: fetchedData, isLoading: isFetching } = useQuery({
+		queryKey: ['waybills', id],
+		queryFn: () => fetchWaybill(id, user),
+		enabled: isEdit,
+	});
+	// Local state for the form
+	const [formData, setFormData] = useState({
+		name: '',
+		vehicle: '',
+		destination: '',
+		note: '',
+		date: new Date().toISOString().split('T')[0], // YYYY-MM-DD for input[type=date]
+		timeIn: TIME_SLOTS[0],
+		timeOut: TIME_SLOTS[1],
+		company: 'vtc',
+	});
+
+	// Items state
+	const [items, setItems] = useState([
+		{ sn: 1, description: '', qty: '', rate: '', amount: '' },
+		{ sn: 2, description: '', qty: '', rate: '', amount: '' },
+		{ sn: 3, description: '', qty: '', rate: '', amount: '' },
+		{ sn: 4, description: '', qty: '', rate: '', amount: '' },
+		{ sn: 5, description: '', qty: '', rate: '', amount: '' },
+		{ sn: 6, description: '', qty: '', rate: '', amount: '' },
+		{ sn: 7, description: '', qty: '', rate: '', amount: '' },
+		{ sn: 8, description: '', qty: '', rate: '', amount: '' },
+		{ sn: 9, description: '', qty: '', rate: '', amount: '' },
+		{ sn: 10, description: '', qty: '', rate: '', amount: '' },
+	]);
+
+	// Loading state for save operation
+	const [saving, setSaving] = useState(false);
+
+	// Populate form with fetched data when available
+	useEffect(() => {
+		if (fetchedData) {
+			setFormData({
+				name: fetchedData.name || '',
+				note: fetchedData.note || '',
+				vehicle: fetchedData.vehicle || '',
+				destination: fetchedData.destination || '',
+				date: fetchedData.date
+					? new Date(fetchedData.date).toISOString().split('T')[0]
+					: '',
+				timeIn: fetchedData.timeIn || TIME_SLOTS[0],
+				timeOut: fetchedData.timeOut || TIME_SLOTS[0],
+				company: fetchedData.company || 'vtc',
+			});
+			if (fetchedData.items && fetchedData.items.length) {
+				setItems(fetchedData.items);
+			}
+		}
+	}, [fetchedData]);
+
+	// Update a specific item field
+	const updateItem = (index, field, value) => {
+		setItems((prev) => {
+			const updated = [...prev];
+			updated[index][field] = value;
+
+			// Auto-calculate amount if both qty and rate are valid numbers
+			if (field === 'qty' || field === 'rate') {
+				const qty = parseFloat(updated[index].qty) || 0;
+				const rate = parseFloat(updated[index].rate) || 0;
+				updated[index].amount = qty && rate ? (qty * rate).toString() : '';
+			}
+			return updated;
+		});
+	};
+
+	// Add a new empty row
+	const addItem = () => {
+		setItems((prev) => [
+			...prev,
+			{ sn: prev.length + 1, description: '', qty: '', rate: '', amount: '' },
+		]);
+	};
+
+	const removeItem = (sn) => {
+		if (items.length <= 1) return; // keep at least one row
+		const newItems = items.filter((item) => item.sn !== sn);
+		// Re-serialize sn to maintain 1-based consecutive numbers
+		const serializedItems = newItems.map((item, index) => ({
+			...item,
+			sn: index + 1,
+		}));
+		setItems(serializedItems);
+	};
+
+	// Compute total amount
+	const total = useMemo(() => {
+		return items.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+	}, [items]);
+
+	// Validate items: each non‑empty row must have description, qty, rate
+	const validateItems = () => {
+		const incomplete = items.filter((item) => {
+			const hasDescription = item.description.trim() !== '';
+			const hasQty = item.qty.toString().trim() !== '';
+			const hasRate = item.rate.toString().trim() !== '';
+			// If any field is filled, all three must be filled
+			if (hasDescription || hasQty || hasRate) {
+				return !(hasDescription && hasQty && hasRate);
+			}
+			return false; // completely empty rows are allowed
+		});
+		return incomplete.length === 0;
+	};
+
+	// Handle form submission (create or update)
+	const handleSave = async () => {
+		// Basic customer name check
+		if (!formData.name.trim()) {
+			return toast.error('Please enter customer name');
+		}
+
+		if (!validateItems()) {
+			return toast.error(
+				'Please fill in all fields for each item (description, qty, rate)',
+			);
+		}
+
+		setSaving(true);
+		try {
+			const payload = {
+				...formData,
+				items: items.map((item) => ({
+					...item,
+					qty: parseFloat(item.qty) || 0,
+					rate: parseFloat(item.rate) || 0,
+					amount: parseFloat(item.amount) || 0,
+				})),
+				total,
+			};
+
+			// Include auth token if needed
+			// const token = localStorage.getItem('token'); // adjust as needed
+			const config = {
+				headers: { Authorization: `Bearer ${user.token}` },
+			};
+
+			let response;
+			if (isEdit) {
+				response = await axios.put(`${apiUrl}/waybills/${id}`, payload, config);
+				toast.success('Invoice updated successfully');
+			} else {
+				response = await axios.post(`${apiUrl}/waybills`, payload, config);
+				toast.success('Invoice created successfully');
+			}
+
+			// Invalidate relevant queries
+			queryClient.invalidateQueries({ queryKey: ['waybills'] });
+			queryClient.invalidateQueries({ queryKey: ['waybills', id] });
+
+			navigate('/register-invoices'); // adjust route as needed
+		} catch (error) {
+			const message = getError(error);
+			toast.error(message);
+		} finally {
+			setSaving(false);
+		}
+	};
+
+	// Load logo as base64
+	useEffect(() => {
+		const img = new Image();
+		img.crossOrigin = 'anonymous';
+		img.src = logo;
+		img.onload = () => {
+			const canvas = document.createElement('canvas');
+			canvas.width = img.width;
+			canvas.height = img.height;
+			const ctx = canvas.getContext('2d');
+			ctx?.drawImage(img, 0, 0);
+			setLogoBase64(canvas.toDataURL('image/png'));
+		};
+	}, []);
+	useEffect(() => {
+		const img = new Image();
+		img.crossOrigin = 'anonymous';
+		img.src = seal;
+		img.onload = () => {
+			const canvas = document.createElement('canvas');
+			canvas.width = img.width;
+			canvas.height = img.height;
+			const ctx = canvas.getContext('2d');
+			ctx?.drawImage(img, 0, 0);
+			setSealBase64(canvas.toDataURL('image/png'));
+		};
+	}, []);
+	useEffect(() => {
+		const img = new Image();
+		img.crossOrigin = 'anonymous';
+		img.src = phone;
+		img.onload = () => {
+			const canvas = document.createElement('canvas');
+			canvas.width = img.width;
+			canvas.height = img.height;
+			const ctx = canvas.getContext('2d');
+			ctx?.drawImage(img, 0, 0);
+			setPhoneBase64(canvas.toDataURL('image/png'));
+		};
+	}, []);
+
+	// Generate PDF from the waybill preview
+	const downloadPDF = async () => {
+		setLoading(true);
+
+		try {
+			const doc = new jsPDF('p', 'mm', 'a4');
+			const pageWidth = doc.internal.pageSize.getWidth();
+			const pageHeight = doc.internal.pageSize.getHeight();
+
+			// ===============================
+			// WATERMARK (CENTER BACKGROUND)
+			// ===============================
+
+			if (logoBase64) {
+				// const watermarkWidth = 90; // mini size
+				// const watermarkHeight = 90;
+				const watermarkWidth = 120; // large size
+				const watermarkHeight = 120;
+
+				const centerX = (pageWidth - watermarkWidth) / 2;
+				const centerY = (pageHeight - watermarkHeight) / 2;
+
+				// Set low opacity (requires jsPDF v2+)
+				if (doc.setGState) {
+					doc.setGState(new doc.GState({ opacity: 0.04 }));
+				}
+
+				doc.addImage(
+					logoBase64,
+					'PNG',
+					centerX,
+					centerY,
+					watermarkWidth,
+					watermarkHeight,
+				);
+
+				// Reset opacity
+				if (doc.setGState) {
+					doc.setGState(new doc.GState({ opacity: 1 }));
+				}
+			}
+
+			// ===============================
+			// HEADER SECTION
+			// ===============================
+
+			if (logoBase64) {
+				doc.addImage(logoBase64, 'PNG', 14, 10, 24, 24);
+			}
+			doc.setFont('helvetica', 'bold');
+			doc.setFontSize(44);
+			// doc.setLetterSpacing(1);
+			doc.text('V. T. C. LIMITED', pageWidth / 2, 20, {
+				align: 'center',
+			});
+			doc.setFont('helvetica', 'bold');
+			doc.setFontSize(17);
+			doc.text('VICTORY TRUST COMPANY LIMITED', pageWidth / 2, 26, {
+				align: 'center',
+			});
+
+			doc.setFontSize(9);
+			doc.setFont('helvetica', 'bold');
+			doc.text(
+				'Dealers and Suppliers of general goods, Contractors and General Merchandize',
+				pageWidth / 2,
+				30,
+				{ align: 'center' },
+			);
+
+			// if (logoBase64) {
+			// 	doc.addImage(logoBase64, 'PNG', pageWidth - 36, 10, 24, 24);
+			// }
+
+			doc.setFont('helvetica', 'bold');
+			doc.text('HEAD OFFICE:', 14, 39);
+			doc.text('Suit A11, Mustard Seed,', 14, 43);
+			doc.text('Plaza 5th Avenue', 14, 47);
+			doc.text('Gwarimpa, Abuja, Nigeria.', 14, 51);
+			doc.setFontSize(10);
+			doc.text('GSM: 08023239018, 08067237273', pageWidth / 2, 40, {
+				align: 'center',
+			});
+
+			doc.setFontSize(12);
+			doc.text('No:', pageWidth - 72, 45);
+			// Title
+			doc.setFont('helvetica', 'bold');
+			doc.setFontSize(14);
+			doc.setFillColor(0);
+			doc.rect(pageWidth / 2 - 29, 42, 56, 10, 'F');
+			doc.setTextColor(255);
+
+			doc.setLineWidth(0.4);
+			doc.line(36, 33, pageWidth - 36, 33);
+
+			doc.text('WAYBILL / RECEIPT', pageWidth / 2, 48, { align: 'center' });
+			doc.setTextColor(0);
+
+			// ===============================
+			// CUSTOMER INFO SECTION
+			// ===============================
+
+			let infoY = 60;
+
+			doc.setFontSize(10);
+
+			doc.setFont('helvetica', 'bold');
+			doc.text('Customer Name:', 14, infoY);
+			doc.text('Date:', pageWidth - 60, infoY);
+
+			doc.setFont('helvetica', 'normal');
+			doc.text(formData.name || '-', 45, infoY);
+			doc.text(formData.date || '-', pageWidth - 40, infoY);
+
+			infoY += 8;
+
+			doc.setFont('helvetica', 'bold');
+			doc.text('Vehicle Reg. No:', 14, infoY);
+			doc.text('Time In:', pageWidth - 60, infoY);
+
+			doc.setFont('helvetica', 'normal');
+			doc.text(formData.vehicle || '-', 45, infoY);
+			doc.text(formData.timeIn || '-', pageWidth - 40, infoY);
+
+			infoY += 8;
+
+			doc.setFont('helvetica', 'bold');
+			doc.text('Destination:', 14, infoY);
+			doc.text('Time Out:', pageWidth - 60, infoY);
+
+			doc.setFont('helvetica', 'normal');
+			doc.text(formData.destination || '-', 45, infoY);
+			doc.text(formData.timeOut || '-', pageWidth - 40, infoY);
+
+			// doc.setLineWidth(0.4);
+			// doc.line(14, infoY + 5, pageWidth - 14, infoY + 5);
+
+			// ===============================
+			// TABLE SECTION
+			// ===============================
+
+			const tableStartY = infoY + 10;
+
+			// Prepare filled rows
+			const filledRows = items
+				.filter(
+					(item) => item.description || item.qty || item.rate || item.amount,
+				)
+				.map((item, index) => [
+					index + 1,
+					item.description || '',
+					item.qty || '',
+					item.rate ? parseFloat(item.rate).toLocaleString() : '',
+					item.amount ? parseFloat(item.amount).toLocaleString() : '',
+				]);
+
+			// Ensure minimum 10 rows
+			while (filledRows.length < 10) {
+				filledRows.push(['', '', '', '', '']);
+			}
+
+			autoTable(doc, {
+				startY: tableStartY,
+				head: [
+					[
+						'S/N',
+						'Description of Goods',
+						'Qty/Tonnage',
+						'Rate/KG',
+						'Amount (#)',
+					],
+				],
+				body: filledRows,
+				theme: 'grid',
+				styles: {
+					fontSize: 9,
+					cellPadding: 3,
+					lineColor: [0, 0, 0],
+					lineWidth: 0.3,
+				},
+				headStyles: {
+					fillColor: [0, 0, 0],
+					textColor: 255,
+					fontStyle: 'bold',
+					lineWidth: 0.5,
+				},
+				columnStyles: {
+					0: { cellWidth: 12, halign: 'center' },
+					1: { cellWidth: 'auto' },
+					2: { cellWidth: 25, halign: 'right' },
+					3: { cellWidth: 25, halign: 'right' },
+					4: { cellWidth: 30, halign: 'right' },
+				},
+			});
+
+			let finalY = doc.lastAutoTable.finalY;
+
+			// ===============================
+			// TOTAL SECTION
+			// ===============================
+
+			const totalY = finalY + 6;
+
+			doc.setFont('helvetica', 'bold');
+			doc.setFontSize(11);
+
+			const amountText = `# ${total.toLocaleString()}`;
+			const labelText = 'TOTAL:';
+
+			// Measure widths
+			const amountWidth = doc.getTextWidth(amountText);
+			const labelWidth = doc.getTextWidth(labelText);
+
+			// Right margin
+			const rightMargin = 14;
+
+			// Position amount (always right aligned)
+			const amountX = pageWidth - rightMargin;
+
+			// Add amount
+			doc.text(amountText, amountX, totalY, { align: 'right' });
+
+			// Calculate label position dynamically
+			const spacing = 6; // space between label and amount
+			const labelX = amountX - amountWidth - spacing - labelWidth;
+
+			// Add label
+			doc.text(labelText, labelX, totalY);
+			doc.setLineWidth(0.4);
+			doc.line(pageWidth - 60, totalY + 2, pageWidth - 14, totalY + 2);
+
+			// ===============================
+			// AMOUNT IN WORDS
+			// ===============================
+
+			const wordsY = totalY + 12;
+
+			doc.setFont('helvetica', 'bold');
+			doc.text('Amount in Words:', 14, wordsY);
+
+			doc.setLineWidth(0.4);
+			doc.rect(14, wordsY + 3, pageWidth - 28, 15);
+
+			doc.setFont('helvetica', 'normal');
+			doc.setFontSize(9);
+
+			const words = numberToWords(total);
+			const splitWords = doc.splitTextToSize(words, pageWidth - 32);
+			doc.text(splitWords, 16, wordsY + 9);
+
+			// ===============================
+			// OTHER COMMENTS
+			// ===============================
+
+			const commentY = wordsY + 25;
+
+			doc.setFont('helvetica', 'bold');
+			doc.text('Other Comments:', 14, commentY);
+
+			doc.rect(14, commentY + 3, pageWidth - 28, 20);
+
+			doc.setFont('helvetica', 'normal');
+			doc.setFontSize(9);
+
+			if (formData.note) {
+				const noteLines = doc.splitTextToSize(formData.note, pageWidth - 32);
+				doc.text(noteLines, 16, commentY + 9);
+			}
+
+			// ===============================
+			// SIGNATURE SECTION
+			// ===============================
+
+			const footerY = pageHeight - 25;
+
+			doc.setLineWidth(0.4);
+
+			doc.line(14, footerY, 80, footerY);
+			doc.text("Customer's Representative", 14, footerY + 5);
+
+			doc.line(pageWidth - 80, footerY, pageWidth - 14, footerY);
+			doc.text("Agent's Signature", pageWidth - 80, footerY + 5);
+			doc.text("For: Salisu Kano Int'l Ltd", pageWidth - 80, footerY + 10);
+
+			if (sealBase64) {
+				doc.addImage(sealBase64, 'PNG', pageWidth - 76, footerY - 32, 50, 50);
+			}
+
+			// ===============================
+			// SAVE FILE
+			// ===============================
+
+			doc.save(`VTC-waybill-${generateFileSuffix()}.pdf`);
+		} catch (error) {
+			console.error(error);
+			toast.error('Failed to generate PDF');
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	if (isFetching) return <Loader />;
+
+	return (
+		<>
+			<div className="w-full flex flex-col p-4 justify-center">
+				{/* Waybill Preview */}
+				<div className="w-full mx-auto md:w-[800px] bg-white border border-[#E7E7E7] rounded-lg p-4 md:px-8 flex flex-col gap-3">
+					{/* Header */}
+					<div
+						style={{
+							display: 'flex',
+							alignItems: 'center',
+							gap: '10px',
+						}}
+						className="w-full justify-center"
+					>
+						<div style={{ flexShrink: 0 }}>
+							<img
+								src={logo}
+								alt="Salisu Logo"
+								width="80"
+								height="80"
+								style={{ objectFit: 'contain' }}
+							/>
+						</div>
+						<div className="text-center">
+							<h2 className="font-black text-4xl tracking-widest">
+								V. T. C. LIMITED
+							</h2>
+							<h2 className="font-black text-xl tracking-widest">
+								VICTORY TRUST COMPANY LIMITED
+							</h2>
+							<p className="font-bold text-xs">
+								Dealers and Suppliers of general goods, Contractors and General
+								Merchandize
+							</p>
+						</div>
+						<div style={{ flexShrink: 0 }}>
+							<img
+								src={logo}
+								alt="Salisu Logo"
+								width="80"
+								height="80"
+								style={{ objectFit: 'contain' }}
+							/>
+						</div>
+					</div>
+
+					<hr style={{ border: '1px solid #000' }} />
+					<div className="flex justify-start items-start gap-3">
+						<div>
+							<p style={{ margin: '5px 0' }}>
+								<strong>HEAD OFFICE:</strong>
+								<br />
+								Suit A11, Mustard Seed Plaza,
+								<br />
+								5th Avenue, Gwarimpa, Abuja, Nigeria.
+							</p>
+						</div>
+						<div className=" flex flex-col items-center mb-4">
+							<div className="flex justify-center ">
+								<p>
+									<strong>GSM:</strong> 08023239018, 08067237273
+								</p>
+							</div>
+							<div className="bg-white border-2 border-t-black border-x-white border-b-white w-full p-1">
+								<h3 className="bg-black py-1 text-center text-xl font-extrabold text-white w-full px-4 ">
+									WAYBILL/RECEIPT
+								</h3>
+							</div>
+						</div>
+						<div className="flex self-center">
+							<p className="font-extrabold">No.</p>
+						</div>
+					</div>
+
+					{/* Customer Details */}
+
+					<div className="md:flex justify-between mb-2 gap-3">
+						<div className="flex-1 md:flex justify-between items-center gap-1 ">
+							<strong
+								style={{
+									whiteSpace: 'nowrap',
+								}}
+								className="text-xs"
+							>
+								CUSTOMER NAME:
+							</strong>
+							<input
+								id="newCustomer"
+								type="text"
+								value={formData.name}
+								onChange={(e) =>
+									setFormData({ ...formData, name: e.target.value })
+								}
+								className="input w-full h-[44px] rounded-md border border-gray6 px-2 text-xs md:ml-1"
+							/>
+						</div>
+						<div className="flex-1 md:flex justify-between items-center gap-1 mt-4 md:mt-0">
+							<strong
+								style={{
+									whiteSpace: 'nowrap',
+								}}
+								className="text-xs"
+							>
+								DATE:
+							</strong>
+							<input
+								type="date"
+								value={formData.date}
+								onChange={(e) =>
+									setFormData({ ...formData, date: e.target.value })
+								}
+								className="input w-full h-[44px] rounded-md border border-gray6 px-2 text-xs md:ml-1"
+							/>
+						</div>
+					</div>
+
+					<div className="md:flex justify-between mb-2 gap-3">
+						<div className="flex-1 md:flex justify-between items-center gap-1 ">
+							<strong
+								style={{
+									whiteSpace: 'nowrap',
+								}}
+								className="text-xs"
+							>
+								VEHICLE REG. NO.:
+							</strong>
+							<input
+								type="text"
+								value={formData.vehicle}
+								onChange={(e) =>
+									setFormData({ ...formData, vehicle: e.target.value })
+								}
+								className="input w-full h-[44px] rounded-md border border-gray6 px-2 text-xs md:ml-1"
+							/>
+						</div>
+						<div className="flex-1 md:flex justify-between items-center gap-1 mt-4 md:mt-0">
+							<strong
+								style={{
+									whiteSpace: 'nowrap',
+								}}
+								className="text-xs"
+							>
+								TIME IN:
+							</strong>
+							<select
+								value={formData.timeIn}
+								onChange={(e) =>
+									setFormData({ ...formData, timeIn: e.target.value })
+								}
+								className="input w-full h-[44px] rounded-md border border-gray6 px-2 text-xs md:ml-1"
+							>
+								{TIME_SLOTS.map((slot) => (
+									<option key={slot} value={slot}>
+										{slot}
+									</option>
+								))}
+							</select>
+						</div>
+					</div>
+
+					<div className="md:flex justify-between mb-2 gap-3">
+						<div className="flex-1 md:flex justify-between items-center gap-1 ">
+							<strong
+								style={{
+									whiteSpace: 'nowrap',
+								}}
+								className="text-xs"
+							>
+								DESTINATION:
+							</strong>
+							<input
+								type="text"
+								value={formData.destination}
+								onChange={(e) =>
+									setFormData({ ...formData, destination: e.target.value })
+								}
+								className="input w-full h-[44px] rounded-md border border-gray6 px-2 text-xs md:ml-1"
+							/>
+						</div>
+						<div className="flex-1 md:flex justify-between items-center gap-1 mt-4 md:mt-0">
+							<strong
+								style={{
+									whiteSpace: 'nowrap',
+								}}
+								className="text-xs"
+							>
+								TIME OUT:
+							</strong>
+							<select
+								value={formData.timeOut}
+								onChange={(e) =>
+									setFormData({ ...formData, timeOut: e.target.value })
+								}
+								className="input w-full h-[44px] rounded-md border border-gray6 px-2 text-xs md:ml-1"
+							>
+								{TIME_SLOTS.map((slot) => (
+									<option key={slot} value={slot}>
+										{slot}
+									</option>
+								))}
+							</select>
+						</div>
+					</div>
+					<div className="w-full overflow-x-auto">
+						{/* Items Table */}
+						<table
+							style={{
+								width: '100%',
+								borderCollapse: 'collapse',
+								marginBottom: '10px',
+							}}
+						>
+							<thead
+								style={{
+									color: '#fff',
+									backgroundColor: '#000',
+									border: '1px solid #000',
+								}}
+							>
+								<tr>
+									<th style={{ border: '1px solid #fff', padding: '4px' }}>
+										S/N
+									</th>
+									<th
+										style={{
+											border: '1px solid #fff',
+											padding: '8px',
+											whiteSpace: 'nowrap',
+										}}
+									>
+										DESCRIPTION OF GOODS
+									</th>
+									<th
+										style={{
+											border: '1px solid #fff',
+											padding: '8px',
+											width: '100px',
+										}}
+									>
+										QTY/TONNAGE
+									</th>
+									<th
+										style={{
+											border: '1px solid #fff',
+											padding: '8px',
+											width: '100px',
+										}}
+									>
+										RATE/KG
+									</th>
+									<th
+										style={{
+											border: '1px solid #fff',
+											padding: '8px',
+											width: '100px',
+											whiteSpace: 'nowrap',
+										}}
+									>
+										AMOUNT #
+									</th>
+									<th
+										className="action-col flex items-center justify-center"
+										style={{ border: '1px solid #fff', padding: '8px' }}
+									>
+										<span>Action</span>
+										<button
+											onClick={addItem}
+											className="text-white hover:text-green-800 ml-2"
+											title="Delete"
+										>
+											<Plus size={18} />
+										</button>
+									</th>
+								</tr>
+							</thead>
+							<tbody>
+								{items?.map((item, index) => (
+									<tr key={index}>
+										<td
+											style={{
+												border: '0.5px solid #000',
+												padding: '4px',
+												textAlign: 'center',
+											}}
+										>
+											{item.sn}
+										</td>
+										<td
+											style={{
+												border: '0.5px solid #000',
+												padding: '8px 8px 0',
+											}}
+										>
+											<input
+												type="text"
+												value={item.description}
+												onChange={(e) =>
+													updateItem(index, 'description', e.target.value)
+												}
+												// style={{
+												// 	width: '100%',
+												// 	border: 'none',
+												// 	outline: 'none',
+												// 	background: 'transparent',
+												// }}
+												style={{
+													marginLeft: '5px',
+													width: '100%',
+													border: 'none',
+													outline: 'none',
+													backgroundColor: '#fff',
+													fontSize: '14px',
+													padding: '2px 0',
+												}}
+											/>
+										</td>
+										<td
+											style={{
+												border: '0.5px solid #000',
+												padding: '8px 8px 0',
+											}}
+										>
+											<input
+												type="text"
+												value={item.qty}
+												onChange={(e) =>
+													updateItem(index, 'qty', e.target.value)
+												}
+												// style={{
+												// 	width: '100%',
+												// 	border: 'none',
+												// 	outline: 'none',
+												// 	background: 'transparent',
+												// }}
+												style={{
+													marginLeft: '5px',
+													width: '100%',
+													border: 'none',
+													outline: 'none',
+													backgroundColor: '#fff',
+													fontSize: '14px',
+													padding: '2px 0',
+												}}
+											/>
+										</td>
+										<td
+											style={{
+												border: '0.5px solid #000',
+												padding: '8px 8px 0',
+											}}
+										>
+											<input
+												type="text"
+												value={item.rate}
+												onChange={(e) =>
+													updateItem(index, 'rate', e.target.value)
+												}
+												style={{
+													width: '100%',
+													border: 'none',
+													outline: 'none',
+													background: 'transparent',
+												}}
+											/>
+										</td>
+										<td
+											style={{
+												border: '0.5px solid #000',
+												padding: '8px',
+												textAlign: 'right',
+											}}
+										>
+											{item.amount
+												? parseFloat(item.amount).toLocaleString()
+												: ''}
+										</td>
+										<td
+											className="delete-cell"
+											style={{
+												border: '0.5px solid #000',
+												padding: '8px',
+												textAlign: 'center',
+											}}
+										>
+											<button
+												onClick={() => removeItem(item.sn)}
+												className="text-red-600 hover:text-red-800 mx-auto"
+												title="Delete"
+											>
+												<Trash2 size={18} />
+											</button>
+										</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+					</div>
+
+					{/* Total */}
+					<div
+						style={{
+							display: 'flex',
+							justifyContent: 'flex-end',
+							marginBottom: '20px',
+						}}
+					>
+						<strong style={{ marginRight: '10px' }}>TOTAL #</strong>
+						<div
+							style={{
+								minWidth: '100px',
+								textAlign: 'right',
+								borderBottom: '0.2px solid #000',
+								boxSizing: 'border-box',
+								paddingBottom: '5px',
+								fontWeight: 'bold',
+							}}
+						>
+							{total.toLocaleString()}
+							{/* <hr style={{ border: '0.2px solid #000', marginTop: '5px' }} /> */}
+						</div>
+					</div>
+
+					{/* Amount in Words */}
+					<div
+						style={{
+							marginBottom: '15px',
+							borderBottom: '0.2px solid #000',
+							boxSizing: 'border-box',
+							paddingBottom: '5px',
+						}}
+					>
+						<strong>Amount in Words:</strong>{' '}
+						<span>{numberToWords(total)}</span>
+						{/* <hr style={{ border: '0.2px solid #000', marginTop: '5px' }} /> */}
+					</div>
+
+					{/* Comments and Signature */}
+					<div
+						style={{
+							// display: 'flex',
+							// justifyContent: 'space-between',
+							// alignItems: 'center',
+							// flexDirection: 'column',
+							marginBottom: '20px',
+						}}
+					>
+						<strong>Other Comments</strong>{' '}
+						<textarea
+							value={formData.note}
+							onChange={(e) =>
+								setFormData({ ...formData, note: e.target.value })
+							}
+							rows={5}
+							className=" w-full rounded-md border border-gray6 px-2 text-base"
+						></textarea>
+					</div>
+
+					<div
+						style={{
+							display: 'flex',
+							justifyContent: 'space-between',
+							// alignItems: 'center',
+							// border: '1px solid #000',
+							alignItems: 'flex-end',
+							alignContent: 'flex-end',
+						}}
+					>
+						<div
+							style={{
+								display: 'flex',
+								// border: '1px solid red',
+								flexDirection: 'column',
+							}}
+						>
+							<p>_________________________</p>
+							<strong>Customer's Representative</strong> <em>.</em>
+						</div>
+
+						<div
+							style={{
+								display: 'flex',
+								flexDirection: 'column',
+								alignItems: 'center',
+								gap: '5px',
+								// border: '1px solid green',
+							}}
+						>
+							<img
+								src={seal}
+								alt="Salisu Seal"
+								width="120"
+								height="120"
+								style={{
+									objectFit: 'cover',
+									marginBottom: '-40px',
+								}}
+							/>
+
+							<p>_________________________</p>
+							<strong>Agent's Sign</strong>
+							<em>For: VTC Limited</em>
+						</div>
+					</div>
+				</div>
+
+				{/* Action Buttons */}
+				<div style={{ textAlign: 'center', marginTop: '20px' }}>
+					<button
+						onClick={downloadPDF}
+						style={{
+							padding: '10px 20px',
+							fontSize: '16px',
+							backgroundColor: '#007bff',
+							color: '#fff',
+							border: 'none',
+							borderRadius: '5px',
+							cursor: 'pointer',
+							marginRight: '10px',
+						}}
+					>
+						{loading ? 'Loading...' : '	Download Waybill'}
+					</button>
+					<button
+						onClick={handleSave}
+						disabled={saving}
+						style={{
+							padding: '10px 20px',
+							fontSize: '16px',
+							backgroundColor: '#ffc107',
+							color: '#000',
+							border: 'none',
+							borderRadius: '5px',
+							cursor: 'pointer',
+						}}
+					>
+						{saving ? 'Saving...' : isEdit ? 'Update Invoice' : 'Save Invoice'}
+					</button>
+				</div>
+			</div>
+			{(isFetching || saving) && <Loader />}
+		</>
+	);
+};
+
+export default VtcInvoice;

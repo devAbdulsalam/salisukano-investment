@@ -19,6 +19,10 @@ const WaybillSchema = new mongoose.Schema(
 		vehicle: {
 			type: String,
 		},
+		company: {
+			type: String,
+			default: null,
+		},
 		note: {
 			type: String,
 		},

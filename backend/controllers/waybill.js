@@ -16,6 +16,7 @@ export const createWaybill = async (req, res) => {
 			total,
 			date,
 			note,
+			company = null,
 		} = req.body;
 
 		// Basic validation
@@ -33,6 +34,7 @@ export const createWaybill = async (req, res) => {
 			items: items || [],
 			total: total || 0,
 			date: date || Date.now(),
+			company,
 		});
 
 		const savedWaybill = await waybill.save();
@@ -48,7 +50,24 @@ export const createWaybill = async (req, res) => {
 // @access  Private
 export const getWaybills = async (req, res) => {
 	try {
-		const waybills = await Waybill.find().sort({ createdAt: -1 });
+		const { company } = req.query;
+
+		let filter;
+
+		if (company) {
+			// fetch waybills for a specific company
+			filter = { company };
+		} else {
+			// fetch waybills without a company
+			filter = {
+				$or: [{ company: null }, { company: { $exists: false } }],
+			};
+		}
+
+		const waybills = await Waybill.find(filter).sort({
+			createdAt: -1,
+		});
+
 		res.status(200).json(waybills);
 	} catch (error) {
 		console.log('Error getting waybills', error);

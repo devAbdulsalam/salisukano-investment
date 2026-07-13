@@ -42,12 +42,17 @@ const navigationList = [
 		svg: <ScrollText className="h-4 w-4" />,
 		roles: ['admin', 'finance'],
 	},
-
 	{
 		name: 'Invoice',
 		link: '/registered-invoices',
 		svg: <FileText className="h-4 w-4" />,
 		roles: ['admin', 'operation'],
+	},
+	{
+		name: 'Vtc',
+		link: '/vtc-invoices',
+		svg: <FileText className="h-4 w-4" />,
+		roles: ['admin'],
 	},
 	{
 		name: 'Register',

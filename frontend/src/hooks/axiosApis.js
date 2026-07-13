@@ -75,14 +75,18 @@ export const fetchRegisteredWaybill = async (id, user) => {
 		return error;
 	}
 };
-export const fetchWaybills = async (user) => {
+export const fetchWaybills = async (user, company) => {
 	try {
 		const config = {
 			headers: {
 				Authorization: `Bearer ${user?.token}`,
 			},
 		};
-		const { data } = await axios.get(`${apiUrl}/waybills`, config);
+		const url = company
+			? `${apiUrl}/waybills?company=${company}`
+			: `${apiUrl}/waybills`;
+
+		const { data } = await axios.get(url, config);
 		return data;
 	} catch (error) {
 		console.log(error.message);

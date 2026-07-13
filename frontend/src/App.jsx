@@ -52,6 +52,8 @@ import MonthlyWaybill from './pages/MonthlyWaybill';
 import MonthlyExpenses from './pages/MonthlyExpenses';
 import DividendRatesPage from './pages/DividendRatesPage';
 import AddShareholders from './pages/AddShareholders';
+import VtcInvoice from './pages/VtcInvoice';
+import VtcInvoices from './pages/VtcInvoices';
 function App() {
 	const [loading, setLoading] = useState(true);
 
@@ -140,6 +142,9 @@ function App() {
 								path="/register-invoices/:id"
 								element={<InvoiceRegister />}
 							/>
+							<Route path="/vtc-invoices" element={<VtcInvoices />} />
+							<Route path="/vtc-invoice" element={<VtcInvoice />} />
+							<Route path="/vtc-invoice/:id" element={<VtcInvoice />} />
 							<Route path="/financial-statement" element={<Statement />} />
 							<Route path="/shareholders" element={<Shareholders />} />
 							<Route path="/new-shareholders" element={<AddShareholders />} />
@@ -147,7 +152,6 @@ function App() {
 							<Route path="/shareholders/:id/:year" element={<Shareholder />} />
 							<Route path="/dividends" element={<Dividends />} />
 							<Route path="/dividend-rates" element={<DividendRatesPage />} />
-							<Route path="/dividend-rates/" element={<DividendRatesPage />} />
 							<Route
 								path="/dividend-rates/:year"
 								element={<DividendRatesPage />}
