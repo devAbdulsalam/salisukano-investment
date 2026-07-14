@@ -49,7 +49,7 @@ const navigationList = [
 		roles: ['admin', 'operation'],
 	},
 	{
-		name: 'Vtc',
+		name: 'VTC Invoices',
 		link: '/vtc-invoices',
 		svg: <FileText className="h-4 w-4" />,
 		roles: ['admin'],

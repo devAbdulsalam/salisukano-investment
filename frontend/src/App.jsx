@@ -54,7 +54,7 @@ import DividendRatesPage from './pages/DividendRatesPage';
 import AddShareholders from './pages/AddShareholders';
 import VtcInvoice from './pages/VtcInvoice';
 import VtcInvoices from './pages/VtcInvoices';
-// import VTCLimited from './pages/VTCLimited';
+// import VTCApp from './pages/VTCApp';
 function App() {
 	const [loading, setLoading] = useState(true);
 
@@ -143,7 +143,7 @@ function App() {
 								path="/register-invoices/:id"
 								element={<InvoiceRegister />}
 							/>
-							{/* <Route path="/vtc-invoices" element={<VTCLimited />} /> */}
+							{/* <Route path="/vtc-invoices" element={<VTCApp />} /> */}
 							<Route path="/vtc-invoices" element={<VtcInvoices />} />
 							<Route path="/vtc-invoice" element={<VtcInvoice />} />
 							<Route path="/vtc-invoice/:id" element={<VtcInvoice />} />

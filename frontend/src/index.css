@@ -140,3 +140,17 @@ tr th:first-child {
 ::-webkit-scrollbar-thumb:hover {
 	background: #555;
 }
+
+/* subtle overrides only for placeholder color etc, can be removed if not needed */
+.signature-box-dash {
+	border: 1.5px dashed #d0d7e2;
+}
+/* Ensure inputs with number type get correct appearance */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+input[type='number'] {
+	-moz-appearance: textfield;
+}
