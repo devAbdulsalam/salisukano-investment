@@ -42,7 +42,7 @@ import CompanyCredits from './pages/CompanyCredits';
 import Waybill from './pages/Waybill';
 import Waybills from './pages/Waybills';
 import InvoiceRegister from './pages/InvoiceRegister';
-import RegisterdInvoices from './pages/RegisterdInvoices';
+import SkilInvoices from './pages/SkilInvoices';
 import Expences from './pages/Expences';
 import Statement from './pages/Statement';
 import Shareholders from './pages/Shareholders';
@@ -135,10 +135,7 @@ function App() {
 							<Route path="/waybill" element={<Waybill />} />
 							<Route path="/waybill/:id" element={<Waybill />} />
 							<Route path="/register-invoices" element={<InvoiceRegister />} />
-							<Route
-								path="/registered-invoices"
-								element={<RegisterdInvoices />}
-							/>
+							<Route path="/registered-invoices" element={<SkilInvoices />} />
 							<Route
 								path="/register-invoices/:id"
 								element={<InvoiceRegister />}
