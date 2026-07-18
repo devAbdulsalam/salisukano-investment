@@ -58,8 +58,12 @@ const InvoicesPage = () => {
 	const [images, setImages] = useState({ logo: '', seal: '', phone: '' });
 	const [searchParams] = useSearchParams();
 
-	const year = searchParams.get('year') ? parseInt(searchParams.get('year'), 10) : null;
-	const month = searchParams.get('month') ? parseInt(searchParams.get('month'), 10) : null;
+	const year = searchParams.get('year')
+		? parseInt(searchParams.get('year'), 10)
+		: null;
+	const month = searchParams.get('month')
+		? parseInt(searchParams.get('month'), 10)
+		: null;
 	const monthLabel = months.find((m) => m.value === month)?.label || '';
 
 	// Derive initial date bounds from URL params or current month
@@ -95,7 +99,10 @@ const InvoicesPage = () => {
 
 	// Search and sort state
 	const [searchTerm, setSearchTerm] = useState('');
-	const [sortConfig, setSortConfig] = useState({ key: 'createdAt', direction: 'desc' });
+	const [sortConfig, setSortConfig] = useState({
+		key: 'createdAt',
+		direction: 'desc',
+	});
 
 	// Fetch invoices
 	const {
@@ -114,7 +121,8 @@ const InvoicesPage = () => {
 
 	// Delete mutation
 	const deleteMutation = useMutation({
-		mutationFn: (id) => axios.delete(`${API_URL}/waybill-registers/${id}`, authConfig),
+		mutationFn: (id) =>
+			axios.delete(`${API_URL}/waybill-registers/${id}`, authConfig),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['waybill-registers'] });
 			toast.success('Waybill deleted successfully');
@@ -151,7 +159,8 @@ const InvoicesPage = () => {
 		// Date range filter
 		if (startDate || endDate) {
 			const startOfDay = startDate
-				? Object.assign(new Date(startDate), { setHours: undefined }) && (() => {
+				? Object.assign(new Date(startDate), { setHours: undefined }) &&
+					(() => {
 						const d = new Date(startDate);
 						d.setHours(0, 0, 0, 0);
 						return d;
@@ -165,18 +174,19 @@ const InvoicesPage = () => {
 						return d;
 					})()
 				: startDate
-				? (() => {
-						const d = new Date(startDate);
-						d.setHours(23, 59, 59, 999);
-						return d;
-					})()
-				: null;
+					? (() => {
+							const d = new Date(startDate);
+							d.setHours(23, 59, 59, 999);
+							return d;
+						})()
+					: null;
 
 			filtered = filtered.filter((inv) => {
 				if (!inv?.date) return false;
 				const invDate = new Date(inv.date);
 				if (isNaN(invDate.getTime())) return false;
-				if (startOfDay && endOfDay) return invDate >= startOfDay && invDate <= endOfDay;
+				if (startOfDay && endOfDay)
+					return invDate >= startOfDay && invDate <= endOfDay;
 				if (startOfDay) return invDate >= startOfDay;
 				if (endOfDay) return invDate <= endOfDay;
 				return true;
@@ -185,10 +195,15 @@ const InvoicesPage = () => {
 
 		// Sort
 		if (sortConfig.key) {
-			const isDate = sortConfig.key === 'date' || sortConfig.key === 'createdAt';
+			const isDate =
+				sortConfig.key === 'date' || sortConfig.key === 'createdAt';
 			filtered.sort((a, b) => {
-				let aVal = isDate ? new Date(a[sortConfig.key]).getTime() : (a[sortConfig.key] ?? 0);
-				let bVal = isDate ? new Date(b[sortConfig.key]).getTime() : (b[sortConfig.key] ?? 0);
+				let aVal = isDate
+					? new Date(a[sortConfig.key]).getTime()
+					: (a[sortConfig.key] ?? 0);
+				let bVal = isDate
+					? new Date(b[sortConfig.key]).getTime()
+					: (b[sortConfig.key] ?? 0);
 				if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
 				if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
 				return 0;
@@ -199,7 +214,8 @@ const InvoicesPage = () => {
 	}, [waybills, searchTerm, startDate, endDate, sortConfig]);
 
 	// Show commission card when there's an active name search with results
-	const isCommissioned = searchTerm.trim().length > 0 && filteredAndSortedWaybills.length > 0;
+	const isCommissioned =
+		searchTerm.trim().length > 0 && filteredAndSortedWaybills.length > 0;
 
 	// Aggregate stats from filtered data
 	const stats = useMemo(
@@ -246,7 +262,14 @@ const InvoicesPage = () => {
 					if (currentDoc.setGState) {
 						currentDoc.setGState(new currentDoc.GState({ opacity: 0.04 }));
 					}
-					currentDoc.addImage(images.logo, 'PNG', (pageWidth - wm) / 2, (pageHeight - wm) / 2, wm, wm);
+					currentDoc.addImage(
+						images.logo,
+						'PNG',
+						(pageWidth - wm) / 2,
+						(pageHeight - wm) / 2,
+						wm,
+						wm,
+					);
 					if (currentDoc.setGState) {
 						currentDoc.setGState(new currentDoc.GState({ opacity: 1 }));
 					}
@@ -255,11 +278,26 @@ const InvoicesPage = () => {
 
 				currentDoc.setFont('helvetica', 'bold');
 				currentDoc.setFontSize(16);
-				currentDoc.text('SALISU KANO INTERNATIONAL LIMITED', pageWidth / 2, 18, { align: 'center' });
+				currentDoc.text(
+					'SALISU KANO INTERNATIONAL LIMITED',
+					pageWidth / 2,
+					18,
+					{ align: 'center' },
+				);
 				currentDoc.setFontSize(10);
 				currentDoc.setFont('helvetica', 'normal');
-				currentDoc.text("Scrap Materials' Suppliers and General Contractors", pageWidth / 2, 24, { align: 'center' });
-				currentDoc.text('No. 2 & 3 Block P, Dalar Gyade Market, Kano State', pageWidth / 2, 29, { align: 'center' });
+				currentDoc.text(
+					"Scrap Materials' Suppliers and General Contractors",
+					pageWidth / 2,
+					24,
+					{ align: 'center' },
+				);
+				currentDoc.text(
+					'No. 2 & 3 Block P, Dalar Gyade Market, Kano State',
+					pageWidth / 2,
+					29,
+					{ align: 'center' },
+				);
 
 				const phoneX = pageWidth - 14;
 				currentDoc.text('08023239018', phoneX, 22, { align: 'right' });
@@ -390,7 +428,12 @@ const InvoicesPage = () => {
 
 			currentY += gap;
 			doc.setFont('helvetica', 'bold');
-			doc.text('Commission:', pageWidth - 90, currentY);
+			doc.text('Commission.:', 20, currentY);
+			doc.setFont('helvetica', 'bold');
+			doc.text(`NGN ${commission.toLocaleString()}`, 55, currentY);
+
+			doc.setFont('helvetica', 'bold');
+			doc.text('Total Com.:', pageWidth - 90, currentY);
 			doc.setFont('helvetica', 'bold');
 			doc.text(
 				`NGN ${totalCommission.toLocaleString()}`,
@@ -450,7 +493,14 @@ const InvoicesPage = () => {
 			if (images.logo) {
 				const wm = 120;
 				if (doc.setGState) doc.setGState(new doc.GState({ opacity: 0.04 }));
-				doc.addImage(images.logo, 'PNG', (pageWidth - wm) / 2, (pageHeight - wm) / 2, wm, wm);
+				doc.addImage(
+					images.logo,
+					'PNG',
+					(pageWidth - wm) / 2,
+					(pageHeight - wm) / 2,
+					wm,
+					wm,
+				);
 				if (doc.setGState) doc.setGState(new doc.GState({ opacity: 1 }));
 				doc.addImage(images.logo, 'PNG', 14, 10, 25, 25);
 			}
@@ -458,15 +508,28 @@ const InvoicesPage = () => {
 			// Header
 			doc.setFont('helvetica', 'bold');
 			doc.setFontSize(16);
-			doc.text('SALISU KANO INTERNATIONAL LIMITED', pageWidth / 2, 18, { align: 'center' });
+			doc.text('SALISU KANO INTERNATIONAL LIMITED', pageWidth / 2, 18, {
+				align: 'center',
+			});
 			doc.setFontSize(10);
 			doc.setFont('helvetica', 'normal');
-			doc.text("Scrap Materials' Suppliers and General Contractors", pageWidth / 2, 24, { align: 'center' });
-			doc.text('No. 2 & 3 Block P, Dalar Gyade Market, Kano State', pageWidth / 2, 29, { align: 'center' });
+			doc.text(
+				"Scrap Materials' Suppliers and General Contractors",
+				pageWidth / 2,
+				24,
+				{ align: 'center' },
+			);
+			doc.text(
+				'No. 2 & 3 Block P, Dalar Gyade Market, Kano State',
+				pageWidth / 2,
+				29,
+				{ align: 'center' },
+			);
 			const phoneX = pageWidth - 14;
 			doc.text('08023239018', phoneX, 22, { align: 'right' });
 			doc.text('08067237273', phoneX, 26, { align: 'right' });
-			if (images.phone) doc.addImage(images.phone, 'PNG', phoneX - 30, 18, 10, 10);
+			if (images.phone)
+				doc.addImage(images.phone, 'PNG', phoneX - 30, 18, 10, 10);
 			doc.setFont('helvetica', 'bold');
 			doc.setFontSize(14);
 			doc.setFillColor(0);
@@ -493,7 +556,13 @@ const InvoicesPage = () => {
 			doc.setFont('helvetica', 'bold');
 			doc.text('Date:', pageWidth - 90, y);
 			doc.setFont('helvetica', 'normal');
-			doc.text(formData.date ? new Date(formData.date).toISOString().split('T')[0] : '-', pageWidth - 75, y);
+			doc.text(
+				formData.date
+					? new Date(formData.date).toISOString().split('T')[0]
+					: '-',
+				pageWidth - 75,
+				y,
+			);
 			y += gap;
 
 			doc.setFont('helvetica', 'bold');
@@ -529,7 +598,11 @@ const InvoicesPage = () => {
 			if (formData.note) {
 				doc.setFont('helvetica', 'normal');
 				doc.setFontSize(9);
-				doc.text(doc.splitTextToSize(formData.note, pageWidth - 44), 22, y + 10);
+				doc.text(
+					doc.splitTextToSize(formData.note, pageWidth - 44),
+					22,
+					y + 10,
+				);
 			}
 
 			// Signatures

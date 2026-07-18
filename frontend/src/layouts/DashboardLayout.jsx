@@ -15,6 +15,7 @@ import {
 	HandCoins,
 	UserPen,
 	UsersRound,
+	Landmark,
 } from 'lucide-react';
 // import Search from '../components/Search';
 const navigationList = [
@@ -76,6 +77,12 @@ const navigationList = [
 		name: 'Statement',
 		link: '/financial-statement',
 		svg: <UserPen className="h-4 w-4" />,
+		roles: ['admin'],
+	},
+	{
+		name: 'Assets',
+		link: '/assets',
+		svg: <Landmark className="h-4 w-4" />,
 		roles: ['admin'],
 	},
 	{

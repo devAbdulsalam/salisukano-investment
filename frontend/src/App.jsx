@@ -54,7 +54,10 @@ import DividendRatesPage from './pages/DividendRatesPage';
 import AddShareholders from './pages/AddShareholders';
 import VtcInvoice from './pages/VtcInvoice';
 import VtcInvoices from './pages/VtcInvoices';
-// import VTCApp from './pages/VTCApp';
+import Assets from './pages/Assets';
+import Asset from './pages/Asset';
+import NewAsset from './pages/NewAsset';
+import EditAsset from './pages/EditAsset';
 function App() {
 	const [loading, setLoading] = useState(true);
 
@@ -140,7 +143,10 @@ function App() {
 								path="/register-invoices/:id"
 								element={<InvoiceRegister />}
 							/>
-							{/* <Route path="/vtc-invoices" element={<VTCApp />} /> */}
+							<Route path="/assets" element={<Assets />} />
+							<Route path="/assets/:id" element={<Asset />} />
+							<Route path="/new-asset" element={<NewAsset />} />
+							<Route path="/edit-asset/:id" element={<EditAsset />} />
 							<Route path="/vtc-invoices" element={<VtcInvoices />} />
 							<Route path="/vtc-invoice" element={<VtcInvoice />} />
 							<Route path="/vtc-invoice/:id" element={<VtcInvoice />} />
