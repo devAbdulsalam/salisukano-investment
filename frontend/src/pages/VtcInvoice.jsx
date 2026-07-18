@@ -10,7 +10,7 @@ import Loader from '../components/Loader';
 import autoTable from 'jspdf-autotable';
 import { fetchWaybill } from '../hooks/axiosApis';
 import logo from '../assets/vtc-logo.jpeg';
-import seal from '../assets/seal.png';
+import seal from '../assets/vtc-sign.png';
 import phone from '../assets/call.png';
 import AuthContext from '../context/authContext';
 
@@ -408,9 +408,9 @@ const VtcInvoice = () => {
 				{ align: 'center' },
 			);
 
-			// if (logoBase64) {
-			// 	doc.addImage(logoBase64, 'PNG', pageWidth - 36, 10, 24, 24);
-			// }
+			if (logoBase64) {
+				doc.addImage(logoBase64, 'PNG', pageWidth - 36, 10, 24, 24);
+			}
 
 			doc.setFont('helvetica', 'bold');
 			doc.text('HEAD OFFICE:', 14, 39);
@@ -418,7 +418,7 @@ const VtcInvoice = () => {
 			doc.text('Plaza 5th Avenue', 14, 47);
 			doc.text('Gwarimpa, Abuja, Nigeria.', 14, 51);
 			doc.setFontSize(10);
-			doc.text('GSM: 08023239018, 08067237273', pageWidth / 2, 39, {
+			doc.text('GSM: 08038131020, 08133405917', pageWidth / 2, 39, {
 				align: 'center',
 			});
 
@@ -624,7 +624,7 @@ const VtcInvoice = () => {
 			doc.text('For: V.T.C. Limited', pageWidth - 80, footerY + 10);
 
 			if (sealBase64) {
-				doc.addImage(sealBase64, 'PNG', pageWidth - 76, footerY - 32, 50, 50);
+				doc.addImage(sealBase64, 'PNG', pageWidth - 76, footerY - 20, 28, 28);
 			}
 
 			// ===============================
@@ -702,7 +702,7 @@ const VtcInvoice = () => {
 						<div className=" flex flex-col items-center mb-4">
 							<div className="flex justify-center ">
 								<p>
-									<strong>GSM:</strong> 08023239018, 08067237273
+									<strong>GSM:</strong> 08038131020, 08133405917
 								</p>
 							</div>
 							<div className="bg-white border-2 border-t-black border-x-white border-b-white w-full p-1">
