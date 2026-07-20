@@ -242,24 +242,24 @@ const Assets = () => {
 								</th>
 								<th
 									onClick={() => requestSort('name')}
-									className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer select-none"
+									className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer select-none whitespace-nowrap"
 								>
 									<div className="flex items-center gap-1">
 										Name <ArrowUpDown size={13} />
 									</div>
 								</th>
-								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
 									Serial No.
 								</th>
 								<th
 									onClick={() => requestSort('purchasePrice')}
-									className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer select-none"
+									className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer select-none whitespace-nowrap"
 								>
 									<div className="flex items-center gap-1">
 										Purchase Price <ArrowUpDown size={13} />
 									</div>
 								</th>
-								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
 									Total Cost
 								</th>
 								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
