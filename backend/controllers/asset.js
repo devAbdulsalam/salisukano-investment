@@ -4,52 +4,208 @@ import Asset from '../models/Asset.js';
 
 /**
  * GET /assets/dashboard
- * Returns summary stats: total assets, total cost, total value, total margin.
+ * Returns summary stats:
+ * - total assets
+ * - total cost
+ * - total value
+ * - total margin
+ * - sold assets
+ * - sold value
+ * - sold profit
+ */
+/**
+ * GET /assets/dashboard
+ * Returns dashboard summary
  */
 export const getAssetDashboard = async (req, res) => {
 	try {
-		const assets = await Asset.find();
+		const [result] = await Asset.aggregate([
+			{
+				$addFields: {
+					maintenanceCost: {
+						$sum: {
+							$map: {
+								input: { $ifNull: ['$maintenances', []] },
+								as: 'm',
+								in: '$$m.cost',
+							},
+						},
+					},
+				},
+			},
+			{
+				$addFields: {
+					totalCost: {
+						$add: [{ $ifNull: ['$purchasePrice', 0] }, '$maintenanceCost'],
+					},
+					latestValuation: {
+						$cond: [
+							{ $ne: ['$salePrice', null] },
+							'$salePrice',
+							{
+								$let: {
+									vars: {
+										lastValuation: {
+											$arrayElemAt: [
+												{
+													$ifNull: ['$valuations', []],
+												},
+												-1,
+											],
+										},
+									},
+									in: '$$lastValuation.valuation',
+								},
+							},
+						],
+					},
+				},
+			},
+			{
+				$facet: {
+					activeAssets: [
+						{
+							$match: {
+								status: {
+									$nin: ['sold', 'disposed', 'desposed'],
+								},
+							},
+						},
+						{
+							$group: {
+								_id: null,
+								totalAssets: { $sum: 1 },
+								totalCost: { $sum: '$totalCost' },
+								totalValue: {
+									$sum: {
+										$ifNull: ['$latestValuation', 0],
+									},
+								},
+								totalMargin: {
+									$sum: {
+										$cond: [
+											{
+												$ne: ['$latestValuation', null],
+											},
+											{
+												$subtract: ['$latestValuation', '$totalCost'],
+											},
+											0,
+										],
+									},
+								},
+								valuedAssets: {
+									$sum: {
+										$cond: [
+											{
+												$ne: ['$latestValuation', null],
+											},
+											1,
+											0,
+										],
+									},
+								},
+							},
+						},
+					],
+					soldAssets: [
+						{
+							$match: {
+								status: {
+									$in: ['sold', 'disposed', 'desposed'],
+								},
+							},
+						},
+						{
+							$group: {
+								_id: null,
 
-		let totalCost = 0;
-		let totalValue = 0;
-		let totalMargin = 0;
-		let valuedCount = 0;
+								totalSoldCount: {
+									$sum: 1,
+								},
 
-		for (const asset of assets) {
-			const cost =
-				asset.purchasePrice +
-				asset.maintenances.reduce((s, m) => s + m.cost, 0);
+								// Total amount sold for
+								totalSold: {
+									$sum: {
+										$ifNull: ['$salePrice', 0],
+									},
+								},
 
-			const latestValuation =
-				asset.salePrice ??
-				(asset.valuations.length
-					? [...asset.valuations].sort(
-							(a, b) => new Date(b.valuationDate) - new Date(a.valuationDate),
-						)[0].valuation
-					: null);
+								// Total acquisition + maintenance cost of sold assets
+								totalCostForSold: {
+									$sum: '$totalCost',
+								},
 
-			totalCost += cost;
-
-			if (latestValuation != null) {
-				totalValue += latestValuation;
-				totalMargin += latestValuation - cost;
-				valuedCount++;
-			}
-		}
+								// Total profit from sold assets
+								totalProfitForSold: {
+									$sum: {
+										$subtract: [
+											{
+												$ifNull: ['$salePrice', 0],
+											},
+											'$totalCost',
+										],
+									},
+								},
+							},
+						},
+					],
+				},
+			},
+			{
+				$project: {
+					active: {
+						$ifNull: [
+							{
+								$arrayElemAt: ['$activeAssets', 0],
+							},
+							{
+								totalAssets: 0,
+								totalCost: 0,
+								totalValue: 0,
+								totalMargin: 0,
+								valuedAssets: 0,
+							},
+						],
+					},
+					sold: {
+						$ifNull: [
+							{
+								$arrayElemAt: ['$soldAssets', 0],
+							},
+							{
+								totalSoldCount: 0,
+								totalSold: 0,
+								totalProfitForSold: 0,
+							},
+						],
+					},
+				},
+			},
+		]);
 
 		res.status(200).json({
 			success: true,
 			data: {
-				totalAssets: assets.length,
-				totalCost,
-				totalValue,
-				totalMargin,
-				valuedAssets: valuedCount,
+				totalAssets: result?.active?.totalAssets || 0,
+				totalCost: result?.active?.totalCost || 0,
+				totalValue: result?.active?.totalValue || 0,
+				totalMargin: result?.active?.totalMargin || 0,
+				valuedAssets: result?.active?.valuedAssets || 0,
+
+				totalSoldCount: result?.sold?.totalSoldCount || 0,
+				totalSold: result?.sold?.totalSold || 0,
+				totalCostForSold: result?.sold?.totalCostForSold || 0,
+				totalProfitForSold: result?.sold?.totalProfitForSold || 0,
 			},
 		});
 	} catch (error) {
-		console.error(error);
-		res.status(500).json({ success: false, error: 'Internal Server Error' });
+		console.error('Asset Dashboard Error:', error);
+
+		res.status(500).json({
+			success: false,
+			message: 'Internal Server Error',
+		});
 	}
 };
 

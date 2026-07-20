@@ -157,49 +157,99 @@ const Assets = () => {
 				</div>
 
 				{/* Dashboard Cards */}
-				<div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-					<div className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md">
-						<p className="text-gray-500 text-xs font-medium mb-2">
-							Total Assets
-						</p>
-						<p className="text-2xl font-bold text-gray-800">
-							{dashboard?.totalAssets ?? assets.length}
-						</p>
+				{statusFilter !== 'sold' ? (
+					<div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+						<div className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md">
+							<p className="text-gray-500 text-xs font-medium mb-2">
+								Total Assets
+							</p>
+							<p className="text-2xl font-bold text-gray-800">
+								{dashboard?.totalAssets ?? assets.length}
+							</p>
+						</div>
+						<div className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md">
+							<p className="text-gray-500 text-xs font-medium mb-2">
+								Total Cost
+							</p>
+							<p className="text-xl font-bold text-gray-800">
+								₦{currency(dashboard?.totalCost)}
+							</p>
+						</div>
+						<div className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md">
+							<p className="text-gray-500 text-xs font-medium mb-2">
+								Total Value
+							</p>
+							<p className="text-xl font-bold text-blue-600">
+								₦{currency(dashboard?.totalValue)}
+							</p>
+						</div>
+						<div className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md">
+							<p className="text-gray-500 text-xs font-medium mb-2">
+								Total Margin
+							</p>
+							<p
+								className={`text-xl font-bold flex items-center gap-1 ${
+									(dashboard?.totalMargin ?? 0) >= 0
+										? 'text-green-600'
+										: 'text-red-600'
+								}`}
+							>
+								{(dashboard?.totalMargin ?? 0) >= 0 ? (
+									<TrendingUp size={18} />
+								) : (
+									<TrendingDown size={18} />
+								)}
+								₦{currency(dashboard?.totalMargin)}
+							</p>
+						</div>
 					</div>
-					<div className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md">
-						<p className="text-gray-500 text-xs font-medium mb-2">Total Cost</p>
-						<p className="text-xl font-bold text-gray-800">
-							₦{currency(dashboard?.totalCost)}
-						</p>
+				) : (
+					<div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+						<div className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md">
+							<p className="text-gray-500 text-xs font-medium mb-2">
+								Sold Assets
+							</p>
+							<p className="text-2xl font-bold text-gray-800">
+								{dashboard?.totalSoldCount || 0}
+							</p>
+						</div>
+						<div className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md">
+							<p className="text-gray-500 text-xs font-medium mb-2">
+								Total Cost
+							</p>
+							<p className="text-xl font-bold text-gray-800">
+								₦{currency(dashboard?.totalCostForSold)}
+							</p>
+						</div>
+						<div className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md">
+							<p className="text-gray-500 text-xs font-medium mb-2">
+								Total Sold
+							</p>
+							<p className="text-xl font-bold text-blue-600">
+								₦{currency(dashboard?.totalSold)}
+							</p>
+						</div>
+						<div className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md">
+							<p className="text-gray-500 text-xs font-medium mb-2">
+								Total Profit
+							</p>
+							<p
+								className={`text-xl font-bold flex items-center gap-1 ${
+									(dashboard?.totalProfitForSold ?? 0) >= 0
+										? 'text-green-600'
+										: 'text-red-600'
+								}`}
+							>
+								{(dashboard?.totalProfitForSold ?? 0) >= 0 ? (
+									<TrendingUp size={18} />
+								) : (
+									<TrendingDown size={18} />
+								)}
+								₦{currency(dashboard?.totalProfitForSold)}
+							</p>
+						</div>
 					</div>
-					<div className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md">
-						<p className="text-gray-500 text-xs font-medium mb-2">
-							Total Value
-						</p>
-						<p className="text-xl font-bold text-blue-600">
-							₦{currency(dashboard?.totalValue)}
-						</p>
-					</div>
-					<div className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md">
-						<p className="text-gray-500 text-xs font-medium mb-2">
-							Total Margin
-						</p>
-						<p
-							className={`text-xl font-bold flex items-center gap-1 ${
-								(dashboard?.totalMargin ?? 0) >= 0
-									? 'text-green-600'
-									: 'text-red-600'
-							}`}
-						>
-							{(dashboard?.totalMargin ?? 0) >= 0 ? (
-								<TrendingUp size={18} />
-							) : (
-								<TrendingDown size={18} />
-							)}
-							₦{currency(dashboard?.totalMargin)}
-						</p>
-					</div>
-				</div>
+				)}
 
 				{/* Filters */}
 				<div className="flex flex-wrap gap-3 items-end mb-4">
