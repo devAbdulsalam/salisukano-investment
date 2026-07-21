@@ -386,11 +386,9 @@ const Asset = () => {
 			}
 			doc.setLineWidth(0.4);
 			doc.line(14, y, 74, y);
-			doc.text('Prepared by', 14, y + 5);
-			doc.line(pw - 74, y, pw - 14, y);
-			doc.text('Authorized Signature', pw - 74, y + 5);
-			doc.text("For: Salisu Kano Int'l Ltd", pw - 74, y + 10);
-			if (sealBase64) doc.addImage(sealBase64, 'PNG', pw - 80, y - 30, 80, 50);
+			doc.text('Authorized Signature', 14, y + 5);
+			doc.text("For: Salisu Kano Int'l Ltd", 14, y + 10);
+			if (sealBase64) doc.addImage(sealBase64, 'PNG', 14, y - 30, 42, 42);
 
 			doc.save(
 				`Asset-${asset.name}-${new Date().toISOString().split('T')[0]}.pdf`,
@@ -438,7 +436,9 @@ const Asset = () => {
 									{asset.status?.replace('_', ' ')}
 								</span>
 							</h1>
-							<p className="text-xs text-gray-400 mt-1">Asset No. {asset.serialNumber}</p>
+							<p className="text-xs text-gray-400 mt-1">
+								Asset No. {asset.serialNumber}
+							</p>
 						</div>
 						<div className="flex gap-2 flex-wrap">
 							<button
