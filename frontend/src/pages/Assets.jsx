@@ -299,7 +299,7 @@ const Assets = () => {
 									</div>
 								</th>
 								<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
-									Serial No.
+									Asset No.
 								</th>
 								<th
 									onClick={() => requestSort('purchasePrice')}

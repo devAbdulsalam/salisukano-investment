@@ -220,7 +220,7 @@ const Asset = () => {
 			y += 6;
 			doc.setFont('helvetica', 'normal');
 			doc.setFontSize(9);
-			doc.text(`Serial No: ${asset.serialNumber}`, 14, y);
+			doc.text(`Asset No: ${asset.serialNumber}`, 14, y);
 			y += 5;
 			doc.text(`Status: ${asset.status?.replace('_', ' ')}`, 14, y);
 			y += 5;
@@ -438,7 +438,7 @@ const Asset = () => {
 									{asset.status?.replace('_', ' ')}
 								</span>
 							</h1>
-							<p className="text-xs text-gray-400 mt-1">{asset.serialNumber}</p>
+							<p className="text-xs text-gray-400 mt-1">Asset No. {asset.serialNumber}</p>
 						</div>
 						<div className="flex gap-2 flex-wrap">
 							<button
