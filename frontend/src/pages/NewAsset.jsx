@@ -104,7 +104,7 @@ const NewAsset = () => {
 									</div>
 									<div>
 										<label className="block text-sm font-medium text-gray-700 mb-1">
-											Serial Number <span className="text-red-500">*</span>
+											Asset Number <span className="text-red-500">*</span>
 										</label>
 										<input
 											className="w-full h-[42px] rounded-md border border-gray-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
