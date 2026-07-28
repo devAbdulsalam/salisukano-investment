@@ -1,11 +1,11 @@
-name: Deploy Frontend
+name: Deploy React Frontend
 
 on:
   push:
     branches:
       - main
     paths:
-      - 'frontend/**'
+      - "frontend/**"
 
 jobs:
   deploy:
@@ -16,34 +16,37 @@ jobs:
         working-directory: frontend
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v5
 
-      - name: Setup Node
-        uses: actions/setup-node@v5
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
+    - name: Checkout
+      uses: actions/checkout@v4
 
-      - name: Install Dependencies
-        run: npm ci
 
-      # Create .env from GitHub Secrets (Vite example)
-      - name: Create .env
-        run: |
-          echo "VITE_API_URL=${{ secrets.VITE_API_URL }}" > .env
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22
 
-      - name: Build
-        run: npm run build
 
-      - name: Deploy Build
-        uses: appleboy/scp-action@v0.1.7
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          REMOTE_HOST: ${{ secrets.SSH_HOST }}
-          REMOTE_USER: ${{ secrets.SSH_USERNAME }}
-          REMOTE_PORT: ${{ secrets.SSH_PORT }}
-          SOURCE: 'frontend/dist/'
-          TARGET: ${{ secrets.FRONTEND_PATH }}
-          ARGS: '-rlgoDzvc --delete'
+    - name: Install packages
+      run: npm ci
+
+
+    - name: Create env
+      run: |
+        echo "VITE_API_URL=${{ secrets.VITE_API_URL }}" > .env
+
+
+    - name: Build React
+      run: npm run build
+
+
+    - name: Deploy via FTP
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      with:
+        server: ${{ secrets.FTP_HOST }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        protocol: ftp
+        port: ${{ secrets.FTP_PORT }}
+        local-dir: frontend/dist/
+        server-dir: ${{ secrets.FRONTEND_PATH }}

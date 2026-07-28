@@ -1,60 +1,36 @@
-name: Deploy Backend
+name: Deploy Node Backend
 
 on:
   push:
     branches:
       - main
     paths:
-      - 'backend/**'
+      - "backend/**"
+
 
 jobs:
   deploy:
+
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: backend
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v5
 
-      - name: Setup Node
-        uses: actions/setup-node@v5
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: backend/package-lock.json
+    - name: Checkout
+      uses: actions/checkout@v4
 
-      - name: Install Dependencies
-        run: npm ci
 
-      - name: Deploy Backend
-        uses: appleboy/scp-action@v0.1.7
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          REMOTE_HOST: ${{ secrets.SSH_HOST }}
-          REMOTE_USER: ${{ secrets.SSH_USERNAME }}
-          REMOTE_PORT: ${{ secrets.SSH_PORT }}
-          SOURCE: 'backend/'
-          TARGET: ${{ secrets.BACKEND_PATH }}
-          EXCLUDE: |
-            .env
-            node_modules
-            .git
-            .github
-
-      - name: Install Production Packages & Restart
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT }}
-          script: |
-            cd ${{ secrets.BACKEND_PATH }}
-
-            npm install --omit=dev
-
-            mkdir -p tmp
-            touch tmp/restart.txt
+    - name: Deploy Backend FTP
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      with:
+        server: ${{ secrets.FTP_HOST }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        protocol: ftp
+        port: ${{ secrets.FTP_PORT }}
+        local-dir: backend/
+        server-dir: ${{ secrets.BACKEND_PATH }}
+        exclude: |
+          **/.env
+          **/node_modules/**
+          **/.git/**
