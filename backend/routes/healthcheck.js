@@ -1,5 +1,6 @@
 import express from 'express';
 const router = express.Router();
+
 router.get('/', async (req, res) => {
 	try {
 		return res
@@ -7,9 +8,9 @@ router.get('/', async (req, res) => {
 			.json({ status: 'success', message: 'Server is up and running' });
 	} catch (error) {
 		res.status(500).json({
+			error: error,
 			status: 'error',
 			message: `Something went wrong: ${error?.message}`,
-			error: error,
 		});
 	}
 });
