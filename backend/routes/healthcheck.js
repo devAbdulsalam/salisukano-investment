@@ -9,6 +9,7 @@ router.get('/', async (req, res) => {
 		res.status(500).json({
 			status: 'error',
 			message: `Something went wrong: ${error?.message}`,
+			error: error,
 		});
 	}
 });
