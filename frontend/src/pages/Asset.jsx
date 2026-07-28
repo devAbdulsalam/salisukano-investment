@@ -9,10 +9,10 @@ import getError from '../hooks/getError.js';
 import {
 	Plus,
 	Trash2,
-	TrendingUp,
-	TrendingDown,
 	Wrench,
 	BarChart2,
+	TrendingUp,
+	TrendingDown,
 	ArrowLeft,
 	ShoppingCart,
 	Pencil,
