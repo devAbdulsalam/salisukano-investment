@@ -9,8 +9,8 @@ router.get('/', async (req, res) => {
 	} catch (error) {
 		res.status(500).json({
 			status: 'error',
-			error: error,
 			message: `Something went wrong: ${error?.message}`,
+			error: error,
 		});
 	}
 });
