@@ -8,8 +8,8 @@ router.get('/', async (req, res) => {
 			.json({ status: 'success', message: 'Server is up and running' });
 	} catch (error) {
 		res.status(500).json({
-			error: error,
 			status: 'error',
+			error: error,
 			message: `Something went wrong: ${error?.message}`,
 		});
 	}
