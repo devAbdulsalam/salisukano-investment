@@ -38,7 +38,7 @@ jobs:
         run: npm run build
 
       - name: Deploy Build
-        uses: easingthemes/ssh-deploy@v5
+        uses:  uses: appleboy/scp-action@v0.1.7
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           REMOTE_HOST: ${{ secrets.SSH_HOST }}
