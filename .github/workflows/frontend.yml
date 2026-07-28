@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - "frontend/**"
+      - 'frontend/**'
 
 jobs:
   deploy:
@@ -38,12 +38,12 @@ jobs:
         run: npm run build
 
       - name: Deploy Build
-        uses:  uses: appleboy/scp-action@v0.1.7
+        uses: appleboy/scp-action@v0.1.7
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           REMOTE_HOST: ${{ secrets.SSH_HOST }}
           REMOTE_USER: ${{ secrets.SSH_USERNAME }}
           REMOTE_PORT: ${{ secrets.SSH_PORT }}
-          SOURCE: "frontend/dist/"
+          SOURCE: 'frontend/dist/'
           TARGET: ${{ secrets.FRONTEND_PATH }}
-          ARGS: "-rlgoDzvc --delete"
+          ARGS: '-rlgoDzvc --delete'
