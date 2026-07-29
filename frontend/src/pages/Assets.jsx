@@ -11,7 +11,6 @@ import {
 	Trash2,
 	Search,
 	Plus,
-	Eye,
 	TrendingUp,
 	TrendingDown,
 	ArrowUpDown,
