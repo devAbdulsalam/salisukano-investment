@@ -54,6 +54,8 @@ import DividendRatesPage from './pages/DividendRatesPage';
 import AddShareholders from './pages/AddShareholders';
 import VtcInvoice from './pages/VtcInvoice';
 import VtcInvoices from './pages/VtcInvoices';
+import MikiyaInvoice from './pages/MikiyaInvoice'
+import MikiyaInvoices from './pages/MikiyaInvoices'
 import Assets from './pages/Assets';
 import Asset from './pages/Asset';
 import NewAsset from './pages/NewAsset';
@@ -150,6 +152,9 @@ function App() {
 							<Route path="/vtc-invoices" element={<VtcInvoices />} />
 							<Route path="/vtc-invoice" element={<VtcInvoice />} />
 							<Route path="/vtc-invoice/:id" element={<VtcInvoice />} />
+							<Route path="/mikiya-invoices" element={<MikiyaInvoices />} />
+							<Route path="/mikiya-invoice" element={<MikiyaInvoice />} />
+							<Route path="/mikiya-invoice/:id" element={<MikiyaInvoice />} />
 							<Route path="/financial-statement" element={<Statement />} />
 							<Route path="/shareholders" element={<Shareholders />} />
 							<Route path="/new-shareholders" element={<AddShareholders />} />

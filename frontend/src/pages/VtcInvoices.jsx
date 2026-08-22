@@ -12,7 +12,7 @@ import { fetchWaybills } from '../hooks/axiosApis';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-const VtcInvoices = () => {
+const VtcInvoices = ({ company = 'vtc' }) => {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 	const { user } = useContext(AuthContext);
@@ -26,14 +26,16 @@ const VtcInvoices = () => {
 		key: 'createdAt', // default sort by date
 		direction: 'desc',
 	});
-	const company = 'vtc';
+	const isMikiya = company === 'mikiya';
+	const brandName = isMikiya ? 'Mikiya' : 'VTC';
+	const invoicePath = isMikiya ? '/mikiya-invoice' : '/vtc-invoice';
 	// Fetch invoices
 	const {
 		data: invoices = [],
 		isLoading,
 		error,
 	} = useQuery({
-		queryKey: ['waybills'],
+		queryKey: ['waybills', company],
 		queryFn: async () => fetchWaybills(user, company),
 	});
 
@@ -130,13 +132,13 @@ const VtcInvoices = () => {
 			{/* Header */}
 			<div className="flex justify-between items-center mb-6">
 				<h1 className="text-xl md:text-3xl font-bold text-gray-800">
-					VTC Invoice
+					{brandName} Invoice
 				</h1>
 				<button
-					onClick={() => navigate('/vtc-invoice')}
+					onClick={() => navigate(invoicePath)}
 					className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
 				>
-					VTC Invoice
+					{brandName} Invoice
 				</button>
 			</div>
 
@@ -208,7 +210,7 @@ const VtcInvoices = () => {
 						{filteredAndSortedInvoices.length === 0 ? (
 							<tr>
 								<td colSpan="7" className="px-6 py-4 text-center text-gray-500">
-									No vtc invoices found.
+									No {brandName.toLowerCase()} invoices found.
 								</td>
 							</tr>
 						) : (
@@ -218,7 +220,7 @@ const VtcInvoices = () => {
 										{index + 1}
 									</td>
 									<td
-										onClick={() => navigate(`/vtc-invoice/${invoice._id}`)}
+										onClick={() => navigate(`${invoicePath}/${invoice._id}`)}
 										className="cursor-pointer px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
 									>
 										{invoice.name}
@@ -239,7 +241,7 @@ const VtcInvoices = () => {
 										<div className="flex items-center gap-3">
 											<button
 												onClick={() =>
-													navigate(`/register-invoices/${invoice._id}`)
+													navigate(`${invoicePath}/${invoice._id}`)
 												}
 												className="text-blue-600 hover:text-blue-800"
 												title="View/Edit"

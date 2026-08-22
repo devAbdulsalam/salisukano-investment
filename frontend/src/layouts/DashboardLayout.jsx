@@ -54,6 +54,11 @@ const navigationList = [
 		link: '/vtc-invoices',
 		svg: <FileText className="h-4 w-4" />,
 		roles: ['admin', 'operation'],
+	},{
+		name: 'Mikiya Invoices',
+		link: '/mikiya-invoices',
+		svg: <FileText className="h-4 w-4" />,
+		roles: ['admin', 'operation'],
 	},
 	{
 		name: 'Register',

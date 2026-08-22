@@ -11,6 +11,8 @@ import autoTable from 'jspdf-autotable';
 import { fetchWaybill } from '../hooks/axiosApis';
 import logo from '../assets/vtc-logo.jpeg';
 import seal from '../assets/vtc-sign.png';
+import mikiyaLogo from '../assets/mikiya-logo.png';
+import mikiyaSeal from '../assets/mikiya-seal.png';
 import phone from '../assets/call.png';
 import AuthContext from '../context/authContext';
 
@@ -121,13 +123,33 @@ const numberToWords = (num) => {
 	return words.join(' ').trim() + ' Naira Only';
 };
 
-const VtcInvoice = () => {
+const VtcInvoice = ({ company = 'vtc' }) => {
 	const { id } = useParams();
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 	const apiUrl = import.meta.env.VITE_API_URL;
 	const isEdit = Boolean(id);
 	const { user } = useContext(AuthContext);
+	const isMikiya = company === 'mikiya';
+	const brand = isMikiya
+		? {
+				logo: mikiyaLogo,
+				seal: mikiyaSeal,
+				shortName: 'MIKIYA',
+				fullName: 'MIKIYA GLOBAL RESOURCES LIMITED',
+				description: 'Dealers and Suppliers of general goods, Contractors and General Merchandize',
+				footerName: 'Mikiya Global Resources Limited',
+				listPath: '/mikiya-invoices',
+			}
+			: {
+				logo,
+				seal,
+				shortName: 'V. T. C. LIMITED',
+				fullName: 'VICTORY TRUST COMPANY LIMITED',
+				description: 'Dealers and Suppliers of general goods, Contractors and General Merchandize',
+				footerName: 'V.T.C. Limited',
+				listPath: '/register-invoices',
+			};
 	const [loading, setLoading] = useState(false);
 	const [logoBase64, setLogoBase64] = useState('');
 	const [sealBase64, setSealBase64] = useState('');
@@ -147,7 +169,7 @@ const VtcInvoice = () => {
 		date: new Date().toISOString().split('T')[0], // YYYY-MM-DD for input[type=date]
 		timeIn: TIME_SLOTS[0],
 		timeOut: TIME_SLOTS[1],
-		company: 'vtc',
+		company,
 	});
 
 	// Items state
@@ -180,7 +202,7 @@ const VtcInvoice = () => {
 					: '',
 				timeIn: fetchedData.timeIn || TIME_SLOTS[0],
 				timeOut: fetchedData.timeOut || TIME_SLOTS[0],
-				company: fetchedData.company || 'vtc',
+				company: fetchedData.company || company,
 			});
 			if (fetchedData.items && fetchedData.items.length) {
 				setItems(fetchedData.items);
@@ -288,7 +310,7 @@ const VtcInvoice = () => {
 			queryClient.invalidateQueries({ queryKey: ['waybills'] });
 			queryClient.invalidateQueries({ queryKey: ['waybills', id] });
 
-			navigate('/register-invoices'); // adjust route as needed
+			navigate(brand.listPath);
 		} catch (error) {
 			const message = getError(error);
 			toast.error(message);
@@ -301,7 +323,7 @@ const VtcInvoice = () => {
 	useEffect(() => {
 		const img = new Image();
 		img.crossOrigin = 'anonymous';
-		img.src = logo;
+		img.src = brand.logo;
 		img.onload = () => {
 			const canvas = document.createElement('canvas');
 			canvas.width = img.width;
@@ -314,7 +336,7 @@ const VtcInvoice = () => {
 	useEffect(() => {
 		const img = new Image();
 		img.crossOrigin = 'anonymous';
-		img.src = seal;
+		img.src = brand.seal;
 		img.onload = () => {
 			const canvas = document.createElement('canvas');
 			canvas.width = img.width;
@@ -390,19 +412,19 @@ const VtcInvoice = () => {
 			doc.setFont('helvetica', 'bold');
 			doc.setFontSize(44);
 			// doc.setLetterSpacing(1);
-			doc.text('V. T. C. LIMITED', pageWidth / 2, 20, {
+			doc.text(brand.shortName, pageWidth / 2, 20, {
 				align: 'center',
 			});
 			doc.setFont('helvetica', 'bold');
 			doc.setFontSize(17);
-			doc.text('VICTORY TRUST COMPANY LIMITED', pageWidth / 2, 26, {
+			doc.text(brand.fullName, pageWidth / 2, 26, {
 				align: 'center',
 			});
 
 			doc.setFontSize(9);
 			doc.setFont('helvetica', 'bold');
 			doc.text(
-				'Dealers and Suppliers of general goods, Contractors and General Merchandize',
+				brand.description,
 				pageWidth / 2,
 				30,
 				{ align: 'center' },
@@ -621,7 +643,7 @@ const VtcInvoice = () => {
 
 			doc.line(pageWidth - 80, footerY, pageWidth - 14, footerY);
 			doc.text("Agent's Signature", pageWidth - 80, footerY + 5);
-			doc.text('For: V.T.C. Limited', pageWidth - 80, footerY + 10);
+			doc.text(`For: ${brand.footerName}`, pageWidth - 80, footerY + 10);
 
 			if (sealBase64) {
 				doc.addImage(sealBase64, 'PNG', pageWidth - 76, footerY - 20, 28, 28);
@@ -631,7 +653,7 @@ const VtcInvoice = () => {
 			// SAVE FILE
 			// ===============================
 
-			doc.save(`VTC-waybill-${generateFileSuffix()}.pdf`);
+			doc.save(`${brand.shortName.replaceAll(' ', '-')}-waybill-${generateFileSuffix()}.pdf`);
 		} catch (error) {
 			console.error(error);
 			toast.error('Failed to generate PDF');
@@ -658,8 +680,8 @@ const VtcInvoice = () => {
 					>
 						<div style={{ flexShrink: 0 }}>
 							<img
-								src={logo}
-								alt="Salisu Logo"
+								src={brand.logo}
+								alt={`${brand.shortName} logo`}
 								width="80"
 								height="80"
 								style={{ objectFit: 'contain' }}
@@ -667,20 +689,19 @@ const VtcInvoice = () => {
 						</div>
 						<div className="text-center">
 							<h2 className="font-black text-4xl tracking-widest">
-								V. T. C. LIMITED
+								{brand.shortName}
 							</h2>
 							<h2 className="font-black text-xl tracking-widest">
-								VICTORY TRUST COMPANY LIMITED
+								{brand.fullName}
 							</h2>
 							<p className="font-bold text-xs">
-								Dealers and Suppliers of general goods, Contractors and General
-								Merchandize
+								{brand.description}
 							</p>
 						</div>
 						<div style={{ flexShrink: 0 }}>
 							<img
-								src={logo}
-								alt="Salisu Logo"
+								src={brand.logo}
+								alt={`${brand.shortName} logo`}
 								width="80"
 								height="80"
 								style={{ objectFit: 'contain' }}
@@ -1130,8 +1151,8 @@ const VtcInvoice = () => {
 							}}
 						>
 							<img
-								src={seal}
-								alt="Salisu Seal"
+								src={brand.seal}
+								alt={`${brand.shortName} seal`}
 								width="120"
 								height="120"
 								style={{
@@ -1142,7 +1163,7 @@ const VtcInvoice = () => {
 
 							<p>_________________________</p>
 							<strong>Agent's Sign</strong>
-							<em>For: V.T.C. Limited</em>
+							<em>For: {brand.footerName}</em>
 						</div>
 					</div>
 				</div>
