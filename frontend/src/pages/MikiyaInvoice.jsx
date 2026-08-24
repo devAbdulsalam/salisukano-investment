@@ -388,7 +388,7 @@ const MikiyaInvoice = () => {
 			if (logoBase64) {
 				doc.addImage(logoBase64, 'PNG', 14, 10, 24, 24);
 			}
-			
+
 			doc.setFont('helvetica', 'bold');
 			doc.setFontSize(32);
 			doc.text(brand.fullName, pageWidth / 2, 26, {
@@ -398,7 +398,7 @@ const MikiyaInvoice = () => {
 			doc.setFontSize(9);
 			doc.setFont('helvetica', 'bold');
 			doc.text(
-				brand.description,
+				brand.address,
 				pageWidth / 2,
 				30,
 				{ align: 'center' },
@@ -408,13 +408,13 @@ const MikiyaInvoice = () => {
 				doc.addImage(logoBase64, 'PNG', pageWidth - 36, 10, 24, 24);
 			}
 
-			doc.setFont('helvetica', 'bold');
-			brand.address.forEach((line, index) => {
-				doc.text(line, 14, 39 + index * 4);
-			});
+			// doc.setFont('helvetica', 'bold');
+			// brand.address.forEach((line, index) => {
+			// 	doc.text(line, 14, 39 + index * 4);
+			// });
 			doc.setFontSize(10);
 			doc.setTextColor(brand.accentDark);
-			doc.text(`GSM: ${brand.phones.join(', ')}`, pageWidth / 2, 39, {
+			doc.text(`Tel: ${brand.phones.join(', ')}`, pageWidth / 2, 33, {
 				align: 'center',
 			});
 			doc.setTextColor(0);
@@ -667,12 +667,16 @@ const MikiyaInvoice = () => {
 							/>
 						</div>
 						<div className="text-center flex-1 min-w-0">
-							
-							<h2 className="font-black text-2xl md:text-3xl tracking-widest" style={{ color: brand.accentDark }}>
+
+							<h2 className="font-black text-xl md:text-2xl tracking-widest" style={{ color: brand.accentDark }}>
 								{brand.fullName}
 							</h2>
 							<p className="font-bold text-[10px] md:text-xs">
-								{brand.description}
+								{brand.address}
+							</p>
+
+							<p className="text-center font-bold whitespace-nowrap" style={{ color: brand.accentDark }}>
+								Tel: {brand.phones.join(', ')}
 							</p>
 						</div>
 						<div style={{ flexShrink: 0 }} className="hidden sm:block">
@@ -687,16 +691,6 @@ const MikiyaInvoice = () => {
 					</div>
 
 					<div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] items-center gap-3 py-1 text-xs">
-						<div className="leading-5">
-							{brand.address.map((line, index) => (
-								<div key={line} className={index === 0 ? 'font-extrabold' : ''}>
-									{line}
-								</div>
-							))}
-						</div>
-						<div className="text-center font-bold whitespace-nowrap" style={{ color: brand.accentDark }}>
-							GSM: {brand.phones.join(', ')}
-						</div>
 						<div className="flex justify-end font-extrabold">
 							No:
 						</div>

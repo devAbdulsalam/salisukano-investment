@@ -55,7 +55,7 @@ const navigationList = [
 		svg: <FileText className="h-4 w-4" />,
 		roles: ['admin', 'operation'],
 	},{
-		name: 'Mikiya Invoices',
+		name: 'MIKIYA Invoices',
 		link: '/mikiya-invoices',
 		svg: <FileText className="h-4 w-4" />,
 		roles: ['admin', 'operation'],
