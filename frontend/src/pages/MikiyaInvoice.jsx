@@ -138,7 +138,7 @@ const MikiyaInvoice = () => {
 			'Block P5, No 1 & 2 Dalar Gyada Road,',
 			'Kano State, Nigeria.',
 		],
-		phones: ['+234 803 813 1020'],
+		phones: ['+234 806 8195 780', '+234 816 4503 852', '+234 806 7237 273'],
 		accent: '#16884a',
 		accentDark: '#2b0b12',
 		footerName: 'Mikiya International Company Limited',
@@ -388,14 +388,9 @@ const MikiyaInvoice = () => {
 			if (logoBase64) {
 				doc.addImage(logoBase64, 'PNG', 14, 10, 24, 24);
 			}
+			
 			doc.setFont('helvetica', 'bold');
-			doc.setFontSize(44);
-			// doc.setLetterSpacing(1);
-			doc.text(brand.shortName, pageWidth / 2, 20, {
-				align: 'center',
-			});
-			doc.setFont('helvetica', 'bold');
-			doc.setFontSize(17);
+			doc.setFontSize(32);
 			doc.text(brand.fullName, pageWidth / 2, 26, {
 				align: 'center',
 			});
@@ -672,10 +667,8 @@ const MikiyaInvoice = () => {
 							/>
 						</div>
 						<div className="text-center flex-1 min-w-0">
-							<h2 className="font-black text-3xl md:text-4xl tracking-widest" style={{ color: brand.accentDark }}>
-								{brand.shortName}
-							</h2>
-							<h2 className="font-black text-sm md:text-xl tracking-widest">
+							
+							<h2 className="font-black text-2xl md:text-3xl tracking-widest" style={{ color: brand.accentDark }}>
 								{brand.fullName}
 							</h2>
 							<p className="font-bold text-[10px] md:text-xs">
