@@ -387,7 +387,7 @@ const MikiyaInvoice = () => {
 			}
 
 			doc.setFont('helvetica', 'bold');
-			doc.setFontSize(24);
+			doc.setFontSize(18);
 			doc.text(brand.fullName, pageWidth / 2, 26, {
 				align: 'center',
 			});
@@ -397,7 +397,7 @@ const MikiyaInvoice = () => {
 			doc.text(
 				brand.address,
 				pageWidth / 2,
-				32,
+				31,
 				{ align: 'center' },
 			);
 			doc.text(`Tel: ${brand.phones.join(', ')}`, pageWidth / 2, 35, {
@@ -420,7 +420,7 @@ const MikiyaInvoice = () => {
 			doc.setLineWidth(0.4);
 			doc.setDrawColor(brand.accent);
 			doc.line(36, 37, pageWidth - 36, 37);
-			doc.setDrawColor(0);
+			doc.setDrawColor(brand.accentDark);
 
 			doc.text('WAYBILL / RECEIPT', pageWidth / 2, 48, { align: 'center' });
 			doc.setTextColor(0);
@@ -685,7 +685,7 @@ const MikiyaInvoice = () => {
 						</div>
 					</div> */}
 					<div className="flex justify-center -mt-1">
-						<h3 className="py-1 text-center text-xl font-extrabold text-white px-5 bg-[#E7E7E7] text-white">
+						<h3 className="py-1 text-center text-xl font-extrabold text-white px-5 text-white" style={{backgroundColor: brand.accent}}>
 							WAYBILL/RECEIPT
 						</h3>
 					</div>
