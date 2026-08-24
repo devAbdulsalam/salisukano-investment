@@ -138,6 +138,14 @@ const VtcInvoice = ({ company = 'vtc' }) => {
 				shortName: 'MIKIYA',
 				fullName: 'MIKIYA GLOBAL RESOURCES LIMITED',
 				description: 'Dealers and Suppliers of general goods, Contractors and General Merchandize',
+				address: [
+					'HEAD OFFICE:',
+					'Suit A11, Mustard Seed Plaza,',
+					'5th Avenue, Gwarimpa, Abuja, Nigeria.',
+				],
+				phones: ['08038131020', '08133405917'],
+				accent: '#16884a',
+				accentDark: '#2b0b12',
 				footerName: 'Mikiya Global Resources Limited',
 				listPath: '/mikiya-invoices',
 			}
@@ -147,6 +155,14 @@ const VtcInvoice = ({ company = 'vtc' }) => {
 				shortName: 'V. T. C. LIMITED',
 				fullName: 'VICTORY TRUST COMPANY LIMITED',
 				description: 'Dealers and Suppliers of general goods, Contractors and General Merchandize',
+				address: [
+					'HEAD OFFICE:',
+					'Suit A11, Mustard Seed Plaza,',
+					'5th Avenue, Gwarimpa, Abuja, Nigeria.',
+				],
+				phones: ['08038131020', '08133405917'],
+				accent: '#111827',
+				accentDark: '#111827',
 				footerName: 'V.T.C. Limited',
 				listPath: '/register-invoices',
 			};
@@ -435,26 +451,29 @@ const VtcInvoice = ({ company = 'vtc' }) => {
 			}
 
 			doc.setFont('helvetica', 'bold');
-			doc.text('HEAD OFFICE:', 14, 39);
-			doc.text('Suit A11, Mustard Seed,', 14, 43);
-			doc.text('Plaza 5th Avenue', 14, 47);
-			doc.text('Gwarimpa, Abuja, Nigeria.', 14, 51);
+			brand.address.forEach((line, index) => {
+				doc.text(line, 14, 39 + index * 4);
+			});
 			doc.setFontSize(10);
-			doc.text('GSM: 08038131020, 08133405917', pageWidth / 2, 39, {
+			doc.setTextColor(brand.accentDark);
+			doc.text(`GSM: ${brand.phones.join(', ')}`, pageWidth / 2, 39, {
 				align: 'center',
 			});
+			doc.setTextColor(0);
 
 			doc.setFontSize(12);
 			doc.text('No:', pageWidth - 72, 51);
 			// Title
 			doc.setFont('helvetica', 'bold');
 			doc.setFontSize(14);
-			doc.setFillColor(0);
+			doc.setFillColor(brand.accentDark);
 			doc.rect(pageWidth / 2 - 29, 41, 56, 10, 'F');
 			doc.setTextColor(255);
 
 			doc.setLineWidth(0.4);
+			doc.setDrawColor(brand.accent);
 			doc.line(36, 33, pageWidth - 36, 33);
+			doc.setDrawColor(0);
 
 			doc.text('WAYBILL / RECEIPT', pageWidth / 2, 48, { align: 'center' });
 			doc.setTextColor(0);
@@ -675,30 +694,32 @@ const VtcInvoice = ({ company = 'vtc' }) => {
 							display: 'flex',
 							alignItems: 'center',
 							gap: '10px',
+							borderBottom: `3px solid ${brand.accent}`,
+							paddingBottom: '12px',
 						}}
-						className="w-full justify-center"
+						className="w-full justify-between"
 					>
 						<div style={{ flexShrink: 0 }}>
 							<img
 								src={brand.logo}
 								alt={`${brand.shortName} logo`}
-								width="80"
-								height="80"
-								style={{ objectFit: 'contain' }}
+								width="76"
+								height="76"
+								style={{ objectFit: 'contain', borderRadius: '50%' }}
 							/>
 						</div>
-						<div className="text-center">
-							<h2 className="font-black text-4xl tracking-widest">
+						<div className="text-center flex-1 min-w-0">
+							<h2 className="font-black text-3xl md:text-4xl tracking-widest" style={{ color: brand.accentDark }}>
 								{brand.shortName}
 							</h2>
-							<h2 className="font-black text-xl tracking-widest">
+							<h2 className="font-black text-sm md:text-xl tracking-widest">
 								{brand.fullName}
 							</h2>
-							<p className="font-bold text-xs">
+							<p className="font-bold text-[10px] md:text-xs">
 								{brand.description}
 							</p>
 						</div>
-						<div style={{ flexShrink: 0 }}>
+						<div style={{ flexShrink: 0 }} className="hidden sm:block">
 							<img
 								src={brand.logo}
 								alt={`${brand.shortName} logo`}
@@ -709,32 +730,25 @@ const VtcInvoice = ({ company = 'vtc' }) => {
 						</div>
 					</div>
 
-					<hr style={{ border: '1px solid #000' }} />
-					<div className="flex justify-start items-start gap-3">
-						<div>
-							<p style={{ margin: '5px 0' }}>
-								<strong>HEAD OFFICE:</strong>
-								<br />
-								Suit A11, Mustard Seed Plaza,
-								<br />
-								5th Avenue, Gwarimpa, Abuja, Nigeria.
-							</p>
+					<div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] items-center gap-3 py-1 text-xs">
+						<div className="leading-5">
+							{brand.address.map((line, index) => (
+								<div key={line} className={index === 0 ? 'font-extrabold' : ''}>
+									{line}
+								</div>
+							))}
 						</div>
-						<div className=" flex flex-col items-center mb-4">
-							<div className="flex justify-center ">
-								<p>
-									<strong>GSM:</strong> 08038131020, 08133405917
-								</p>
-							</div>
-							<div className="bg-white border-2 border-t-black border-x-white border-b-white w-full p-1">
-								<h3 className="bg-black py-1 text-center text-xl font-extrabold text-white w-full px-4 ">
-									WAYBILL/RECEIPT
-								</h3>
-							</div>
+						<div className="text-center font-bold whitespace-nowrap" style={{ color: brand.accentDark }}>
+							GSM: {brand.phones.join(', ')}
 						</div>
-						<div className="flex self-center">
-							<p className="font-extrabold">No.</p>
+						<div className="flex justify-end font-extrabold">
+							No:
 						</div>
+					</div>
+					<div className="flex justify-center -mt-1">
+						<h3 className="py-1 text-center text-xl font-extrabold text-white px-5" style={{ backgroundColor: brand.accentDark }}>
+							WAYBILL/RECEIPT
+						</h3>
 					</div>
 
 					{/* Customer Details */}
