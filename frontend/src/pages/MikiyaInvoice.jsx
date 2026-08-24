@@ -133,11 +133,8 @@ const MikiyaInvoice = () => {
 		shortName: 'MIKIYA',
 		fullName: 'MIKIYA INTERNATIONAL COMPANY LIMITED',
 		description: 'Dealers and Suppliers of general goods, Contractors and General Merchandize',
-		address: [
-			'HEAD OFFICE:',
-			'Block P5, No 1 & 2 Dalar Gyada Road,',
-			'Kano State, Nigeria.',
-		],
+		address:
+			'HEAD OFFICE: Block P5, No 1 & 2 Dalar Gyada Road, Kano State, Nigeria.',
 		phones: ['+234 806 8195 780', '+234 816 4503 852', '+234 806 7237 273'],
 		accent: '#16884a',
 		accentDark: '#2b0b12',
@@ -403,16 +400,13 @@ const MikiyaInvoice = () => {
 				30,
 				{ align: 'center' },
 			);
-
-			if (logoBase64) {
-				doc.addImage(logoBase64, 'PNG', pageWidth - 36, 10, 24, 24);
-			}
-			doc.setFontSize(10);
-			doc.setTextColor(0);
 			doc.text(`Tel: ${brand.phones.join(', ')}`, pageWidth / 2, 33, {
 				align: 'center',
 			});
-			doc.setTextColor(0);
+			doc.setFillColor(0);
+			if (logoBase64) {
+				doc.addImage(logoBase64, 'PNG', pageWidth - 36, 10, 24, 24);
+			}
 
 			doc.setFontSize(12);
 			doc.text('No:', pageWidth - 72, 51);
@@ -663,7 +657,7 @@ const MikiyaInvoice = () => {
 						</div>
 						<div className="text-center flex-1 min-w-0">
 
-							<h2 className="font-black text-xl md:text-2xl tracking-widest">
+							<h2 className="font-black text-xl md:text-2xl whitespace-nowrap">
 								{brand.fullName}
 							</h2>
 							<p className="font-bold text-[10px] md:text-xs">
@@ -685,13 +679,13 @@ const MikiyaInvoice = () => {
 						</div>
 					</div>
 
-					<div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] items-center gap-3 py-1 text-xs">
+					{/* <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] items-center gap-3 py-1 text-xs">
 						<div className="flex justify-end font-extrabold">
 							No:
 						</div>
-					</div>
+					</div> */}
 					<div className="flex justify-center -mt-1">
-						<h3 className="py-1 text-center text-xl font-extrabold text-white px-5" style={{ backgroundColor: brand.accentDark }}>
+						<h3 className="py-1 text-center text-xl font-extrabold text-white px-5 bg-[#E7E7E7">
 							WAYBILL/RECEIPT
 						</h3>
 					</div>
