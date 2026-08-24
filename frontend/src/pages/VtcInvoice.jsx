@@ -136,17 +136,17 @@ const VtcInvoice = ({ company = 'vtc' }) => {
 				logo: mikiyaLogo,
 				seal: mikiyaSeal,
 				shortName: 'MIKIYA',
-				fullName: 'MIKIYA GLOBAL RESOURCES LIMITED',
+				fullName: 'MIKIYA INTERNATIONAL COMPANY LIMITED',
 				description: 'Dealers and Suppliers of general goods, Contractors and General Merchandize',
 				address: [
 					'HEAD OFFICE:',
-					'Suit A11, Mustard Seed Plaza,',
-					'5th Avenue, Gwarimpa, Abuja, Nigeria.',
+					'Block P5, No 1 & 2 Dalar Gyada Road,',
+					'Kano State, Nigeria.',
 				],
-				phones: ['08038131020', '08133405917'],
+				phones: ['+234 803 813 1020'],
 				accent: '#16884a',
 				accentDark: '#2b0b12',
-				footerName: 'Mikiya Global Resources Limited',
+				footerName: 'Mikiya International Company Limited',
 				listPath: '/mikiya-invoices',
 			}
 			: {
