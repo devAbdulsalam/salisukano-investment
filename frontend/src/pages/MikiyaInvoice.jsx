@@ -413,7 +413,7 @@ const MikiyaInvoice = () => {
 			// 	doc.text(line, 14, 39 + index * 4);
 			// });
 			doc.setFontSize(10);
-			doc.setTextColor(brand.accentDark);
+			doc.setTextColor(0);
 			doc.text(`Tel: ${brand.phones.join(', ')}`, pageWidth / 2, 33, {
 				align: 'center',
 			});
