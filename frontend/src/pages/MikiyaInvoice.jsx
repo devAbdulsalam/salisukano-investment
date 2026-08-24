@@ -387,7 +387,7 @@ const MikiyaInvoice = () => {
 			}
 
 			doc.setFont('helvetica', 'bold');
-			doc.setFontSize(32);
+			doc.setFontSize(24);
 			doc.text(brand.fullName, pageWidth / 2, 26, {
 				align: 'center',
 			});
@@ -397,10 +397,10 @@ const MikiyaInvoice = () => {
 			doc.text(
 				brand.address,
 				pageWidth / 2,
-				30,
+				32,
 				{ align: 'center' },
 			);
-			doc.text(`Tel: ${brand.phones.join(', ')}`, pageWidth / 2, 33, {
+			doc.text(`Tel: ${brand.phones.join(', ')}`, pageWidth / 2, 35, {
 				align: 'center',
 			});
 			doc.setFillColor(0);
@@ -408,8 +408,8 @@ const MikiyaInvoice = () => {
 				doc.addImage(logoBase64, 'PNG', pageWidth - 36, 10, 24, 24);
 			}
 
-			doc.setFontSize(12);
-			doc.text('No:', pageWidth - 72, 51);
+			// doc.setFontSize(12);
+			// doc.text('No:', pageWidth - 72, 51);
 			// Title
 			doc.setFont('helvetica', 'bold');
 			doc.setFontSize(14);
@@ -419,7 +419,7 @@ const MikiyaInvoice = () => {
 
 			doc.setLineWidth(0.4);
 			doc.setDrawColor(brand.accent);
-			doc.line(36, 33, pageWidth - 36, 33);
+			doc.line(36, 37, pageWidth - 36, 37);
 			doc.setDrawColor(0);
 
 			doc.text('WAYBILL / RECEIPT', pageWidth / 2, 48, { align: 'center' });
@@ -664,7 +664,7 @@ const MikiyaInvoice = () => {
 								{brand.address}
 							</p>
 
-							<p className="text-center font-bold whitespace-nowrap">
+							<p className="text-center font-bold text-[10px] md:text-xs whitespace-nowrap">
 								Tel: {brand.phones.join(', ')}
 							</p>
 						</div>
@@ -685,7 +685,7 @@ const MikiyaInvoice = () => {
 						</div>
 					</div> */}
 					<div className="flex justify-center -mt-1">
-						<h3 className="py-1 text-center text-xl font-extrabold text-white px-5 bg-[#E7E7E7">
+						<h3 className="py-1 text-center text-xl font-extrabold text-white px-5 bg-[#E7E7E7] text-white">
 							WAYBILL/RECEIPT
 						</h3>
 					</div>
