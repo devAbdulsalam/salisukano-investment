@@ -407,11 +407,6 @@ const MikiyaInvoice = () => {
 			if (logoBase64) {
 				doc.addImage(logoBase64, 'PNG', pageWidth - 36, 10, 24, 24);
 			}
-
-			// doc.setFont('helvetica', 'bold');
-			// brand.address.forEach((line, index) => {
-			// 	doc.text(line, 14, 39 + index * 4);
-			// });
 			doc.setFontSize(10);
 			doc.setTextColor(0);
 			doc.text(`Tel: ${brand.phones.join(', ')}`, pageWidth / 2, 33, {
