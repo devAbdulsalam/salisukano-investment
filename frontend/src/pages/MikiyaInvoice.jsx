@@ -663,14 +663,14 @@ const MikiyaInvoice = () => {
 						</div>
 						<div className="text-center flex-1 min-w-0">
 
-							<h2 className="font-black text-xl md:text-2xl tracking-widest" style={{ color: brand.accentDark }}>
+							<h2 className="font-black text-xl md:text-2xl tracking-widest">
 								{brand.fullName}
 							</h2>
 							<p className="font-bold text-[10px] md:text-xs">
 								{brand.address}
 							</p>
 
-							<p className="text-center font-bold whitespace-nowrap" style={{ color: brand.accentDark }}>
+							<p className="text-center font-bold whitespace-nowrap">
 								Tel: {brand.phones.join(', ')}
 							</p>
 						</div>
