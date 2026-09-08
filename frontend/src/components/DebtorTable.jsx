@@ -1,186 +1,169 @@
 /* eslint-disable react/prop-types */
 import { useState, useMemo } from 'react';
 import { AiFillEdit, AiFillDelete } from 'react-icons/ai';
-import moment from 'moment';
+import { FiSearch } from 'react-icons/fi';
 import { SiMicrosoftexcel } from 'react-icons/si';
+import moment from 'moment';
 
-const Table = ({
-	tableData,
-	handelEdit,
-	handelDelete,
-	tableRef,
-	handelExportToExcel,
-}) => {
+const DebtorTable = ({ tableData, handelEdit, handelDelete, tableRef, handelExportToExcel }) => {
 	const [query, setQuery] = useState('');
-	const handleChange = (e) => {
-		setQuery(e.target.value);
-	};
 
 	const filteredData = useMemo(() => {
 		return tableData?.filter((data) => {
-			// Filter by query (search)
-			const matchesQuery =
-				data._id?.toLowerCase().includes(query.toLowerCase()) ||
-				data.name?.toLowerCase().includes(query.toLowerCase()) ||
-				data.phone?.toLowerCase().includes(query.toLowerCase()) ||
-				data.description?.toLowerCase().includes(query.toLowerCase()) ||
-				data.credit?.toString().includes(query) ||
-				data.debit?.toString().includes(query) ||
-				data.balance?.toString().includes(query) ||
-				moment(data.createdAt).format('DD-MM-YYYY').includes(query);
-
-			return matchesQuery;
+			const q = query.toLowerCase();
+			return (
+				data._id?.toLowerCase().includes(q) ||
+				data.name?.toLowerCase().includes(q) ||
+				data.phone?.toLowerCase().includes(q) ||
+				data.description?.toLowerCase().includes(q) ||
+				data.credit?.toString().includes(q) ||
+				data.debit?.toString().includes(q) ||
+				data.balance?.toString().includes(q) ||
+				moment(data.createdAt).format('DD-MM-YYYY').includes(q)
+			);
 		});
 	}, [query, tableData]);
+
 	return (
-		<div className="w-full p-3 bg-white flex flex-col col-span-12 rounded-xl border border-[#E7E7E7] lg:row-start-4">
-			<div className="flex items-center justify-between flex-wrap gap-1">
-				<div className="flex gap-2 items-center justify-center w-fit">
-					<div className="lg:max-w-sm  border focus-within:border-blue-600 rounded-lg border-[#E7E7E7] py-3 px-4 justify-between items-center max-h-10 hidden md:flex">
+		<div className="w-full bg-white rounded-2xl border border-[#E7E7E7] overflow-hidden shadow-sm">
+			{/* Header */}
+			<div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-[#F0F0F0]">
+				<div className="flex items-center gap-2">
+					<h3 className="font-semibold text-sm text-[#212B36]">Transactions</h3>
+					{filteredData?.length > 0 && (
+						<span className="text-xs bg-blue-50 text-blue-600 font-medium px-2 py-0.5 rounded-full">
+							{filteredData.length}
+						</span>
+					)}
+				</div>
+
+				<div className="flex items-center gap-2">
+					{/* Search */}
+					<div className="flex items-center gap-2 border border-[#E7E7E7] rounded-lg px-3 py-2 focus-within:border-blue-500 transition-colors bg-[#F9FAFB]">
+						<FiSearch className="text-[#9CA3AF] shrink-0" size={14} />
 						<input
 							type="text"
-							className="outline-none w-9/12"
-							placeholder="Search..."
+							className="outline-none bg-transparent text-sm w-36 placeholder-[#9CA3AF]"
+							placeholder="Search…"
 							value={query}
-							onChange={handleChange}
+							onChange={(e) => setQuery(e.target.value)}
 						/>
-						<svg
-							width="16"
-							height="16"
-							viewBox="0 0 20 20"
-							fill="none"
-							xmlns="http://www.w3.org/2000/svg"
-						>
-							<path
-								fillRule="evenodd"
-								clipRule="evenodd"
-								d="M9.16667 3.33335C5.94501 3.33335 3.33334 5.94503 3.33334 9.16669C3.33334 12.3883 5.94501 15 9.16667 15C12.3883 15 15 12.3883 15 9.16669C15 5.94503 12.3883 3.33335 9.16667 3.33335ZM1.66667 9.16669C1.66667 5.02455 5.02454 1.66669 9.16667 1.66669C13.3088 1.66669 16.6667 5.02455 16.6667 9.16669C16.6667 13.3088 13.3088 16.6667 9.16667 16.6667C5.02454 16.6667 1.66667 13.3088 1.66667 9.16669Z"
-								fill="#637381"
-							/>
-							<path
-								fillRule="evenodd"
-								clipRule="evenodd"
-								d="M13.2857 13.2858C13.6112 12.9603 14.1388 12.9603 14.4643 13.2858L18.0893 16.9108C18.4147 17.2362 18.4147 17.7638 18.0893 18.0893C17.7638 18.4147 17.2362 18.4147 16.9108 18.0893L13.2857 14.4643C12.9603 14.1388 12.9603 13.6112 13.2857 13.2858Z"
-								fill="#637381"
-							/>
-						</svg>
 					</div>
+
+					{/* Export */}
+					<button
+						onClick={handelExportToExcel}
+						className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 transition-colors shadow-sm"
+					>
+						<SiMicrosoftexcel size={13} />
+						Export
+					</button>
 				</div>
-				<button
-					className="py-2.5 px-2 border border-[#E7E7E7] flex
-					justify-center items-center gap-1 rounded text-sm text-white bg-green-500 hover:bg-green-700
-					font-normal"
-					onClick={handelExportToExcel}
-				>
-					Export <SiMicrosoftexcel className="text-white" />
-				</button>
 			</div>
 
-			<div className="mt-4 flex border focus-within:border-blue-600 rounded-lg border-[#E7E7E7] py-3 px-4 justify-between items-center max-h-12  md:hidden">
-				<input
-					type="text"
-					className="outline-none w-9/12"
-					placeholder="Search..."
-					value={query}
-					onChange={handleChange}
-				/>
-				<svg
-					// onClick={handleFilter}
-					width="20"
-					height="20"
-					viewBox="0 0 20 20"
-					fill="none"
-					xmlns="http://www.w3.org/2000/svg"
-				>
-					<path
-						fillRule="evenodd"
-						clipRule="evenodd"
-						d="M9.16667 3.33335C5.94501 3.33335 3.33334 5.94503 3.33334 9.16669C3.33334 12.3883 5.94501 15 9.16667 15C12.3883 15 15 12.3883 15 9.16669C15 5.94503 12.3883 3.33335 9.16667 3.33335ZM1.66667 9.16669C1.66667 5.02455 5.02454 1.66669 9.16667 1.66669C13.3088 1.66669 16.6667 5.02455 16.6667 9.16669C16.6667 13.3088 13.3088 16.6667 9.16667 16.6667C5.02454 16.6667 1.66667 13.3088 1.66667 9.16669Z"
-						fill="#637381"
-					/>
-					<path
-						fillRule="evenodd"
-						clipRule="evenodd"
-						d="M13.2857 13.2858C13.6112 12.9603 14.1388 12.9603 14.4643 13.2858L18.0893 16.9108C18.4147 17.2362 18.4147 17.7638 18.0893 18.0893C17.7638 18.4147 17.2362 18.4147 16.9108 18.0893L13.2857 14.4643C12.9603 14.1388 12.9603 13.6112 13.2857 13.2858Z"
-						fill="#637381"
-					/>
-				</svg>
-			</div>
-			<div className="w-full overflow-x-scroll md:overflow-auto max-w-xl xs:max-w-xl sm:max-w-xl md:max-w-7xl 2xl:max-w-none mt-1">
-				<table
-					ref={tableRef}
-					className="table-auto overflow-scroll md:overflow-auto w-full text-left font-inter border-separate border-spacing-y-1"
-				>
-					<thead className="bg-[#222E3A]/[6%] rounded-lg text-base text-white font-semibold w-full">
-						<tr className="">
-							<th className="py-3 pl-3 text-[#212B36] text-sm font-normal whitespace-nowrap rounded-l-lg w-[50px]">
-								Date
-							</th>
-							<th className="py-3 px-2.5 text-[#212B36] text-sm font-normal whitespace-nowrap w-[50px]">
-								Description
-							</th>
-							<th className="py-3 px-2.5 text-[#212B36] text-sm font-normal whitespace-nowrap w-[50px]">
-								Credit ₦
-							</th>
-							<th className="py-3 text-[#212B36] text-sm font-normal whitespace-nowrap w-[50px]">
-								Debit ₦
-							</th>
-							<th className="py-3 text-[#212B36] text-sm font-normal whitespace-nowrap md:w-[50px]">
-								Balance ₦
-							</th>
-							<th className="py-3 text-[#212B36] text-sm font-normal whitespace-nowrap w-[100px]">
-								Remarks
-							</th>
-							<th className="py-3 text-[#212B36] text-sm font-normal whitespace-nowrap w-[100px] text-right p-2 pr-2">
-								Action
-							</th>
+			{/* Table */}
+			<div className="overflow-x-auto">
+				<table ref={tableRef} className="w-full text-left text-sm">
+					<thead>
+						<tr className="bg-[#F4F6F8] text-[#637381] text-xs font-semibold uppercase tracking-wide">
+							<th className="py-3 pl-5 pr-3 whitespace-nowrap">Date</th>
+							<th className="py-3 px-3 whitespace-nowrap">Description</th>
+							<th className="py-3 px-3 whitespace-nowrap text-right">Credit (₦)</th>
+							<th className="py-3 px-3 whitespace-nowrap text-right">Debit (₦)</th>
+							<th className="py-3 px-3 whitespace-nowrap text-right">Balance (₦)</th>
+							<th className="py-3 px-3 whitespace-nowrap">Remarks</th>
+							<th className="py-3 px-3 whitespace-nowrap text-center w-20">Action</th>
 						</tr>
 					</thead>
-					<tbody>
+					<tbody className="divide-y divide-[#F4F6F8]">
+						{filteredData?.length === 0 && (
+							<tr>
+								<td colSpan={7} className="py-12 text-center text-[#9CA3AF] text-sm">
+									No transactions found
+								</td>
+							</tr>
+						)}
 						{filteredData?.map((data) => (
 							<tr
 								key={data._id}
-								className="drop-shadow-[0_0_10px_rgba(34,46,58,0.02)] bg-[#f6f8fa] hover:shadow-2xl p-2"
+								className="hover:bg-[#F9FAFB] transition-colors group"
 							>
-								<td className="py-2 px-2.5 text-sm font-normal text-[#637381] whitespace-nowrap">
-									{moment(data?.date || data?.createdAt).format('ll')}
+								{/* Date */}
+								<td className="py-3 pl-5 pr-3 text-[#637381] whitespace-nowrap">
+									{moment(data?.date || data?.createdAt).format('DD MMM YYYY')}
 								</td>
-								<td className="py-4 px-1 text-sm font-normal text-[#637381] whitespace-nowrap bg-gray-50 capitalize">
-									{data?.description}
+
+								{/* Description */}
+								<td className="py-3 px-3 text-[#212B36] capitalize max-w-[200px] truncate">
+									{data?.description || <span className="text-[#D1D5DB]">—</span>}
 								</td>
-								<td className="py-4 px-1 text-sm font-normal text-[#FB4949]  whitespace-nowrap bg-gray-50">
-									{data?.credit?.toLocaleString() || 0}
+
+								{/* Credit */}
+								<td className="py-3 px-3 text-right whitespace-nowrap">
+									{data?.credit > 0 ? (
+										<span className="font-semibold text-red-500">
+											₦{data.credit.toLocaleString()}
+										</span>
+									) : (
+										<span className="text-[#D1D5DB]">—</span>
+									)}
 								</td>
-								<td className="py-4 px-1 text-sm font-normal text-[#4F80E1] whitespace-nowrap">
-									{data?.debit?.toLocaleString() || 0}
+
+								{/* Debit */}
+								<td className="py-3 px-3 text-right whitespace-nowrap">
+									{data?.debit > 0 ? (
+										<span className="font-semibold text-blue-500">
+											₦{data.debit.toLocaleString()}
+										</span>
+									) : (
+										<span className="text-[#D1D5DB]">—</span>
+									)}
 								</td>
-								<td className="py-2 px-1 text-sm font-normal text-[#10B860] whitespace-nowrap bg-gray-50">
-									{data?.balance?.toLocaleString() || 0}
-								</td>
-								<td className="py-2 px-1 text-sm font-normal text-[#637381] whitespace-nowrap bg-gray-50">
-									{data?.remark}
-								</td>
-								<td className="p-2 pt-4  pr-3 text-sm font-normal whitespace-nowrap bg-gray-50 flex items-center justify-end gap-2">
-									<span
-										onClick={() => handelEdit(data)}
-										className="cursor-pointer"
-									>
-										<AiFillEdit className="text-blue-500" />
+
+								{/* Balance */}
+								<td className="py-3 px-3 text-right whitespace-nowrap">
+									<span className="font-semibold text-emerald-600">
+										₦{data?.balance?.toLocaleString() || '0'}
 									</span>
-									<span
-										onClick={() => handelDelete(data)}
-										className="cursor-pointer"
-									>
-										<AiFillDelete className="text-red-500" />{' '}
-									</span>
+								</td>
+
+								{/* Remark */}
+								<td className="py-3 px-3 text-[#637381] max-w-[160px] truncate">
+									{data?.remark || <span className="text-[#D1D5DB]">—</span>}
+								</td>
+
+								{/* Actions */}
+								<td className="py-3 px-3">
+									<div className="flex items-center justify-center gap-1">
+										<button
+											onClick={() => handelEdit(data)}
+											title="Edit"
+											className="p-1.5 rounded-lg text-blue-500 hover:bg-blue-50 transition-colors"
+										>
+											<AiFillEdit size={15} />
+										</button>
+										<button
+											onClick={() => handelDelete(data)}
+											title="Delete"
+											className="p-1.5 rounded-lg text-red-400 hover:bg-red-50 transition-colors"
+										>
+											<AiFillDelete size={15} />
+										</button>
+									</div>
 								</td>
 							</tr>
 						))}
 					</tbody>
 				</table>
 			</div>
+
+			{filteredData?.length > 0 && (
+				<div className="px-5 py-3 border-t border-[#F0F0F0] text-xs text-[#9CA3AF]">
+					Showing {filteredData.length} of {tableData?.length} transaction{tableData?.length !== 1 ? 's' : ''}
+				</div>
+			)}
 		</div>
 	);
 };
 
-export default Table;
+export default DebtorTable;

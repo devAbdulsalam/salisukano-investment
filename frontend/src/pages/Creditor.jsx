@@ -1,4 +1,5 @@
-import CreditorTable from '../components/CreditTable.jsx';
+import CreditTable from '../components/CreditTable.jsx';
+import CompanyTable from '../components/CompanyTable.jsx';
 import Loader from '../components/Loader.jsx';
 import { useContext, useEffect, useState } from 'react';
 import AuthContext from '../context/authContext.jsx';
@@ -7,36 +8,29 @@ import { fetchCreditor } from '../hooks/axiosApis.js';
 import getError from '../hooks/getError.js';
 import toast from 'react-hot-toast';
 import { FaPlus } from 'react-icons/fa6';
+import { MdSaveAlt } from 'react-icons/md';
+import { SiMicrosoftexcel } from 'react-icons/si';
+import { TbReportMoney } from 'react-icons/tb';
 import { IoMdOptions } from 'react-icons/io';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { SiMicrosoftexcel } from 'react-icons/si';
 import DepositeModal from '../components/modals/DepositModal.jsx';
-import { MdSaveAlt } from 'react-icons/md';
+
 const Creditor = () => {
 	const [loading, setIsLoading] = useState(false);
-	// const [isAddModal, setIsAddModal] = useState(false);
 	const [isDepositModal, setIsDepositModal] = useState(false);
 	const [activeTab, setActiveTab] = useState('monthly');
-	// const [tableData, setTableDate] = useState([]);
 	const { user } = useContext(AuthContext);
-
 	const navigate = useNavigate();
 	const { id } = useParams();
+
 	const { data, isLoading, error } = useQuery({
 		queryKey: ['creditors', id],
 		queryFn: async () => fetchCreditor({ user, id }),
 	});
+
 	useEffect(() => {
-		// if (data && data.length > 0) {
-		if (data) {
-			// setBusiness(data);
-			// setTableDate(() => );
-			console.log('Business companyData Creditors', data?.companyData);
-			// navigate('/');
-		}
 		if (error) {
-			console.log(error);
 			const message = getError(error);
 			toast.error(message);
 		}
@@ -45,176 +39,116 @@ const Creditor = () => {
 	const handleExport = () => {
 		console.log('export');
 	};
-	const formatMonth = (date) => {
-		if (!date) return '';
-		const d = typeof date === 'string' ? new Date(date) : date;
-		if (isNaN(d.getTime())) return '';
-		return d.toLocaleDateString('en-NG', {
-			day: 'numeric',
-			month: 'short',
-			year: 'numeric',
-		});
-	};
 
 	return (
 		<>
-			<main className="w-full py-3 pl-7 pr-5 gap-5 flex flex-col space-y-3">
-				<div className="flex justify-between">
-					<ul className="text-tiny font-medium flex items-center space-x-2 text-text3">
-						<li className="breadcrumb-item text-muted">
-							<Link
-								to={'/creditors'}
-								className="font-semibold text-lg hover:text-blue-500"
-							>
-								{' '}
-								Creditors
-							</Link>
-						</li>
-						<li className="breadcrumb-item flex items-center">
-							<span className="inline-block bg-blue-500/60 w-[4px] h-[4px] rounded-full"></span>
-						</li>
-						<li className="breadcrumb-item capitalize text-blue-500 hover:text-blue-500/50 cursor-pointer">
-							<Link to={`/creditors/${id}`}>{data?.creditor?.name}</Link>
-						</li>
-					</ul>
+			<main className="w-full py-5 px-5 md:px-7 flex flex-col gap-5">
 
-					<Menu as="div" className="relative ml-1">
-						<div>
-							<MenuButton className="pl-3 py-2 px-2  flex w-full justify-start items-center gap-1 rounded text-sm  text-gray-700 bg-blue-100 hover:bg-blue-200 font-normal">
-								<IoMdOptions />
-							</MenuButton>
-						</div>
+				{/* Breadcrumb + actions row */}
+				<div className="flex items-center justify-between gap-2 flex-wrap">
+					<nav className="flex items-center gap-2 text-sm">
+						<Link
+							to="/creditors"
+							className="font-semibold text-[#212B36] hover:text-blue-600 transition-colors text-base"
+						>
+							Creditors
+						</Link>
+						<span className="w-1.5 h-1.5 rounded-full bg-blue-400 inline-block" />
+						<span className="text-blue-600 font-semibold capitalize text-base">
+							{data?.creditor?.name || '…'}
+						</span>
+					</nav>
+
+					<Menu as="div" className="relative">
+						<MenuButton className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 bg-[#F4F6F8] hover:bg-blue-50 hover:text-blue-600 transition-colors border border-[#E7E7E7]">
+							<IoMdOptions size={16} />
+							Options
+						</MenuButton>
 						<MenuItems
 							transition
-							className="absolute right-0 z-10 mt-0 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 transition focus:outline-none data-[closed]:scale-95 data-[closed]:transform data-[closed]:opacity-0 data-[enter]:duration-100 data-[leave]:duration-75 data-[enter]:ease-out data-[leave]:ease-in"
+							className="absolute right-0 z-20 mt-1 w-48 origin-top-right rounded-xl bg-white shadow-lg ring-1 ring-black/5 py-1 focus:outline-none data-[closed]:scale-95 data-[closed]:opacity-0 data-[enter]:duration-100 data-[leave]:duration-75 transition"
 						>
 							<MenuItem
 								as="button"
-								className="pl-3 py-2 px-2  flex w-full justify-start items-center gap-1 rounded text-sm  text-gray-700 hover:bg-blue-100 font-normal"
+								className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
 								onClick={() => navigate(`/creditors/${id}/new-credit`)}
 							>
-								<FaPlus className="text-blue-500" />
+								<FaPlus className="text-blue-500" size={13} />
 								Supply
 							</MenuItem>
 							<MenuItem
 								as="button"
-								className="pl-3 py-2 px-2  flex w-full justify-start items-center gap-1 rounded text-sm  text-gray-700 hover:bg-green-100 font-normal"
+								className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
 								onClick={() => setIsDepositModal(true)}
 							>
-								<MdSaveAlt className="text-green-500" />
+								<MdSaveAlt className="text-emerald-500" size={15} />
 								Payment
 							</MenuItem>
 							<MenuItem
 								as="button"
-								className="pl-3 py-2 px-2 flex w-full justify-start items-center gap-1 rounded text-sm  text-gray-700 hover:bg-green-100 font-normal"
+								className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
 								onClick={handleExport}
 							>
-								<SiMicrosoftexcel className="text-green-500" />
+								<SiMicrosoftexcel className="text-emerald-500" size={14} />
 								Export
 							</MenuItem>
 						</MenuItems>
 					</Menu>
 				</div>
 
-				<div className="p-5 mb-4  bg-white flex flex-col md:max-w-md w-full rounded-xl gap-2 border border-[#E7E7E7] hover:shadow-xl cursor-pointer">
-					<div className={`flex justify-between `}>
-						<span className="text-[#637381] text-sm font-medium">
+				{/* Balance card */}
+				<div className="bg-white rounded-2xl border border-[#E7E7E7] p-5 flex items-center gap-4 md:max-w-sm shadow-sm hover:shadow-md transition-shadow">
+					<div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0">
+						<TbReportMoney className="text-emerald-500" size={24} />
+					</div>
+					<div className="flex flex-col gap-0.5">
+						<span className="text-xs text-[#9CA3AF] font-medium uppercase tracking-wide">
 							Total Balance
 						</span>
-						<div className="flex gap-1 items-center">
-							<span className="">100%</span>
-							<img src="/assets/admin/dashboard/uparrow.svg" alt="graph" />
-						</div>
-					</div>
-					<div
-						className={`flex gap-4 justify-between flex-nowrap items-center`}
-					>
-						<span className="text-xl font-bold whitespace-nowrap">
-							₦ {data?.creditor?.balance?.toLocaleString() || 0}
+						<span className="text-xl font-bold text-[#212B36]">
+							₦{data?.creditor?.balance?.toLocaleString() || '0'}
 						</span>
-						<img
-							src="/assets/admin/dashboard/graph1.svg"
-							className="w-10 h-10"
-							alt="graph"
-						/>
 					</div>
 				</div>
 
-				<div className="grid grid-cols-2 mb-6 bg-white border  ">
+				{/* Tab switcher */}
+				<div className="flex items-center gap-1 bg-[#F4F6F8] p-1 rounded-xl w-fit border border-[#E7E7E7]">
 					<button
 						onClick={() => setActiveTab('monthly')}
-						className={`${activeTab === 'monthly' ? 'bg-blue-600 text-white' : ''} p-1`}
+						className={`px-5 py-2 rounded-lg text-sm font-medium transition-all ${
+							activeTab === 'monthly'
+								? 'bg-white text-blue-600 shadow-sm border border-[#E7E7E7]'
+								: 'text-[#637381] hover:text-[#212B36]'
+						}`}
 					>
 						Monthly
 					</button>
 					<button
 						onClick={() => setActiveTab('company')}
-						className={`${activeTab === 'company' ? 'bg-blue-600 text-white' : ''} p-1`}
+						className={`px-5 py-2 rounded-lg text-sm font-medium transition-all ${
+							activeTab === 'company'
+								? 'bg-white text-blue-600 shadow-sm border border-[#E7E7E7]'
+								: 'text-[#637381] hover:text-[#212B36]'
+						}`}
 					>
 						By Company
 					</button>
 				</div>
 
-				{activeTab === 'company' && (
-					<div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4 w-full smd:gap-2 ">
-						{data?.companyData?.length > 0 &&
-							data?.companyData?.map((item, index) => (
-								<Link
-									to={
-										item?.company?._id
-											? `./months/${item?.month?._id}/${item?.company?._id}`
-											: `./months/${item?.month?._id}`
-									}
-									key={index}
-									className="p-5 mb-4  bg-white flex flex-col justify-end md:max-w-md w-full rounded-xl gap-2 border border-[#E7E7E7] hover:shadow-xl cursor-pointer"
-								>
-									{item?.company ? (
-										<>
-											<div className={`md:flex justify-between `}>
-												<span className="text-[#637381] text-sm font-medium">
-													Company:
-												</span>
-												<div className="flex gap-1 items-center">
-													<span className="">{item?.company?.name}</span>
-												</div>
-											</div>
-											<div className={`md:flex justify-between `}>
-												<span className="text-[#637381] text-sm font-medium">
-													Phone:
-												</span>
-												<div className="flex gap-1 items-center">
-													<span className="">{item?.company?.phone}</span>
-												</div>
-											</div>
-										</>
-									) : (
-										<span className="text-red-500">No Company Linked</span>
-									)}
-									<div
-										className={`flex gap-4 justify-between flex-nowrap items-center`}
-									>
-										<span className="text-lg font-semibold whitespace-nowrap">
-											₦ {item.balance?.toLocaleString() || 0}
-										</span>
-									</div>
-									<div className="flex gap-4 justify-between flex-nowrap items-center">
-										<span className="text-lg whitespace-nowrap">
-											Month: {formatMonth(item?.month?.month)}
-										</span>
-									</div>
-								</Link>
-							))}
-					</div>
-				)}
+				{/* Monthly tab */}
 				{activeTab === 'monthly' && (
-					<div>
-						<CreditorTable
-							tableData={data?.monthlyData || []}
-							creditorId={data?.creditor?._id}
-						/>
-					</div>
+					<CreditTable
+						tableData={data?.monthlyData || []}
+						creditorId={data?.creditor?._id}
+					/>
+				)}
+
+				{/* By Company tab */}
+				{activeTab === 'company' && (
+					<CompanyTable tableData={data?.companyData || []} />
 				)}
 			</main>
+
 			<DepositeModal
 				show={isDepositModal}
 				setShow={setIsDepositModal}
@@ -223,7 +157,7 @@ const Creditor = () => {
 				account={data?.creditor}
 			/>
 
-			{isLoading || (loading && <Loader />)}
+			{(isLoading || loading) && <Loader />}
 		</>
 	);
 };

@@ -1,137 +1,102 @@
 /* eslint-disable react/prop-types */
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-// import { AiFillEdit } from 'react-icons/ai';
+import { FiSearch } from 'react-icons/fi';
+import { TbCalendarMonth } from 'react-icons/tb';
 import moment from 'moment';
 
-const Table = ({ tableData, creditorId }) => {
+const CreditTable = ({ tableData, creditorId }) => {
 	const navigate = useNavigate();
 	const [query, setQuery] = useState('');
-	const handelClick = (item) => {
-		navigate(`/creditors/${creditorId}/months/${item._id}`);
-	};
-	const handleChange = (e) => {
-		setQuery(e.target.value);
-	};
 
 	const filteredData = useMemo(() => {
 		return tableData?.filter((data) => {
-			// Filter by query (search)
-			const matchesQuery =
-				data?.month?.toLowerCase().includes(query.toLowerCase()) ||
-				// data?.total?.toLowerCase().includes(query.toLowerCase()) ||
-				// data?.vehicleNumber?.toLowerCase().includes(query.toLowerCase()) ||
-				// data?.description?.toLowerCase().includes(query.toLowerCase()) ||
-				data?.balance?.toString().includes(query) ||
-				moment(data?.createdAt).format('DD-MM-YYYY').includes(query);
-
-			return matchesQuery;
+			const q = query.toLowerCase();
+			return (
+				data?.month?.toLowerCase().includes(q) ||
+				data?.balance?.toString().includes(q) ||
+				moment(data?.createdAt).format('DD-MM-YYYY').includes(q)
+			);
 		});
 	}, [query, tableData]);
+
 	return (
-		<div className="w-full p-3 bg-white flex flex-col col-span-12 rounded-xl border border-[#E7E7E7] lg:row-start-4">
-			<div className="flex items-center justify-between flex-wrap gap-1">
-				<div className="flex gap-2 items-center justify-center w-fit">
-					<div className="lg:max-w-sm  border focus-within:border-blue-600 rounded-lg border-[#E7E7E7] py-3 px-4 justify-between items-center max-h-10 hidden md:flex">
-						<input
-							type="text"
-							className="outline-none w-9/12"
-							placeholder="Search..."
-							value={query}
-							onChange={handleChange}
-						/>
-						<svg
-							width="16"
-							height="16"
-							viewBox="0 0 20 20"
-							fill="none"
-							xmlns="http://www.w3.org/2000/svg"
-						>
-							<path
-								fillRule="evenodd"
-								clipRule="evenodd"
-								d="M9.16667 3.33335C5.94501 3.33335 3.33334 5.94503 3.33334 9.16669C3.33334 12.3883 5.94501 15 9.16667 15C12.3883 15 15 12.3883 15 9.16669C15 5.94503 12.3883 3.33335 9.16667 3.33335ZM1.66667 9.16669C1.66667 5.02455 5.02454 1.66669 9.16667 1.66669C13.3088 1.66669 16.6667 5.02455 16.6667 9.16669C16.6667 13.3088 13.3088 16.6667 9.16667 16.6667C5.02454 16.6667 1.66667 13.3088 1.66667 9.16669Z"
-								fill="#637381"
-							/>
-							<path
-								fillRule="evenodd"
-								clipRule="evenodd"
-								d="M13.2857 13.2858C13.6112 12.9603 14.1388 12.9603 14.4643 13.2858L18.0893 16.9108C18.4147 17.2362 18.4147 17.7638 18.0893 18.0893C17.7638 18.4147 17.2362 18.4147 16.9108 18.0893L13.2857 14.4643C12.9603 14.1388 12.9603 13.6112 13.2857 13.2858Z"
-								fill="#637381"
-							/>
-						</svg>
-					</div>
+		<div className="w-full bg-white rounded-2xl border border-[#E7E7E7] overflow-hidden shadow-sm">
+			{/* Header */}
+			<div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-[#F0F0F0]">
+				<div className="flex items-center gap-2">
+					<TbCalendarMonth className="text-blue-500" size={18} />
+					<h3 className="font-semibold text-sm text-[#212B36]">Monthly Records</h3>
+					{filteredData?.length > 0 && (
+						<span className="text-xs bg-blue-50 text-blue-600 font-medium px-2 py-0.5 rounded-full">
+							{filteredData.length}
+						</span>
+					)}
+				</div>
+
+				<div className="flex items-center gap-2 border border-[#E7E7E7] rounded-lg px-3 py-2 focus-within:border-blue-500 transition-colors bg-[#F9FAFB]">
+					<FiSearch className="text-[#9CA3AF] shrink-0" size={14} />
+					<input
+						type="text"
+						className="outline-none bg-transparent text-sm w-32 placeholder-[#9CA3AF]"
+						placeholder="Search…"
+						value={query}
+						onChange={(e) => setQuery(e.target.value)}
+					/>
 				</div>
 			</div>
 
-			<div className="mt-4 flex border focus-within:border-blue-600 rounded-lg border-[#E7E7E7] py-3 px-4 justify-between items-center max-h-12  md:hidden">
-				<input
-					type="text"
-					className="outline-none w-9/12"
-					placeholder="Search..."
-					value={query}
-					onChange={handleChange}
-				/>
-				<svg
-					// onClick={handleFilter}
-					width="20"
-					height="20"
-					viewBox="0 0 20 20"
-					fill="none"
-					xmlns="http://www.w3.org/2000/svg"
-				>
-					<path
-						fillRule="evenodd"
-						clipRule="evenodd"
-						d="M9.16667 3.33335C5.94501 3.33335 3.33334 5.94503 3.33334 9.16669C3.33334 12.3883 5.94501 15 9.16667 15C12.3883 15 15 12.3883 15 9.16669C15 5.94503 12.3883 3.33335 9.16667 3.33335ZM1.66667 9.16669C1.66667 5.02455 5.02454 1.66669 9.16667 1.66669C13.3088 1.66669 16.6667 5.02455 16.6667 9.16669C16.6667 13.3088 13.3088 16.6667 9.16667 16.6667C5.02454 16.6667 1.66667 13.3088 1.66667 9.16669Z"
-						fill="#637381"
-					/>
-					<path
-						fillRule="evenodd"
-						clipRule="evenodd"
-						d="M13.2857 13.2858C13.6112 12.9603 14.1388 12.9603 14.4643 13.2858L18.0893 16.9108C18.4147 17.2362 18.4147 17.7638 18.0893 18.0893C17.7638 18.4147 17.2362 18.4147 16.9108 18.0893L13.2857 14.4643C12.9603 14.1388 12.9603 13.6112 13.2857 13.2858Z"
-						fill="#637381"
-					/>
-				</svg>
-			</div>
-			<div className="w-full overflow-x-scroll md:overflow-auto max-w-xl xs:max-w-xl sm:max-w-xl md:max-w-7xl 2xl:max-w-none mt-1">
-				<table className="table-auto overflow-scroll md:overflow-auto w-full text-left font-inter border-separate border-spacing-y-1">
-					<thead className="bg-[#222E3A]/[6%] rounded-lg text-base text-white font-semibold w-full">
-						<tr className="">
-							<th className="py-3 pl-3 text-[#212B36] text-sm font-normal whitespace-nowrap rounded-l-lg md:w-[50px]">
-								S/N
-							</th>
-							<th className="py-3 p-2 text-[#212B36] text-sm font-normal whitespace-nowrap md:w-[100px]">
-								Date
-							</th>
-							<th className="py-3 p-2  text-[#212B36] text-sm font-normal whitespace-nowrap">
-								Balance ₦
-							</th>
+			{/* Table */}
+			<div className="overflow-x-auto">
+				<table className="w-full text-left text-sm">
+					<thead>
+						<tr className="bg-[#F4F6F8] text-[#637381] text-xs font-semibold uppercase tracking-wide">
+							<th className="py-3 pl-5 pr-3 w-12">S/N</th>
+							<th className="py-3 px-3">Month</th>
+							<th className="py-3 px-3 text-right">Balance (₦)</th>
 						</tr>
 					</thead>
-					<tbody>
+					<tbody className="divide-y divide-[#F4F6F8]">
+						{filteredData?.length === 0 && (
+							<tr>
+								<td colSpan={3} className="py-12 text-center text-[#9CA3AF] text-sm">
+									No monthly records found
+								</td>
+							</tr>
+						)}
 						{filteredData?.map((data, index) => (
 							<tr
 								key={data?._id || index}
-								onClick={() => handelClick(data)}
-								className="drop-shadow-[0_0_10px_rgba(34,46,58,0.02)] bg-[#f6f8fa] hover:shadow-2xl p-2 cursor-pointer"
+								onClick={() => navigate(`/creditors/${creditorId}/months/${data._id}`)}
+								className="hover:bg-[#F9FAFB] transition-colors cursor-pointer group"
 							>
-								<td className="py-2 pl-3 text-sm font-normal text-[#637381] whitespace-nowrap">
-									{index + 1}
+								<td className="py-3 pl-5 pr-3 text-[#9CA3AF]">{index + 1}</td>
+								<td className="py-3 px-3">
+									<div className="flex items-center gap-2">
+										<span className="w-2 h-2 rounded-full bg-blue-400 shrink-0" />
+										<span className="font-medium text-[#212B36] capitalize group-hover:text-blue-600 transition-colors">
+											{moment(data?.month).format('MMMM YYYY')}
+										</span>
+									</div>
 								</td>
-								<td className="py-2 px-2 text-sm font-normal text-[#637381] whitespace-nowrap capitalize">
-									{moment(data?.month).format('MMM YYYY')}
-								</td>
-								<td className="py-2 px-2 text-sm font-normal text-[#10B860] whitespace-nowrap">
-									{data?.balance?.toLocaleString() || 0}
+								<td className="py-3 px-3 text-right">
+									<span className="font-semibold text-emerald-600">
+										₦{data?.balance?.toLocaleString() || '0'}
+									</span>
 								</td>
 							</tr>
 						))}
 					</tbody>
 				</table>
 			</div>
+
+			{filteredData?.length > 0 && (
+				<div className="px-5 py-3 border-t border-[#F0F0F0] text-xs text-[#9CA3AF]">
+					Showing {filteredData.length} of {tableData?.length} month{tableData?.length !== 1 ? 's' : ''}
+				</div>
+			)}
 		</div>
 	);
 };
 
-export default Table;
+export default CreditTable;

@@ -8,6 +8,9 @@ import { fetchCreditors } from '../hooks/axiosApis.js';
 import getError from '../hooks/getError.js';
 import toast from 'react-hot-toast';
 import EditModal from '../components/modals/EditCreditor.jsx';
+import { TbReportMoney } from 'react-icons/tb';
+import { FiUsers } from 'react-icons/fi';
+
 const Creditors = () => {
 	const [loading, setIsLoading] = useState(false);
 	const [isAddModal, setIsAddModal] = useState(false);
@@ -15,77 +18,78 @@ const Creditors = () => {
 	const [creditor, setCreditor] = useState({});
 	const [total, setTotal] = useState(0);
 	const { user } = useContext(AuthContext);
+
 	const { data, isLoading, error } = useQuery({
 		queryKey: ['creditors'],
 		queryFn: async () => fetchCreditors(user),
 	});
+
 	useEffect(() => {
-		// If data is present and has at least one entry
 		if (data?.length > 0) {
-			// Use reduce to calculate the total balance
-			const totalBalance = data.reduce(
-				(total, item) => total + item.balance,
-				0
-			);
+			const totalBalance = data.reduce((sum, item) => sum + item.balance, 0);
 			setTotal(totalBalance);
-			console.log(totalBalance);
-
-			// Optionally navigate or handle other side effects
-			// navigate('/');
 		}
-
-		// Handle error
 		if (error) {
-			console.log(error);
 			const message = getError(error);
 			toast.error(message);
 		}
 	}, [data, error]);
 
-	const handelAddModal = () => {
-		setIsAddModal(true);
-	};
+	const handelAddModal = () => setIsAddModal(true);
 	const handelEdit = (data) => {
-		console.log(data);
 		setCreditor(data);
 		setIsEditModal(true);
 	};
+
 	return (
 		<>
-			<main className="w-full py-3 pl-7 pr-5 gap-5 flex flex-col space-y-3">
-				<div className="flex justify-between">
-					<h4 className="font-semibold text-lg text-primary">Creditors</h4>
+			<main className="w-full py-5 px-5 md:px-7 flex flex-col gap-5">
+				{/* Page title */}
+				<div className="flex items-center justify-between">
+					<h4 className="font-bold text-xl text-[#212B36]">Creditors</h4>
 				</div>
 
-				<div className="p-5 mb-4  bg-white flex flex-col md:max-w-md w-full rounded-xl gap-2 border border-[#E7E7E7] hover:shadow-xl cursor-pointer">
-					<div className={`flex justify-between `}>
-						<span className="text-[#637381] text-sm font-medium">
-							Total Balance
-						</span>
-						<div className="flex gap-1 items-center">
-							<span className="">100%</span>
-							<img src="/assets/admin/dashboard/uparrow.svg" alt="graph" />
+				{/* Summary cards */}
+				<div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:max-w-2xl">
+					{/* Total balance */}
+					<div className="bg-white rounded-2xl border border-[#E7E7E7] p-5 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow">
+						<div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0">
+							<TbReportMoney className="text-emerald-500" size={24} />
+						</div>
+						<div className="flex flex-col gap-0.5">
+							<span className="text-xs text-[#9CA3AF] font-medium uppercase tracking-wide">
+								Total Balance
+							</span>
+							<span className="text-xl font-bold text-[#212B36]">
+								₦{total?.toLocaleString() || '0'}
+							</span>
 						</div>
 					</div>
-					<div
-						className={`flex gap-4 justify-between flex-nowrap items-center`}
-					>
-						<span className="text-xl font-bold whitespace-nowrap">
-							₦ {total?.toLocaleString() || 0}
-						</span>
-						<img
-							src="/assets/admin/dashboard/graph1.svg"
-							className="w-10 h-10"
-							alt="graph"
-						/>
+
+					{/* Total creditors */}
+					<div className="bg-white rounded-2xl border border-[#E7E7E7] p-5 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow">
+						<div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+							<FiUsers className="text-blue-500" size={22} />
+						</div>
+						<div className="flex flex-col gap-0.5">
+							<span className="text-xs text-[#9CA3AF] font-medium uppercase tracking-wide">
+								Total Creditors
+							</span>
+							<span className="text-xl font-bold text-[#212B36]">
+								{data?.length || 0}
+							</span>
+						</div>
 					</div>
 				</div>
+
+				{/* Table */}
 				<CreditorsTable
 					tableData={data || []}
 					handelAddModal={handelAddModal}
 					handelEdit={handelEdit}
 				/>
 			</main>
+
 			<NewCreditor
 				show={isAddModal}
 				setShow={setIsAddModal}
@@ -99,7 +103,7 @@ const Creditors = () => {
 				loading={isLoading}
 				debtor={creditor}
 			/>
-			{isLoading || (loading && <Loader />)}
+			{(isLoading || loading) && <Loader />}
 		</>
 	);
 };

@@ -1,6 +1,6 @@
 import DebtorsTable from '../components/DebtorsTable.jsx';
 import Loader from '../components/Loader.jsx';
-import { useContext, useEffect, useState, useRef } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import AddDebtorModal from '../components/modals/AddDebtorModal.jsx';
 import EditModal from '../components/modals/EditDebtor.jsx';
 import AuthContext from '../context/authContext.jsx';
@@ -9,6 +9,9 @@ import { fetchDebtors } from '../hooks/axiosApis.js';
 import getError from '../hooks/getError.js';
 import toast from 'react-hot-toast';
 import { useDownloadExcel } from 'react-export-table-to-excel';
+import { TbReportMoney } from 'react-icons/tb';
+import { FiUsers } from 'react-icons/fi';
+
 const Debtors = () => {
 	const [loading, setIsLoading] = useState(false);
 	const [isAddModal, setIsAddModal] = useState(false);
@@ -17,83 +20,86 @@ const Debtors = () => {
 	const [total, setTotal] = useState(0);
 	const { user } = useContext(AuthContext);
 	const tableRef = useRef(null);
+
 	const { data, isLoading, error } = useQuery({
 		queryKey: ['debtors'],
 		queryFn: async () => fetchDebtors(user),
 	});
+
+	const { onDownload } = useDownloadExcel({
+		currentTableRef: tableRef.current,
+		filename: 'all debtors transactions',
+		sheet: 'Users',
+	});
+
 	useEffect(() => {
-		// If data is present and has at least one entry
 		if (data?.length > 0) {
-			// Use reduce to calculate the total balance
-			const totalBalance = data.reduce(
-				(total, item) => total + item.balance,
-				0
-			);
+			const totalBalance = data.reduce((sum, item) => sum + item.balance, 0);
 			setTotal(totalBalance);
-			// console.log(totalBalance);
-
-			// Optionally navigate or handle other side effects
-			// navigate('/');
 		}
-
-		// Handle error
 		if (error) {
-			console.log(error);
 			const message = getError(error);
 			toast.error(message);
 		}
 	}, [data, error]);
 
-	const handelAddModal = () => {
-		setIsAddModal(true);
-	};
+	const handelAddModal = () => setIsAddModal(true);
 	const handelEdit = (data) => {
-		console.log(data);
 		setDebtor(data);
 		setIsEditModal(true);
 	};
-	const { onDownload } = useDownloadExcel({
-		currentTableRef: tableRef.current,
-		filename: `all debtors transactions`,
-		sheet: 'Users',
-	});
 
 	return (
 		<>
-			<main className=" w-full lg:max-w-6xl mx-auto  py-3 pl-7 pr-5 gap-5 flex flex-col space-y-3">
-				<div className="flex justify-between">
-					<h4 className="font-semibold text-lg text-primary">Debtors</h4>
+			<main className="w-full py-5 px-5 md:px-7 flex flex-col gap-5">
+				{/* Page title */}
+				<div className="flex items-center justify-between">
+					<h4 className="font-bold text-xl text-[#212B36]">Debtors</h4>
 				</div>
-				<div className="p-5 mb-4  bg-white flex flex-col md:max-w-md w-full rounded-xl gap-2 border border-[#E7E7E7] hover:shadow-xl cursor-pointer">
-					<div className={`flex justify-between `}>
-						<span className="text-[#637381] text-sm font-medium">
-							Total Balance
-						</span>
-						<div className="flex gap-1 items-center">
-							<span className="">100%</span>
-							<img src="/assets/admin/dashboard/uparrow.svg" alt="graph" />
+
+				{/* Summary cards */}
+				<div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:max-w-2xl">
+					{/* Total balance */}
+					<div className="bg-white rounded-2xl border border-[#E7E7E7] p-5 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow">
+						<div className="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center shrink-0">
+							<TbReportMoney className="text-red-400" size={24} />
+						</div>
+						<div className="flex flex-col gap-0.5">
+							<span className="text-xs text-[#9CA3AF] font-medium uppercase tracking-wide">
+								Total Balance
+							</span>
+							<span className="text-xl font-bold text-[#212B36]">
+								₦{total?.toLocaleString() || '0'}
+							</span>
 						</div>
 					</div>
-					<div
-						className={`flex gap-4 justify-between flex-nowrap items-center`}
-					>
-						<span className="text-xl font-bold whitespace-nowrap">
-							₦ {total || 0}
-						</span>
-						<img
-							src="/assets/admin/dashboard/graph1.svg"
-							className="w-10 h-10"
-							alt="graph"
-						/>
+
+					{/* Total debtors */}
+					<div className="bg-white rounded-2xl border border-[#E7E7E7] p-5 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow">
+						<div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+							<FiUsers className="text-blue-500" size={22} />
+						</div>
+						<div className="flex flex-col gap-0.5">
+							<span className="text-xs text-[#9CA3AF] font-medium uppercase tracking-wide">
+								Total Debtors
+							</span>
+							<span className="text-xl font-bold text-[#212B36]">
+								{data?.length || 0}
+							</span>
+						</div>
 					</div>
 				</div>
+
+				{/* Table */}
 				<DebtorsTable
 					tableData={data || []}
 					handelAddModal={handelAddModal}
 					handelEdit={handelEdit}
+					tableRef={tableRef}
 					handelExportToExcel={onDownload}
 				/>
 			</main>
+
 			<AddDebtorModal
 				show={isAddModal}
 				setShow={setIsAddModal}
@@ -107,7 +113,7 @@ const Debtors = () => {
 				loading={isLoading}
 				debtor={debtor}
 			/>
-			{isLoading || (loading && <Loader />)}
+			{(isLoading || loading) && <Loader />}
 		</>
 	);
 };
