@@ -33,6 +33,7 @@ import statementRoutes from './routes/statement.js';
 import settingRoutes from './routes/setting.js';
 import shareholderRoutes from './routes/shareholder.js';
 import assetRoutes from './routes/asset.js';
+import reconciliationRoutes from './routes/reconciliation.js';
 // import errorHandler from './middleware/errorHandler.js';
 
 /* CONFIGURATION */
@@ -101,6 +102,7 @@ app.use('/statements', statementRoutes);
 app.use('/settings', settingRoutes);
 app.use('/shareholders', shareholderRoutes);
 app.use('/assets', assetRoutes);
+app.use('/reconciliations', reconciliationRoutes);
 // app.use(errorHandler);
 
 /* MONGOOSE SETUP */
