@@ -934,3 +934,75 @@ export const deleteReconciliationApi = async ({ user, id }) => {
 	);
 	return data;
 };
+
+// ─── Advance Account APIs ───────────────────────────────────────────────────
+
+export const fetchAdvanceAccount = async ({ token, id }) => {
+	try {
+		const config = { headers: { Authorization: `Bearer ${token}` } };
+		const { data } = await axios.get(`${apiUrl}/advance-accounts/${id}`, config);
+		return data;
+	} catch (error) {
+		console.log(error.message);
+		return error;
+	}
+};
+
+export const createAdvanceCredit = async ({ token, id, payload }) => {
+	try {
+		const config = { headers: { Authorization: `Bearer ${token}` } };
+		const { data } = await axios.post(
+			`${apiUrl}/advance-accounts/${id}/credit`,
+			payload,
+			config,
+		);
+		return data;
+	} catch (error) {
+		console.log(error.message);
+		throw error;
+	}
+};
+
+export const createAdvanceDebit = async ({ token, id, payload }) => {
+	try {
+		const config = { headers: { Authorization: `Bearer ${token}` } };
+		const { data } = await axios.post(
+			`${apiUrl}/advance-accounts/${id}/debit`,
+			payload,
+			config,
+		);
+		return data;
+	} catch (error) {
+		console.log(error.message);
+		throw error;
+	}
+};
+
+export const editAdvanceTransaction = async ({ token, id, transactionId, payload }) => {
+	try {
+		const config = { headers: { Authorization: `Bearer ${token}` } };
+		const { data } = await axios.patch(
+			`${apiUrl}/advance-accounts/${id}/transaction/${transactionId}`,
+			payload,
+			config,
+		);
+		return data;
+	} catch (error) {
+		console.log(error.message);
+		throw error;
+	}
+};
+
+export const deleteAdvanceTransaction = async ({ token, id, transactionId }) => {
+	try {
+		const config = { headers: { Authorization: `Bearer ${token}` } };
+		const { data } = await axios.delete(
+			`${apiUrl}/advance-accounts/${id}/transaction/${transactionId}`,
+			config,
+		);
+		return data;
+	} catch (error) {
+		console.log(error.message);
+		throw error;
+	}
+};

@@ -57,6 +57,7 @@ import VtcInvoices from './pages/VtcInvoices';
 import MikiyaInvoice from './pages/MikiyaInvoice'
 import MikiyaInvoices from './pages/MikiyaInvoices'
 import Assets from './pages/Assets';
+import Advance from './pages/Advance';
 import Analysis from './pages/Analysis';
 import ReconciliationPreview from './pages/ReconciliationPreview';
 import Asset from './pages/Asset';
@@ -170,6 +171,7 @@ function App() {
 							/>
 							<Route path="/analysis/:id" element={<Analysis />} />
 							<Route path="/analysis/:id/reconciliation/:reconId" element={<ReconciliationPreview />} />
+							<Route path="/advance/:id" element={<Advance />} />
 						</Route>
 					</Route>
 				</Route>

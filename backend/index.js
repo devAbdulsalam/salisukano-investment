@@ -34,6 +34,7 @@ import settingRoutes from './routes/setting.js';
 import shareholderRoutes from './routes/shareholder.js';
 import assetRoutes from './routes/asset.js';
 import reconciliationRoutes from './routes/reconciliation.js';
+import advanceAccountRoutes from './routes/advanceAccount.js';
 // import errorHandler from './middleware/errorHandler.js';
 
 /* CONFIGURATION */
@@ -103,6 +104,7 @@ app.use('/settings', settingRoutes);
 app.use('/shareholders', shareholderRoutes);
 app.use('/assets', assetRoutes);
 app.use('/reconciliations', reconciliationRoutes);
+app.use('/advance-accounts', advanceAccountRoutes);
 // app.use(errorHandler);
 
 /* MONGOOSE SETUP */
