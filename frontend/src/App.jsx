@@ -57,6 +57,8 @@ import VtcInvoices from './pages/VtcInvoices';
 import MikiyaInvoice from './pages/MikiyaInvoice'
 import MikiyaInvoices from './pages/MikiyaInvoices'
 import Assets from './pages/Assets';
+import Analysis from './pages/Analysis';
+import ReconciliationPreview from './pages/ReconciliationPreview';
 import Asset from './pages/Asset';
 import NewAsset from './pages/NewAsset';
 import EditAsset from './pages/EditAsset';
@@ -166,6 +168,8 @@ function App() {
 								path="/dividend-rates/:year"
 								element={<DividendRatesPage />}
 							/>
+							<Route path="/analysis/:id" element={<Analysis />} />
+							<Route path="/analysis/:id/reconciliation/:reconId" element={<ReconciliationPreview />} />
 						</Route>
 					</Route>
 				</Route>

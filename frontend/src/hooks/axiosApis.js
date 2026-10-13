@@ -875,3 +875,62 @@ export const startNewFinancialYearApi = async (payload, user) => {
 	);
 	return data;
 };
+
+// ─── Reconciliation APIs ────────────────────────────────────────────────────
+
+export const fetchReconciliations = async ({ user, customerId }) => {
+	try {
+		const config = { headers: { Authorization: `Bearer ${user?.token}` } };
+		const { data } = await axios.get(
+			`${apiUrl}/reconciliations/${customerId}`,
+			config
+		);
+		return data;
+	} catch (error) {
+		console.log(error.message);
+		throw error;
+	}
+};
+
+export const fetchReconciliation = async ({ user, id }) => {
+	try {
+		const config = { headers: { Authorization: `Bearer ${user?.token}` } };
+		const { data } = await axios.get(
+			`${apiUrl}/reconciliations/detail/${id}`,
+			config
+		);
+		return data;
+	} catch (error) {
+		console.log(error.message);
+		throw error;
+	}
+};
+
+export const createReconciliationApi = async ({ user, payload }) => {
+	const config = { headers: { Authorization: `Bearer ${user?.token}` } };
+	const { data } = await axios.post(
+		`${apiUrl}/reconciliations`,
+		payload,
+		config
+	);
+	return data;
+};
+
+export const updateReconciliationApi = async ({ user, id, payload }) => {
+	const config = { headers: { Authorization: `Bearer ${user?.token}` } };
+	const { data } = await axios.put(
+		`${apiUrl}/reconciliations/${id}`,
+		payload,
+		config
+	);
+	return data;
+};
+
+export const deleteReconciliationApi = async ({ user, id }) => {
+	const config = { headers: { Authorization: `Bearer ${user?.token}` } };
+	const { data } = await axios.delete(
+		`${apiUrl}/reconciliations/${id}`,
+		config
+	);
+	return data;
+};
