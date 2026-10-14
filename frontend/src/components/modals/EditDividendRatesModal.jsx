@@ -10,6 +10,7 @@ import Modal from './Modal';
 import { HiXMark } from 'react-icons/hi2';
 
 import { months } from '../../data';
+import { getWatMonth } from '../../utils/watDate';
 const EditDividendRatesModal = ({
 	show,
 	setShow,
@@ -19,7 +20,7 @@ const EditDividendRatesModal = ({
 	const { user } = useContext(AuthContext);
 	const queryClient = useQueryClient();
 
-	const currentYear = new Date().getFullYear();
+	const currentYear = getWatMonth(new Date()).year;
 
 	const [percentage, setPercentage] = useState('');
 

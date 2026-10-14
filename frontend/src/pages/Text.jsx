@@ -13,6 +13,7 @@ import { fetchWaybill, fetchCustomers } from '../hooks/axiosApis';
 import logo from '../assets/logo.png';
 import seal from '../assets/seal.png';
 import AuthContext from '../context/authContext';
+import { toInputDateWat, todayInputWat } from '../utils/watDate';
 
 // Helper: generate a unique filename suffix
 const generateFileSuffix = () =>
@@ -149,7 +150,7 @@ const InvoiceRegister = () => {
 		vehicle: '',
 		destination: '',
 		note: '',
-		date: new Date().toISOString().split('T')[0], // YYYY-MM-DD for input[type=date]
+		date: todayInputWat(), // YYYY-MM-DD for input[type=date]
 		timeIn: TIME_SLOTS[0],
 		timeOut: TIME_SLOTS[1],
 	});
@@ -180,7 +181,7 @@ const InvoiceRegister = () => {
 				vehicle: fetchedData.vehicle || '',
 				destination: fetchedData.destination || '',
 				date: fetchedData.date
-					? new Date(fetchedData.date).toISOString().split('T')[0]
+					? toInputDateWat(fetchedData.date)
 					: '',
 				timeIn: fetchedData.timeIn || TIME_SLOTS[0],
 				timeOut: fetchedData.timeOut || TIME_SLOTS[0],

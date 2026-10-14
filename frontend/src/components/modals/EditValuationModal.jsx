@@ -7,6 +7,7 @@ import getError from '../../hooks/getError';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import Modal from './Modal';
 import { HiXMark } from 'react-icons/hi2';
+import { toInputDateWat } from '../../utils/watDate';
 
 // record = { _id, valuation, valuationDate, remark }
 const EditValuationModal = ({ show, setShow, assetId, record }) => {
@@ -21,9 +22,7 @@ const EditValuationModal = ({ show, setShow, assetId, record }) => {
 	useEffect(() => {
 		if (record) {
 			setValuation(record.valuation ?? '');
-			setValuationDate(
-				record.valuationDate ? record.valuationDate.split('T')[0] : '',
-			);
+			setValuationDate(toInputDateWat(record.valuationDate));
 			setRemark(record.remark ?? '');
 		}
 	}, [record]);

@@ -11,6 +11,7 @@ import { fetchUsers } from '../hooks/axiosApis.js';
 import getError from '../hooks/getError.js';
 import toast from 'react-hot-toast';
 import { Edit3Icon, Lock, Plus } from 'lucide-react';
+import { formatDateWat } from '../utils/watDate';
 const Users = () => {
 	const [loading, setIsLoading] = useState(false);
 	const [isAddModal, setIsAddModal] = useState(false);
@@ -115,10 +116,10 @@ const Users = () => {
 											</span>
 										</td>
 										<td className="px-4 py-3 text-sm text-gray-500">
-											{new Date(user.createdAt).toLocaleDateString()}
+											{formatDateWat(user.createdAt, 'PP')}
 										</td>
 										<td className="px-4 py-3 text-sm text-gray-500">
-											{new Date(user.updatedAt).toLocaleDateString()}
+											{formatDateWat(user.updatedAt, 'PP')}
 										</td>
 										<td className="px-4 py-3 text-sm text-gray-500 flex gap-3">
 											<button

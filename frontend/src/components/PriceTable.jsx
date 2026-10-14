@@ -2,8 +2,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AiFillDelete } from 'react-icons/ai';
-import moment from 'moment';
-// import moment from 'moment';
+import { formatDateWat } from '../utils/watDate';
 
 const Table = ({ tableData, handelDelete }) => {
 	const navigate = useNavigate();
@@ -145,7 +144,7 @@ const Table = ({ tableData, handelDelete }) => {
 								className="drop-shadow-[0_0_10px_rgba(34,46,58,0.02)] bg-[#f6f8fa] hover:shadow-2xl p-2 cursor-pointer"
 							>
 								<td className="py-2 pl-3 text-sm font-normal text-[#637381] rounded-l-lg whitespace-nowrap cursor-pointer">
-									{moment(data?.date).format('DD MMM YYYY')}
+									{formatDateWat(data?.date, 'd MMM yyyy')}
 								</td>
 
 								<td className="py-2 px-2.5 text-sm font-normal text-[#637381] whitespace-nowrap bg-gray-50 cursor-pointer uppercase">

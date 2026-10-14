@@ -7,6 +7,7 @@ import getError from '../../hooks/getError';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import Modal from './Modal';
 import { HiXMark } from 'react-icons/hi2';
+import { toInputDateWat } from '../../utils/watDate';
 
 const EditExpenseModal = ({ show, setShow, expense }) => {
 	const { user } = useContext(AuthContext);
@@ -22,7 +23,7 @@ const EditExpenseModal = ({ show, setShow, expense }) => {
 		if (expense && show) {
 			setAmount(expense.amount || '');
 			setDescription(expense.description || '');
-			setDate(expense.date?.slice(0, 10) || ''); // format to YYYY-MM-DD
+			setDate(toInputDateWat(expense.date)); // format to YYYY-MM-DD
 		}
 	}, [expense, show]);
 

@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import Modal from './Modal';
 import { HiXMark } from 'react-icons/hi2';
+import { toInputDateWat } from '../../utils/watDate';
 
 const EditModal = ({
 	show,
@@ -27,8 +28,7 @@ const EditModal = ({
 		setBalance(account?.credit || account?.debit);
 		// Safely set and format the date for the date input
 		if (account?.date) {
-			const formattedDate = new Date(account.date).toISOString().split('T')[0];
-			setDate(formattedDate);
+			setDate(toInputDateWat(account.date));
 		}
 	}, [account]);
 

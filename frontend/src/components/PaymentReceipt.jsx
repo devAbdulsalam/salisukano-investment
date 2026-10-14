@@ -2,7 +2,7 @@
 import logo from '../assets/logo.jpg';
 import Modal from './modals/Modal';
 import { downloadPDF, generateRandomNumber } from '../hooks/downLoadPdf';
-import moment from 'moment';
+import { formatDateWat, nowWat } from '../utils/watDate';
 
 const Receipt = ({
 	tableData,
@@ -74,7 +74,7 @@ const Receipt = ({
 											</p>
 										)}
 										<p className="text-sm font-normal text-[#637381]">
-											Date: {new Date().toLocaleDateString()}
+											Date: {nowWat('PP')}
 										</p>
 									</div>
 								</div>
@@ -102,9 +102,10 @@ const Receipt = ({
 											? tableData?.map((item, index) => (
 													<tr key={index}>
 														<td className="py-2 pl-3 text-sm font-normal rounded-l-lg whitespace-nowrap">
-															{moment(item?.date || item?.createdAt).format(
-																'll'
-															)}{' '}
+														{formatDateWat(
+															item?.date || item?.createdAt,
+															'PP'
+														)}{' '}
 														</td>
 														<td className="py-2 pl-3 text-sm font-normal uppercase">
 															{item.name}

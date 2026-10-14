@@ -9,6 +9,7 @@ import AuthContext from '../context/authContext.jsx';
 import { useQuery } from '@tanstack/react-query';
 import { useParams, useNavigate } from 'react-router-dom';
 import Loader from '../components/Loader';
+import { formatDateWat, nowWat } from '../utils/watDate';
 
 const Receipt = () => {
 	const [infoData, setInfoData] = useState(null);
@@ -99,11 +100,11 @@ const Receipt = () => {
 										</p>
 										{InvoiceDate && (
 											<p className="text-sm font-normal text-[#637381]">
-												From:{InvoiceDate?.toLocaleDateString()}
+												From:{formatDateWat(InvoiceDate, 'PP')}
 											</p>
 										)}
 										<p className="text-sm font-normal text-[#637381]">
-											Date: {new Date().toLocaleDateString()}
+											Date: {nowWat('PP')}
 										</p>
 									</div>
 								</div>
@@ -137,7 +138,7 @@ const Receipt = () => {
 											? tableData?.map((item, index) => (
 													<tr key={index} className="">
 														<td className="py-2 px-2 text-sm font-normal text-[#637381] whitespace-nowrap border">
-															{new Date(item.date).toLocaleDateString()}
+															{formatDateWat(item.date, 'PP')}
 														</td>
 														<td className="py-2 px-2 text-sm font-normal text-[#637381] whitespace-nowrap border">
 															{item.description?.substr(0, 10)}

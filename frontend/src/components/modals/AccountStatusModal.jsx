@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import Modal from './Modal';
 import { HiXMark } from 'react-icons/hi2';
+import { formatMonthYearWat } from '../../utils/watDate';
 
 const statusData = [
 	{ name: 'Inactive', value: 'inactive' },
@@ -25,15 +26,7 @@ const AddModal = ({ show, setShow, setLoading, loading, account }) => {
 	};
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
-	const normalizedMonth = new Date(
-		new Date(account?.month).getFullYear(),
-		new Date(account?.month).getMonth(),
-		1
-	);
-	const month = normalizedMonth.toLocaleDateString('en-GB', {
-		month: 'long',
-		year: 'numeric',
-	});
+	const month = formatMonthYearWat(account?.month);
 	const handleSubmit = (e) => {
 		e.preventDefault();
 		if (status == account?.status) {

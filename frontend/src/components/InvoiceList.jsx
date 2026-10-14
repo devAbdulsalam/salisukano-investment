@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Edit, Download, FileText, Calendar, Truck } from 'lucide-react';
 import { invoiceAPI } from '../pages/api.js';
 import toast from 'react-hot-toast';
+import { formatDateWat } from '../utils/watDate';
 
 const InvoiceList = () => {
 	const [invoices, setInvoices] = useState([]);
@@ -90,7 +91,7 @@ const InvoiceList = () => {
 									<div className="flex items-center">
 										<Calendar className="w-4 h-4 text-gray-400 mr-2" />
 										<span className="text-sm text-gray-900">
-											{new Date(invoice.date).toLocaleDateString('en-NG')}
+											{formatDateWat(invoice.date, 'PP')}
 										</span>
 									</div>
 								</td>

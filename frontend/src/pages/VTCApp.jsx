@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { useState, useCallback, useMemo, useRef } from 'react';
+import { todayInputWat } from '../utils/watDate';
 // import '../vtc.css';
 
 // ─── helpers (same as before) ──────────────────────────────
@@ -104,7 +105,7 @@ const VTCApp = () => {
 	const [customerName, setCustomerName] = useState('');
 	const [vehicleReg, setVehicleReg] = useState('');
 	const [destination, setDestination] = useState('');
-	const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+	const [date, setDate] = useState(todayInputWat());
 	const [timeIn, setTimeIn] = useState('');
 	const [timeOut, setTimeOut] = useState('');
 	const [comments, setComments] = useState('');
@@ -355,7 +356,7 @@ const VTCApp = () => {
 		setCustomerName('');
 		setVehicleReg('');
 		setDestination('');
-		setDate(new Date().toISOString().slice(0, 10));
+		setDate(todayInputWat());
 		setTimeIn('');
 		setTimeOut('');
 		setComments('');

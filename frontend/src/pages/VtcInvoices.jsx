@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { format } from 'date-fns';
+import { formatDateWat } from '../utils/watDate';
 import { Eye, Pencil, Trash2, Search, ArrowUpDown } from 'lucide-react';
 import Loader from '../components/Loader';
 import getError from '../hooks/getError';
@@ -113,17 +113,9 @@ const VtcInvoices = ({ company = 'vtc' }) => {
 		}));
 	};
 
-	// Format date for display — parse manually to avoid UTC-midnight timezone shift
-	const formatDate = (dateString) => {
-		if (!dateString) return '';
-		// ISO YYYY-MM-DD: new Date('2026-10-11') is UTC midnight, which shifts the day
-		// on devices not in UTC. Parse parts instead to get local midnight.
-		if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
-			const [y, m, d] = dateString.split('-').map(Number);
-			return format(new Date(y, m - 1, d), 'dd/MM/yyyy');
-		}
-		return format(new Date(dateString), 'dd/MM/yyyy');
-	};
+	// Format date for display in WAT regardless of device timezone
+	const formatDate = (dateString) =>
+		dateString ? formatDateWat(dateString, 'dd/MM/yyyy') : '';
 
 	if (isLoading) return <Loader />;
 	if (error)

@@ -19,6 +19,7 @@ import {
 	Download,
 } from 'lucide-react';
 import formatDate from '../hooks/formatDate.js';
+import { nowWat } from '../utils/watDate';
 import DeleteConfirmationModal from '../components/modals/DeleteConfirmationModal.jsx';
 import AddMaintenanceModal from '../components/modals/AddMaintenanceModal.jsx';
 import EditMaintenanceModal from '../components/modals/EditMaintenanceModal.jsx';
@@ -391,7 +392,7 @@ const Asset = () => {
 			if (sealBase64) doc.addImage(sealBase64, 'PNG', 14, y - 30, 42, 42);
 
 			doc.save(
-				`Asset-${asset.name}-${new Date().toISOString().split('T')[0]}.pdf`,
+				`Asset-${asset.name}-${nowWat('yyyy-MM-dd')}.pdf`,
 			);
 		} catch (err) {
 			console.error(err);

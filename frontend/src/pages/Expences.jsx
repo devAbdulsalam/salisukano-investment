@@ -16,7 +16,7 @@ import toast from 'react-hot-toast';
 import { Pencil, Trash2, Search, ArrowUpDown, Download } from 'lucide-react';
 import formatDate from '../hooks/formatDate.js';
 import DeleteConfirmationModal from '../components/modals/DeleteConfirmationModal.jsx';
-import moment from 'moment';
+import { formatDateWat, getWatMonth, toInputDateWat, nowWat } from '../utils/watDate';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { months } from '../data.js';
 
@@ -92,15 +92,12 @@ const Expences = () => {
 	}, [data]);
 
 	const thisMonthExpense = useMemo(() => {
-		const now = new Date();
+		const now = getWatMonth(new Date());
 		return (
 			data
 				?.filter((exp) => {
-					const d = new Date(exp.date);
-					return (
-						d.getMonth() === now.getMonth() &&
-						d.getFullYear() === now.getFullYear()
-					);
+					const parts = getWatMonth(exp.date);
+					return parts?.month === now?.month && parts?.year === now?.year;
 				})
 				.reduce((acc, exp) => acc + exp.amount, 0) || 0
 		);
@@ -116,15 +113,16 @@ const Expences = () => {
 					?.toLowerCase()
 					.includes(searchTerm.toLowerCase()) ||
 				expense?.amount?.toString().includes(searchTerm) ||
-				moment(expense?.createdAt).format('DD-MM-YYYY').includes(searchTerm);
+				formatDateWat(expense?.createdAt, 'dd-MM-yyyy').includes(searchTerm);
 			const matchesDate =
-				!startDate || new Date(expense.date) >= new Date(startDate);
+				!startDate ||
+				(expense.date && toInputDateWat(expense.date) >= startDate);
 
-			// Apply URL month/year filter from MonthlyExpenses navigation
+			// Apply URL month/year filter from MonthlyExpenses navigation (WAT based)
 			const matchesUrlMonth = (() => {
 				if (!urlMonth || !urlYear) return true;
-				const d = new Date(expense.date);
-				return d.getMonth() + 1 === urlMonth && d.getFullYear() === urlYear;
+				const parts = getWatMonth(expense.date);
+				return parts?.month === urlMonth && parts?.year === urlYear;
 			})();
 
 			return matchesSearch && matchesDate && matchesUrlMonth;
@@ -354,7 +352,7 @@ const Expences = () => {
 				index + 1,
 				item.description,
 				item?.amount?.toLocaleString() || '',
-				item.date ? new Date(item.date).toISOString().split('T')[0] : '',
+				item.date ? toInputDateWat(item.date) : '',
 				'',
 			]);
 			// Ensure minimum 10 rows
@@ -446,7 +444,7 @@ const Expences = () => {
 			// SAVE
 			// ===============================
 
-			doc.save(`Expenses-${new Date().toISOString()}.pdf`);
+			doc.save(`Expenses-${nowWat('yyyy-MM-dd')}.pdf`);
 		} catch (error) {
 			console.error(error);
 			toast.error('Failed to generate PDF');

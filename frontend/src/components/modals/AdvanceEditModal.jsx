@@ -7,7 +7,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import Modal from './Modal';
 import { HiXMark } from 'react-icons/hi2';
 import { editAdvanceTransaction } from '../../hooks/axiosApis';
-import moment from 'moment';
+import { toInputDateWat } from '../../utils/watDate';
 
 const AdvanceEditModal = ({ show, setShow, customerId, transaction }) => {
 	const { user } = useContext(AuthContext);
@@ -24,7 +24,7 @@ const AdvanceEditModal = ({ show, setShow, customerId, transaction }) => {
 	useEffect(() => {
 		if (transaction) {
 			setAmount(transaction.credit > 0 ? transaction.credit : transaction.debit);
-			setDate(moment(transaction.date).format('YYYY-MM-DD'));
+			setDate(toInputDateWat(transaction.date));
 			setDescription(transaction.description || '');
 			setRemark(transaction.remark || '');
 			setType(transaction.credit > 0 ? 'credit' : 'debit');

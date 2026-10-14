@@ -19,6 +19,7 @@ import {
 	ArrowRight,
 } from 'lucide-react';
 import formatDate from '../hooks/formatDate.js';
+import { formatDateWat, nowWat, toInputDateWat, getWatMonth } from '../utils/watDate';
 import { useParams } from 'react-router-dom';
 import { months } from '../data.js';
 import TopupModal from '../components/modals/TopupModal.jsx';
@@ -38,7 +39,7 @@ const Shareholder = () => {
 	const { user } = useContext(AuthContext);
 
 	const [shareholder, setShareholder] = useState(null);
-	const [year, setYear] = useState(selectedYear || new Date().getFullYear());
+	const [year, setYear] = useState(selectedYear || getWatMonth(new Date()).year);
 	const [loading, setLoading] = useState(false);
 	const [topupModal, setTopupModal] = useState(false);
 	const [isTopup, setIsTopup] = useState(false);
@@ -105,7 +106,7 @@ const Shareholder = () => {
 		return data.transactions.filter(
 			(transaction) =>
 				!year ||
-				new Date(transaction.transactionDate).getFullYear() === Number(year),
+				getWatMonth(transaction.transactionDate)?.year === Number(year),
 		);
 	}, [data, year]);
 	const stats = useMemo(() => {
@@ -320,7 +321,7 @@ const Shareholder = () => {
 				index + 1,
 				item.description,
 				item?.amount?.toLocaleString() || '',
-				item.date ? new Date(item.date).toISOString().split('T')[0] : '',
+				item.date ? toInputDateWat(item.date) : '',
 				'',
 			]);
 			// Ensure minimum 10 rows
@@ -412,7 +413,7 @@ const Shareholder = () => {
 			// SAVE
 			// ===============================
 
-			doc.save(`Shareholder-${new Date().toISOString()}.pdf`);
+			doc.save(`Shareholder-${nowWat('yyyy-MM-dd')}.pdf`);
 		} catch (error) {
 			console.error(error);
 			toast.error('Failed to generate PDF');
@@ -462,7 +463,7 @@ const Shareholder = () => {
 						<p>
 							<strong>Date Added:</strong>{' '}
 							{shareholder?.createdAt
-								? new Date(shareholder.createdAt).toLocaleDateString()
+								? formatDateWat(shareholder.createdAt, 'PP')
 								: '-'}
 						</p>
 					</div>

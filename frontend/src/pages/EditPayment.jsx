@@ -9,6 +9,7 @@ import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import Loader from '../components/Loader.jsx';
 import CustomersInput from '../components/CustomersInput.jsx';
 import { fetchTransaction } from '../hooks/axiosApis.js';
+import { toInputDateWat } from '../utils/watDate';
 
 const EditPayment = () => {
 	const { user } = useContext(AuthContext);
@@ -39,7 +40,7 @@ const EditPayment = () => {
 			setAmount(data?.total || data?.debit);
 			setDescription(data?.description);
 			console.log('data?.date', data?.date);
-			setDate(new Date(data?.date).toISOString().split('T')[0] || data?.date);
+			setDate(toInputDateWat(data?.date) || data?.date);
 		}
 		if (error) {
 			toast.error(error?.message);

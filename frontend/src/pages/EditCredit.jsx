@@ -9,6 +9,7 @@ import { MdDelete } from 'react-icons/md';
 import { FaPlus } from 'react-icons/fa6';
 import Loader from '../components/Loader.jsx';
 import capitalizeText from '../hooks/CapitalizeText.js';
+import { toInputDateWat } from '../utils/watDate';
 
 const materialsData = [{ name: 'Cast' }, { name: 'Mix' }, { name: 'Special' }, { name: 'Bundle' }];
 
@@ -51,7 +52,7 @@ const EditCredit = () => {
 					? materialData
 					: [{ product: 'Mix', qty: '', rate: '', cost: 0 }],
 			);
-			setDate(date?.substring(0, 10) || '');
+			setDate(toInputDateWat(date));
 			setDescription(description || '');
 			setVehicleNumber(vehicleNumber || '');
 		}

@@ -7,7 +7,7 @@ import { useQueryClient, useMutation } from '@tanstack/react-query';
 import Modal from './Modal';
 import { HiXMark, HiPlus, HiTrash } from 'react-icons/hi2';
 import { createReconciliationApi, updateReconciliationApi } from '../../hooks/axiosApis';
-import moment from 'moment';
+import { toInputMonthWat } from '../../utils/watDate';
 
 // Pass `reconciliation` prop to enter edit mode
 const ReconciliationModal = ({ show, setShow, customerId, reconciliation }) => {
@@ -25,7 +25,7 @@ const ReconciliationModal = ({ show, setShow, customerId, reconciliation }) => {
 	// Pre-fill when editing
 	useEffect(() => {
 		if (reconciliation) {
-			setMonth(moment(reconciliation.month).format('YYYY-MM'));
+			setMonth(toInputMonthWat(reconciliation.month));
 			setTotalFromLedger(String(reconciliation.totalFromLedger ?? ''));
 			setLessBank(String(reconciliation.lessBank ?? ''));
 			setDeductions(

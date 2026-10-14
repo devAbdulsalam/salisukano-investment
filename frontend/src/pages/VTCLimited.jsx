@@ -2,6 +2,7 @@ import React, { useState, useRef, useMemo, useCallback } from 'react';
 import '../vtc.css';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { todayInputWat } from '../utils/watDate';
 // ─── helpers ──────────────────────────────────────────────
 const formatCurrency = (val) => {
 	const num = parseFloat(val) || 0;
@@ -102,7 +103,7 @@ const VTCLimited = () => {
 	const [customerName, setCustomerName] = useState('');
 	const [vehicleReg, setVehicleReg] = useState('');
 	const [destination, setDestination] = useState('');
-	const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+	const [date, setDate] = useState(todayInputWat());
 	const [timeIn, setTimeIn] = useState('');
 	const [timeOut, setTimeOut] = useState('');
 	const [comments, setComments] = useState('');
@@ -372,7 +373,7 @@ const VTCLimited = () => {
 		setCustomerName('');
 		setVehicleReg('');
 		setDestination('');
-		setDate(new Date().toISOString().slice(0, 10));
+		setDate(todayInputWat());
 		setTimeIn('');
 		setTimeOut('');
 		setComments('');

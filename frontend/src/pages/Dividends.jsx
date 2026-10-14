@@ -9,6 +9,7 @@ import getError from '../hooks/getError';
 import { useNavigate } from 'react-router-dom';
 import { months } from '../data.js';
 import { ArrowUpDown } from 'lucide-react';
+import { getWatMonth } from '../utils/watDate';
 
 const currency = (amount) =>
 	Number(amount || 0).toLocaleString(undefined, {
@@ -20,7 +21,7 @@ const Dividends = () => {
 	const { user } = useContext(AuthContext);
 	const navigate = useNavigate();
 
-	const currentYear = new Date().getFullYear();
+	const currentYear = getWatMonth(new Date()).year;
 
 	const [year, setYear] = useState(currentYear);
 

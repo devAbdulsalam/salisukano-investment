@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 import Loader from '../components/Loader.jsx';
 import { FaPlus } from 'react-icons/fa6';
 import { FiEdit2, FiTrash2, FiEye } from 'react-icons/fi';
-import moment from 'moment';
+import { formatMonthYearWat } from '../utils/watDate';
 import ReconciliationModal from '../components/modals/ReconciliationModal.jsx';
 
 const Analysis = () => {
@@ -163,7 +163,7 @@ const Analysis = () => {
 												className="bg-[#f6f8fa] hover:shadow-md transition-shadow"
 											>
 												<td className="py-3 pl-3 font-medium whitespace-nowrap rounded-l-lg">
-													{moment(recon.month).format('MMMM, YYYY')}
+													{formatMonthYearWat(recon.month, 'MMMM, yyyy')}
 												</td>
 												<td className="py-3 px-2 text-[#4F80E1] whitespace-nowrap">
 													{recon.totalFromLedger?.toLocaleString()}

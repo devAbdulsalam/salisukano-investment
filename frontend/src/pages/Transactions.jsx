@@ -11,6 +11,7 @@ import getError from '../hooks/getError.js';
 import toast from 'react-hot-toast';
 import { exportToExcel } from '../components/ExportToExcel';
 import { cleanTableData } from '../hooks/cleanData';
+import { formatMonthYearWat } from '../utils/watDate';
 import { FaPlus } from 'react-icons/fa6';
 // import { useDownloadExcel } from 'react-export-table-to-excel';
 
@@ -27,17 +28,8 @@ const Transaction = () => {
 	const [month, setMonth] = useState('');
 	useEffect(() => {
 		if (data) {
-			const normalizedMonth = new Date(
-				new Date(data?.account?.month).getFullYear(),
-				new Date(data?.account?.month).getMonth(),
-				1
-			);
-			// console.log(data);
-			const month = normalizedMonth.toLocaleDateString('en-GB', {
-				month: 'long',
-				year: 'numeric',
-			});
-			setMonth(month);
+			// Month label is derived in WAT so it stays correct on any device.
+			setMonth(formatMonthYearWat(data?.account?.month));
 			// setBusiness(data);
 			console.log(data);
 			setTableData(cleanTableData(data?.transactions));

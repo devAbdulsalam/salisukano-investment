@@ -11,6 +11,7 @@ import { HiXMark } from 'react-icons/hi2';
 import { months } from '../../data.js';
 import { useNavigate } from 'react-router-dom';
 import { fetchDividendRates } from '../../hooks/axiosApis.js';
+import { getWatMonth } from '../../utils/watDate';
 
 const ShareholderDividendModal = ({
 	show,
@@ -22,8 +23,8 @@ const ShareholderDividendModal = ({
 	const queryClient = useQueryClient();
 	const navigate = useNavigate();
 
-	const currentYear = new Date().getFullYear();
-	const currentMonth = new Date().getMonth() + 1;
+	const currentYear = getWatMonth(new Date()).year;
+	const currentMonth = getWatMonth(new Date()).month;
 
 	const [year, setYear] = useState(propYear || currentYear);
 	const [month, setMonth] = useState(currentMonth);

@@ -3,7 +3,7 @@ import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaPlus } from 'react-icons/fa6';
 import { AiFillDelete, AiFillEdit } from 'react-icons/ai';
-import moment from 'moment';
+import { formatDateWat } from '../utils/watDate';
 import { SiMicrosoftexcel } from 'react-icons/si';
 
 const Table = ({
@@ -33,7 +33,7 @@ const Table = ({
 				data?.amount?.toLowerCase().includes(query.toLowerCase()) ||
 				data?.description?.toLowerCase().includes(query.toLowerCase()) ||
 				data?.type?.toString().includes(query) ||
-				moment(data?.createdAt).format('DD-MM-YYYY').includes(query);
+				formatDateWat(data?.createdAt, 'dd-MM-yyyy').includes(query);
 
 			return matchesQuery;
 		});

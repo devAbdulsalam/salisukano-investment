@@ -3,6 +3,7 @@ import logo from '../assets/logo.jpg';
 import Modal from './modals/Modal';
 import formatDate from '../hooks/formatDate';
 import { downloadPDF, generateRandomNumber } from '../hooks/downLoadPdf';
+import { nowWat } from '../utils/watDate';
 
 const Receipt = ({
 	tableData,
@@ -78,7 +79,7 @@ const Receipt = ({
 										</p>
 									)}
 									<p className="text-xs md:text-sm font-normal text-[#637381]">
-										Date: {new Date().toLocaleDateString()}
+										Date: {nowWat('PP')}
 									</p>
 								</div>
 							</div>

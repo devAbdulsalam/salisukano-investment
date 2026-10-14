@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useNavigate } from 'react-router-dom';
 import { useState, useMemo } from 'react';
-import moment from 'moment';
+import { formatDateWat } from '../utils/watDate';
 import { SiMicrosoftexcel } from 'react-icons/si';
 
 const TransactionTable = ({ tableData, tableRef, handelExportToExcel }) => {
@@ -28,7 +28,7 @@ const TransactionTable = ({ tableData, tableRef, handelExportToExcel }) => {
 				data?.name?.toLowerCase().includes(query.toLowerCase()) ||
 				data.vehicleNumber?.toLowerCase().includes(query.toLowerCase()) ||
 				data.total?.toLowerCase().includes(query.toLowerCase()) ||
-				moment(data.createdAt).format('DD-MM-YYYY').includes(query);
+				formatDateWat(data.createdAt, 'dd-MM-yyyy').includes(query);
 
 			return matchesQuery;
 		});
@@ -140,7 +140,7 @@ const TransactionTable = ({ tableData, tableRef, handelExportToExcel }) => {
 								className="drop-shadow-[0_0_10px_rgba(34,46,58,0.02)] bg-[#f6f8fa] hover:shadow-2xl cursor-pointer"
 							>
 								<td className="py-2 pl-3 text-sm font-normal text-[#637381] rounded-l-lg whitespace-nowrap">
-									{moment(data?.date || data?.createdAt).format('ll')}
+									{formatDateWat(data?.date || data?.createdAt, 'PP')}
 								</td>
 								<td className="py-2 pl-3 text-sm font-normal text-[#637381]bg-gray-50 rounded-l-lg whitespace-nowrap uppercase">
 									{data?.name}

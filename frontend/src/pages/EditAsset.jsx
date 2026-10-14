@@ -8,6 +8,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { fetchAsset } from '../hooks/axiosApis';
 import { ArrowLeft, Save } from 'lucide-react';
 import Loader from '../components/Loader';
+import { toInputDateWat } from '../utils/watDate';
 
 const STATUS_OPTIONS = [
 	{ value: 'active', label: 'Active' },
@@ -51,9 +52,7 @@ const EditAsset = () => {
 			setSerialNumber(asset.serialNumber || '');
 			setDescription(asset.description || '');
 			setPurchasePrice(asset.purchasePrice ?? '');
-			setPurchaseDate(
-				asset.purchaseDate ? asset.purchaseDate.split('T')[0] : '',
-			);
+			setPurchaseDate(toInputDateWat(asset.purchaseDate));
 			setStatus(asset.status || 'active');
 			setAgentName(asset.agent?.name || '');
 			setAgentPhone(asset.agent?.phone || '');

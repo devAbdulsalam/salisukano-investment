@@ -12,6 +12,7 @@ import { FaPlus } from 'react-icons/fa6';
 import Loader from '../components/Loader.jsx';
 import CustomersInput from '../components/CustomersInput.jsx';
 import { fetchTransaction } from '../hooks/axiosApis.js';
+import { toInputDateWat, todayInputWat } from '../utils/watDate';
 
 const materialsData = [{ name: 'Cast' }, { name: 'Mix' }, { name: 'Special' }, { name: 'Bundle' }];
 
@@ -35,7 +36,7 @@ const UpdateSupply = () => {
 	const [materials, setMaterials] = useState([]);
 	const [vehicleNumber, setVehicleNumber] = useState('');
 	const [description, setDescription] = useState('');
-	const [date, setDate] = useState(new Date());
+	const [date, setDate] = useState(todayInputWat());
 	const [dateError, setDateError] = useState('');
 
 	useEffect(() => {
@@ -44,7 +45,7 @@ const UpdateSupply = () => {
 			setMaterials(data.materials);
 			setVehicleNumber(data.vehicleNumber);
 			setDescription(data.description);
-			setDate(new Date(data?.date).toISOString().split('T')[0] || data?.date);
+			setDate(toInputDateWat(data?.date) || data?.date);
 		}
 		if (error) {
 			toast.error(error?.message);

@@ -13,6 +13,7 @@ import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import { FiPrinter } from 'react-icons/fi';
 import { IoMdOptions } from 'react-icons/io';
 import { SiMicrosoftexcel } from 'react-icons/si';
+import { formatMonthYearWat } from '../utils/watDate';
 
 const Transaction = () => {
 	const { user } = useContext(AuthContext);
@@ -31,17 +32,8 @@ const Transaction = () => {
 			// setBusiness(data);
 			console.log(data);
 			if (data) {
-				const normalizedMonth = new Date(
-					new Date(data?.account?.month).getFullYear(),
-					new Date(data?.account?.month).getMonth(),
-					1
-				);
-				// console.log(data);
-				const month = normalizedMonth.toLocaleDateString('en-GB', {
-					month: 'long',
-					year: 'numeric',
-				});
-				setMonth(month);
+				// Month label is derived in WAT so it stays correct on any device.
+				setMonth(formatMonthYearWat(data?.account?.month));
 			}
 		}
 		if (error) {

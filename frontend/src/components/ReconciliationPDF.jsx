@@ -2,7 +2,7 @@
 import logo from '../assets/logo.jpg';
 import Modal from './modals/Modal';
 import { downloadPDF } from '../hooks/downLoadPdf';
-import moment from 'moment';
+import { formatDateWat, formatMonthYearWat } from '../utils/watDate';
 
 const ReconciliationPDF = ({ show, setShow, reconciliation, customer }) => {
 	if (!reconciliation) return null;
@@ -19,8 +19,8 @@ const ReconciliationPDF = ({ show, setShow, reconciliation, customer }) => {
 	// = balanceUnpaid
 	const subtotal1 = reconciliation.totalFromLedger - reconciliation.lessBank;
 
-	const monthLabel = moment(reconciliation.month).format('MMMM, YYYY');
-	const filename = `${moment(reconciliation.month).format('MMM-YYYY')}-reconciliation`;
+	const monthLabel = formatMonthYearWat(reconciliation.month, 'MMMM, yyyy');
+	const filename = `${formatMonthYearWat(reconciliation.month, 'MMM-yyyy')}-reconciliation`;
 
 	const handlePrint = () => downloadPDF('reconciliation-doc');
 
@@ -158,8 +158,9 @@ const ReconciliationPDF = ({ show, setShow, reconciliation, customer }) => {
 							<div className="mt-4 border-b border-black w-40"></div>
 							<p className="mt-1">{reconciliation.preparedBy}</p>
 							<p className="text-gray-600 text-xs">
-								{moment(reconciliation.updatedAt || reconciliation.createdAt).format(
-									'DD/MM/YYYY'
+								{formatDateWat(
+									reconciliation.updatedAt || reconciliation.createdAt,
+									'dd/MM/yyyy'
 								)}
 							</p>
 							<p className="font-semibold mt-1">Salisu Kano.</p>

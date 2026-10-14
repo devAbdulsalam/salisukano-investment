@@ -15,6 +15,7 @@ import mikiyaLogo from '../assets/mikiya-logo.png';
 import mikiyaSeal from '../assets/mikiya-seal.png';
 import phone from '../assets/call.png';
 import AuthContext from '../context/authContext';
+import { toInputDateWat, todayInputWat } from '../utils/watDate';
 
 // Helper: generate a unique filename suffix
 const generateFileSuffix = () =>
@@ -182,7 +183,7 @@ const VtcInvoice = ({ company = 'vtc' }) => {
 		vehicle: '',
 		destination: '',
 		note: '',
-		date: new Date().toISOString().split('T')[0], // YYYY-MM-DD for input[type=date]
+		date: todayInputWat(), // YYYY-MM-DD for input[type=date]
 		timeIn: TIME_SLOTS[0],
 		timeOut: TIME_SLOTS[1],
 		company,
@@ -214,7 +215,7 @@ const VtcInvoice = ({ company = 'vtc' }) => {
 				vehicle: fetchedData.vehicle || '',
 				destination: fetchedData.destination || '',
 				date: fetchedData.date
-					? new Date(fetchedData.date).toISOString().split('T')[0]
+					? toInputDateWat(fetchedData.date)
 					: '',
 				timeIn: fetchedData.timeIn || TIME_SLOTS[0],
 				timeOut: fetchedData.timeOut || TIME_SLOTS[0],

@@ -12,6 +12,7 @@ import getError from '../hooks/getError';
 import Loader from '../components/Loader';
 import { fetchRegisteredWaybill, fetchCustomers } from '../hooks/axiosApis';
 import AuthContext from '../context/authContext';
+import { toInputDateWat, todayInputWat } from '../utils/watDate';
 
 // Helper: generate a unique filename suffix
 const generateFileSuffix = () =>
@@ -42,7 +43,7 @@ const Waybill = () => {
 		tare: 0,
 		gross: 0,
 		dust: 0,
-		date: new Date().toISOString().split('T')[0], // YYYY-MM-DD for input[type=date]
+		date: todayInputWat(), // YYYY-MM-DD for input[type=date]
 		note: '',
 	});
 
@@ -100,7 +101,7 @@ const Waybill = () => {
 				gross: fetchedData.gross || 0,
 				dust: fetchedData.dust || 0,
 				date: fetchedData.date
-					? new Date(fetchedData.date).toISOString().split('T')[0]
+					? toInputDateWat(fetchedData.date)
 					: '',
 			});
 		}
@@ -300,7 +301,7 @@ const Waybill = () => {
 			doc.text('Date:', pageWidth - 90, startY);
 			doc.setFont('helvetica', 'normal');
 			doc.text(
-				new Date(formData.date).toISOString().split('T')[0] || '-',
+				toInputDateWat(formData.date) || '-',
 				pageWidth - 75,
 				startY,
 			);

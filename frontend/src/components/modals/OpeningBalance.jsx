@@ -9,6 +9,7 @@ import { useQueryClient, useMutation } from '@tanstack/react-query';
 import Modal from './Modal';
 import { HiXMark } from 'react-icons/hi2';
 import { use } from 'react';
+import { formatMonthYearWat } from '../../utils/watDate';
 
 const AddModal = ({ show, setShow, setLoading, loading, account, openbal}) => {
 	const { user } = useContext(AuthContext);
@@ -22,18 +23,10 @@ const AddModal = ({ show, setShow, setLoading, loading, account, openbal}) => {
 	// console.log('account', account);
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
-	const normalizedMonth = new Date(
-		new Date(account?.month).getFullYear(),
-		new Date(account?.month).getMonth(),
-		1
-	);
 	useEffect(() => {
 		setBalance(openbal || 0);
 	}, [openbal]);
-	const month = normalizedMonth.toLocaleDateString('en-GB', {
-		month: 'long',
-		year: 'numeric',
-	});
+	const month = formatMonthYearWat(account?.month);
 
 	const mutation = useMutation({
 		mutationFn: async (data) => {

@@ -6,7 +6,7 @@ import { cleanTableData } from '../hooks/cleanData';
 const queryList = [{ name: 'All' }, { name: 'Credit' }, { name: 'Debit' }];
 import { SiMicrosoftexcel } from 'react-icons/si';
 // import { formatPrice } from '../hooks/formatPrice';
-import moment from 'moment';
+import { formatDateWat } from '../utils/watDate';
 
 const TransactionTable = ({ tableData, handelExportToExcel }) => {
 	const navigate = useNavigate();
@@ -28,7 +28,7 @@ const TransactionTable = ({ tableData, handelExportToExcel }) => {
 				data.vehicleNumber?.toLowerCase().includes(query.toLowerCase()) ||
 				data.quantity?.toString().includes(query) ||
 				data.balance?.toString().includes(query) ||
-				moment(data.createdAt).format('DD-MM-YYYY').includes(query);
+				formatDateWat(data.createdAt, 'dd-MM-yyyy').includes(query);
 			return matchesQuery;
 		});
 	}, [query, tableData]);
@@ -193,7 +193,7 @@ const TransactionTable = ({ tableData, handelExportToExcel }) => {
 									{index + 1}
 								</td>
 								<td className="py-2 pl-3 text-sm font-normal text-[#637381] whitespace-nowrap">
-									{moment(data?.date || data?.createdAt).format('ll')}
+									{formatDateWat(data?.date || data?.createdAt, 'PP')}
 								</td>
 								<td className="py-2 px-2 text-sm font-normal text-[#637381] capitalize whitespace-nowrap">
 									{data?.name?.substr(0, 30) || '-'}

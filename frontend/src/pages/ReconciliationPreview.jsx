@@ -6,7 +6,7 @@ import { fetchReconciliation } from '../hooks/axiosApis.js';
 import getError from '../hooks/getError.js';
 import toast from 'react-hot-toast';
 import Loader from '../components/Loader.jsx';
-import moment from 'moment';
+import { formatDateWat, formatMonthYearWat } from '../utils/watDate';
 import jsPDF from 'jspdf';
 import logo from '../assets/logo.png';
 import seal from '../assets/seal.png';
@@ -59,9 +59,9 @@ const ReconciliationPreview = () => {
 		recon?.deductions?.reduce((s, d) => s + (d.amount || 0), 0) ?? 0;
 	const subtotal1 =
 		(recon?.totalFromLedger ?? 0) - (recon?.lessBank ?? 0);
-	const monthLabel = recon ? moment(recon.month).format('MMMM, YYYY') : '';
+	const monthLabel = recon ? formatMonthYearWat(recon.month, 'MMMM, yyyy') : '';
 	const filename = recon
-		? `${moment(recon.month).format('MMM-YYYY')}-reconciliation`
+		? `${formatMonthYearWat(recon.month, 'MMM-yyyy')}-reconciliation`
 		: 'reconciliation';
 
 	// ── jsPDF download ────────────────────────────────────────────────────────
@@ -259,7 +259,7 @@ const ReconciliationPreview = () => {
 			doc.text("For: Salisu Kano Int'l Ltd", colLeft, footerY + 20);
 			doc.setFont('helvetica', 'normal');
 			doc.text(
-				moment(recon.updatedAt || recon.createdAt).format('DD/MM/YYYY'),
+				formatDateWat(recon.updatedAt || recon.createdAt, 'dd/MM/yyyy'),
 				colLeft,
 				footerY + 26
 			);
@@ -443,7 +443,7 @@ const ReconciliationPreview = () => {
 						<div className="border-b border-black w-48" />
 						<p className="mt-1 font-semibold capitalize">{recon.preparedBy}</p>
 						<p className="text-xs text-gray-500">
-							{moment(recon.updatedAt || recon.createdAt).format('DD/MM/YYYY')}
+							{formatDateWat(recon.updatedAt || recon.createdAt, 'dd/MM/yyyy')}
 						</p>
 						<p className="font-bold mt-1">Salisu Kano.</p>
 					</div>

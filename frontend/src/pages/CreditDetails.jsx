@@ -18,6 +18,7 @@ import { FiPrinter } from 'react-icons/fi';
 // import { MdSaveAlt } from 'react-icons/md';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { formatDateWat } from '../utils/watDate';
 import React from 'react';
 import formatDate from '../hooks/formatDate';
 import loadImageAsBase64 from '../hooks/loadImageAsBase64.js';
@@ -176,7 +177,7 @@ const TransactionDetail = ({ openSideBar }) => {
 				body: debits.map((d) => [
 					capitalizeText(d.description || d.remark || '-'),
 					`${d.total.toLocaleString()}`,
-					new Date(d.date).toLocaleDateString(),
+					formatDateWat(d.date, 'PP'),
 				]),
 			});
 			finalY = doc.lastAutoTable.finalY || finalY + 30;

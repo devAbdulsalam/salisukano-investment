@@ -22,7 +22,7 @@ import {
 	Plus,
 } from 'lucide-react';
 import DeleteConfirmationModal from '../components/modals/DeleteConfirmationModal.jsx';
-import moment from 'moment';
+import { formatDateWat, nowWat, getWatMonth, toInputDateWat } from '../utils/watDate';
 import { useNavigate } from 'react-router-dom';
 // import formatDate from '../hooks/formatDate.js';
 
@@ -39,7 +39,7 @@ const Shareholders = () => {
 	const { user } = useContext(AuthContext);
 	const navigate = useNavigate();
 	const [searchParams, setSearchParams] = useSearchParams();
-	const currentYear = new Date().getFullYear();
+	const currentYear = getWatMonth(new Date()).year;
 	const yearFromUrl = searchParams.get('year');
 	const [year, setYear] = useState(
 		yearFromUrl ? parseInt(yearFromUrl, 10) : currentYear,
@@ -116,10 +116,12 @@ const Shareholders = () => {
 				shareholder?.address?.toLowerCase().includes(searchTermLower) ||
 				shareholder?.email?.toLowerCase().includes(searchTermLower) ||
 				shareholder.currentInvestment?.toString().includes(searchTerm) ||
-				moment(shareholder.createdAt).format('DD-MM-YYYY').includes(searchTerm);
+				formatDateWat(shareholder.createdAt, 'dd-MM-yyyy').includes(searchTerm);
 
 			const matchesDate =
-				!startDate || new Date(shareholder.createdAt) >= new Date(startDate);
+				!startDate ||
+				(shareholder.createdAt &&
+					toInputDateWat(shareholder.createdAt) >= startDate);
 
 			const yearMatches = !year || shareholder?.year === year;
 
@@ -476,7 +478,7 @@ const Shareholders = () => {
 			// SAVE
 			// ===============================
 
-			doc.save(`Shareholders-${new Date().toISOString()}.pdf`);
+			doc.save(`Shareholders-${nowWat('yyyy-MM-dd')}.pdf`);
 		} catch (error) {
 			console.error(error);
 			toast.error('Failed to generate PDF');

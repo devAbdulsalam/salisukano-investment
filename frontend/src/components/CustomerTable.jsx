@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { FaPlus } from 'react-icons/fa6';
 
 // import { formatPrice } from '../hooks/formatPrice';
-import moment from 'moment';
+import { formatDateWat } from '../utils/watDate';
 import { AiFillEdit } from 'react-icons/ai';
 
 const TransactionTable = ({ tableData, handelAddModal, handelEdit }) => {
@@ -27,7 +27,7 @@ const TransactionTable = ({ tableData, handelAddModal, handelEdit }) => {
 				data.credit?.toString().includes(query) ||
 				data.debit?.toString().includes(query) ||
 				data.balance?.toString().includes(query) ||
-				moment(data.createdAt).format('DD-MM-YYYY').includes(query);
+				formatDateWat(data.createdAt, 'dd-MM-yyyy').includes(query);
 
 			return matchesQuery;
 		});

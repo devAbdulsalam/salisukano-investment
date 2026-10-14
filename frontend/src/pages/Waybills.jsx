@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { format } from 'date-fns';
+import { formatDateWat, toInputDateWat, getWatMonth } from '../utils/watDate';
 import {
 	RefreshCw,
 	Pencil,
@@ -71,8 +71,8 @@ const InvoicesPage = () => {
 		if (year && month && month >= 1 && month <= 12) {
 			return getMonthBounds(year, month);
 		}
-		const now = new Date();
-		return getMonthBounds(now.getFullYear(), now.getMonth() + 1);
+		const now = getWatMonth(new Date());
+		return getMonthBounds(now.year, now.month);
 	}, [year, month]);
 
 	const { start: defaultStart, end: defaultEnd } = getInitialDates();
@@ -136,17 +136,9 @@ const InvoicesPage = () => {
 		}
 	};
 
-	// Format date for display — parse manually to avoid UTC-midnight timezone shift
-	const formatDate = (dateString) => {
-		if (!dateString) return '';
-		// ISO YYYY-MM-DD: new Date('2026-10-11') is UTC midnight, which shifts the day
-		// on devices not in UTC. Parse parts instead to get local midnight.
-		if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
-			const [y, m, d] = dateString.split('-').map(Number);
-			return format(new Date(y, m - 1, d), 'dd/MM/yyyy');
-		}
-		return format(new Date(dateString), 'dd/MM/yyyy');
-	};
+	// Format date for display in WAT regardless of device timezone
+	const formatDate = (dateString) =>
+		dateString ? formatDateWat(dateString, 'dd/MM/yyyy') : '';
 
 	// Filter and sort data
 	const filteredAndSortedWaybills = useMemo(() => {
@@ -163,39 +155,16 @@ const InvoicesPage = () => {
 			);
 		}
 
-		// Date range filter
+		// Date range filter (compare WAT calendar days so the result does not
+		// depend on the device timezone). startDate/endDate are yyyy-MM-dd.
 		if (startDate || endDate) {
-			const startOfDay = startDate
-				? Object.assign(new Date(startDate), { setHours: undefined }) &&
-					(() => {
-						const d = new Date(startDate);
-						d.setHours(0, 0, 0, 0);
-						return d;
-					})()
-				: null;
-
-			const endOfDay = endDate
-				? (() => {
-						const d = new Date(endDate);
-						d.setHours(23, 59, 59, 999);
-						return d;
-					})()
-				: startDate
-					? (() => {
-							const d = new Date(startDate);
-							d.setHours(23, 59, 59, 999);
-							return d;
-						})()
-					: null;
-
+			const effEnd = endDate || startDate;
 			filtered = filtered.filter((inv) => {
 				if (!inv?.date) return false;
-				const invDate = new Date(inv.date);
-				if (isNaN(invDate.getTime())) return false;
-				if (startOfDay && endOfDay)
-					return invDate >= startOfDay && invDate <= endOfDay;
-				if (startOfDay) return invDate >= startOfDay;
-				if (endOfDay) return invDate <= endOfDay;
+				const day = toInputDateWat(inv.date);
+				if (!day) return false;
+				if (startDate && day < startDate) return false;
+				if (effEnd && day > effEnd) return false;
 				return true;
 			});
 		}
@@ -343,7 +312,7 @@ const InvoicesPage = () => {
 			const filledRows = filteredAndSortedWaybills.map((item, index) => [
 				index + 1,
 				item.name,
-				item.date ? new Date(item.date).toISOString().split('T')[0] : '',
+				item.date ? toInputDateWat(item.date) : '',
 				item.vehicle || '',
 				item?.gross?.toLocaleString() || '',
 				item?.tare?.toLocaleString() || '',
@@ -564,9 +533,7 @@ const InvoicesPage = () => {
 			doc.text('Date:', pageWidth - 90, y);
 			doc.setFont('helvetica', 'normal');
 			doc.text(
-				formData.date
-					? new Date(formData.date).toISOString().split('T')[0]
-					: '-',
+				formData.date ? toInputDateWat(formData.date) : '-',
 				pageWidth - 75,
 				y,
 			);

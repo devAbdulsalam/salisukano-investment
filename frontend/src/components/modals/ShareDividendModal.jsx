@@ -9,13 +9,14 @@ import { useQueryClient, useMutation } from '@tanstack/react-query';
 import Modal from './Modal';
 import { HiXMark } from 'react-icons/hi2';
 import { months } from '../../data.js';
+import { getWatMonth } from '../../utils/watDate';
 
 const ShareDividendModal = ({ show, setShow, selectedRate }) => {
 	const { user } = useContext(AuthContext);
 
 	const queryClient = useQueryClient();
 
-	const currentYear = new Date().getFullYear();
+	const currentYear = getWatMonth(new Date()).year;
 
 	const [percentage, setPercentage] = useState('');
 

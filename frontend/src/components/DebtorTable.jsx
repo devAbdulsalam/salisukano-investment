@@ -3,7 +3,7 @@ import { useState, useMemo } from 'react';
 import { AiFillEdit, AiFillDelete } from 'react-icons/ai';
 import { FiSearch } from 'react-icons/fi';
 import { SiMicrosoftexcel } from 'react-icons/si';
-import moment from 'moment';
+import { formatDateWat } from '../utils/watDate';
 
 const DebtorTable = ({ tableData, handelEdit, handelDelete, tableRef, handelExportToExcel }) => {
 	const [query, setQuery] = useState('');
@@ -19,7 +19,7 @@ const DebtorTable = ({ tableData, handelEdit, handelDelete, tableRef, handelExpo
 				data.credit?.toString().includes(q) ||
 				data.debit?.toString().includes(q) ||
 				data.balance?.toString().includes(q) ||
-				moment(data.createdAt).format('DD-MM-YYYY').includes(q)
+				formatDateWat(data.createdAt, 'dd-MM-yyyy').includes(q)
 			);
 		});
 	}, [query, tableData]);
@@ -90,7 +90,7 @@ const DebtorTable = ({ tableData, handelEdit, handelDelete, tableRef, handelExpo
 							>
 								{/* Date */}
 								<td className="py-3 pl-5 pr-3 text-[#637381] whitespace-nowrap">
-									{moment(data?.date || data?.createdAt).format('DD MMM YYYY')}
+									{formatDateWat(data?.date || data?.createdAt, 'd MMM yyyy')}
 								</td>
 
 								{/* Description */}

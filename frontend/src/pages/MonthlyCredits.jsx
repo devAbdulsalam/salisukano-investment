@@ -16,7 +16,7 @@ import { SiMicrosoftexcel } from 'react-icons/si';
 import Receipt from '../components/CreditorReceipt.jsx';
 import { useDownloadExcel } from 'react-export-table-to-excel';
 // import { MdSaveAlt } from 'react-icons/md';
-import moment from 'moment';
+import { formatMonthYearWat } from '../utils/watDate';
 import { FiPrinter } from 'react-icons/fi';
 const Creditor = () => {
 	// const [loading, setIsLoading] = useState(false);
@@ -48,9 +48,10 @@ const Creditor = () => {
 
 	const { onDownload } = useDownloadExcel({
 		currentTableRef: tableRef.current,
-		filename: `${data?.creditor?.name} ${moment(
-			data?.creditMonth?.month
-		).format('MMM YYYY')} transactions`,
+		filename: `${data?.creditor?.name} ${formatMonthYearWat(
+			data?.creditMonth?.month,
+			'MMM yyyy'
+		)} transactions`,
 		sheet: 'Users',
 	});
 	const handelPrint = () => {
@@ -80,7 +81,7 @@ const Creditor = () => {
 							</li>
 							<li className="breadcrumb-item capitalize text-blue-500 hover:text-blue-500/50 cursor-pointer">
 								<Link to={`/creditors/${id}`}>
-									{moment(data?.creditMonth?.month).format('MMM YYYY')}
+									{formatMonthYearWat(data?.creditMonth?.month, 'MMM yyyy')}
 								</Link>
 							</li>
 						</ul>

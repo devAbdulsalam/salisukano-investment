@@ -18,13 +18,14 @@ import Loader from '../components/Loader';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Download } from 'lucide-react';
 import { months } from '../data.js';
+import { getWatMonth, nowWat } from '../utils/watDate';
 
 const DividendRatesPage = () => {
 	const { year: selectedYear } = useParams();
 	const { user } = useContext(AuthContext);
 
 	const queryClient = useQueryClient();
-	const currentYear = new Date().getFullYear();
+	const currentYear = getWatMonth(new Date()).year;
 	const navigate = useNavigate();
 
 	const [year, setYear] = useState(selectedYear || currentYear);
@@ -350,7 +351,7 @@ const DividendRatesPage = () => {
 				doc.addImage(sealBase64, 'PNG', pageWidth - 86, footerY - 32, 80, 50);
 			}
 
-			doc.save(`Dividend-Rates-${new Date().toISOString()}.pdf`);
+			doc.save(`Dividend-Rates-${nowWat('yyyy-MM-dd')}.pdf`);
 		} catch (err) {
 			console.error(err);
 			toast.error('Failed to generate PDF');

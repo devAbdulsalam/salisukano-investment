@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import moment from 'moment';
+import { formatDateTimeWat } from '../utils/watDate';
 const CreditDetails = ({ data, name }) => {
 	console.log('deposits', data);
 
@@ -38,8 +38,9 @@ const CreditDetails = ({ data, name }) => {
 						</h2>
 						<h2 className="py-2  text-[#212B36] text-sm font-normal whitespace-nowrap rounded-l-lg">
 							<span className="font-bold">Date: </span>
-							{moment(data?.date || data?.createdAt).format(
-								'DD-MM-YYYY HH:SS A'
+							{formatDateTimeWat(
+								data?.date || data?.createdAt,
+								'dd-MM-yyyy HH:mm'
 							)}
 						</h2>
 					</div>

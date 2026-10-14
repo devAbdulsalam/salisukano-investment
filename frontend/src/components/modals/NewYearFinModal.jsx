@@ -8,6 +8,7 @@ import { TriangleAlert } from 'lucide-react';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import Modal from './Modal.jsx';
 import { HiXMark } from 'react-icons/hi2';
+import { getWatMonth } from '../../utils/watDate';
 
 const NewYearFinModal = ({
 	show,
@@ -19,7 +20,7 @@ const NewYearFinModal = ({
 	const { user } = useContext(AuthContext);
 	const queryClient = useQueryClient();
 
-	const currentYear = new Date().getFullYear();
+	const currentYear = getWatMonth(new Date()).year;
 	const [year, setYear] = useState(() => Number(selectedYear + 1));
 	const [openingBalance, setOpeningBalance] = useState(closingBalance);
 

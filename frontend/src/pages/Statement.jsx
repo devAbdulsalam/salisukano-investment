@@ -16,6 +16,7 @@ import phone from '../assets/call.png';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import getError from '../hooks/getError.js';
+import { getWatMonth, nowWat } from '../utils/watDate';
 /* ─────────────────────────────────────────── */
 /* Constants                                   */
 /* ─────────────────────────────────────────── */
@@ -45,7 +46,7 @@ const createEmptyRow = () => ({
 	amount: 0,
 });
 
-const buildDefaultStatement = (year = new Date().getFullYear()) => ({
+const buildDefaultStatement = (year = getWatMonth(new Date()).year) => ({
 	year,
 	statementName: `Financial Statement ${year}`,
 	openingCapital: 0,
@@ -76,7 +77,7 @@ const stripTempIds = (items = []) => items.map(({ _tempId, ...rest }) => rest);
 
 const FinancialStatement = () => {
 	const queryClient = useQueryClient();
-	const currentYear = new Date().getFullYear();
+	const currentYear = getWatMonth(new Date()).year;
 
 	const [statement, setStatement] = useState(
 		buildDefaultStatement(currentYear),
@@ -577,7 +578,7 @@ const FinancialStatement = () => {
 			// ===============================
 
 			doc.save(
-				`${statement.year}-Financial-Statement-${new Date().toISOString()}.pdf`,
+				`${statement.year}-Financial-Statement-${nowWat('yyyy-MM-dd')}.pdf`,
 			);
 		} catch (error) {
 			console.error(error);

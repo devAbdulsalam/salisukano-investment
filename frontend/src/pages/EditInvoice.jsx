@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { invoiceAPI } from './api';
+import { formatDateWat, toInputDateWat } from '../utils/watDate';
 
 const EditInvoice = () => {
 	const { id } = useParams();
@@ -50,9 +51,8 @@ const EditInvoice = () => {
 			const response = await invoiceAPI.getInvoiceById(id);
 			const invoiceData = response.data.data;
 
-			// Format date for input
-			const dateObj = new Date(invoiceData.date);
-			const formattedDate = dateObj.toISOString().split('T')[0];
+			// Format date for input (WAT based)
+			const formattedDate = toInputDateWat(invoiceData.date);
 
 			setInvoice(invoiceData);
 			setFormData({
@@ -726,9 +726,10 @@ const EditInvoice = () => {
 								</p>
 								<p className="text-sm font-medium">
 									Last updated:{' '}
-									{new Date(
-										invoice.updatedAt || invoice.createdAt
-									).toLocaleDateString()}
+									{formatDateWat(
+										invoice.updatedAt || invoice.createdAt,
+										'PP'
+									)}
 								</p>
 							</div>
 

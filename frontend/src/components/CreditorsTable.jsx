@@ -5,7 +5,7 @@ import { FaPlus } from 'react-icons/fa6';
 import { AiFillEdit } from 'react-icons/ai';
 import { FiSearch } from 'react-icons/fi';
 import { LuArrowUpDown, LuArrowUp, LuArrowDown } from 'react-icons/lu';
-import moment from 'moment';
+import { formatDateWat } from '../utils/watDate';
 
 // Renders the correct sort icon for a column header
 const SortIcon = ({ column, sortConfig }) => {
@@ -35,7 +35,7 @@ const CreditorsTable = ({ tableData, handelAddModal, handelEdit }) => {
 				data?._id?.toLowerCase().includes(q) ||
 				data?.name?.toLowerCase().includes(q) ||
 				data?.phone?.toLowerCase().includes(q) ||
-				moment(data?.createdAt).format('DD-MM-YYYY').includes(q)
+				formatDateWat(data?.createdAt, 'dd-MM-yyyy').includes(q)
 			);
 		});
 

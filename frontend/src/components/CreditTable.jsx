@@ -3,7 +3,7 @@ import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiSearch } from 'react-icons/fi';
 import { TbCalendarMonth } from 'react-icons/tb';
-import moment from 'moment';
+import { formatDateWat, formatMonthYearWat } from '../utils/watDate';
 
 const CreditTable = ({ tableData, creditorId }) => {
 	const navigate = useNavigate();
@@ -15,7 +15,7 @@ const CreditTable = ({ tableData, creditorId }) => {
 			return (
 				data?.month?.toLowerCase().includes(q) ||
 				data?.balance?.toString().includes(q) ||
-				moment(data?.createdAt).format('DD-MM-YYYY').includes(q)
+				formatDateWat(data?.createdAt, 'dd-MM-yyyy').includes(q)
 			);
 		});
 	}, [query, tableData]);
@@ -75,7 +75,7 @@ const CreditTable = ({ tableData, creditorId }) => {
 									<div className="flex items-center gap-2">
 										<span className="w-2 h-2 rounded-full bg-blue-400 shrink-0" />
 										<span className="font-medium text-[#212B36] capitalize group-hover:text-blue-600 transition-colors">
-											{moment(data?.month).format('MMMM YYYY')}
+											{formatMonthYearWat(data?.month, 'MMMM yyyy')}
 										</span>
 									</div>
 								</td>

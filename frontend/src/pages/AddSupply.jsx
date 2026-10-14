@@ -12,6 +12,7 @@ import { FaPlus } from 'react-icons/fa6';
 import Loader from '../components/Loader.jsx';
 import CustomersInput from '../components/CustomersInput.jsx';
 import { fetchCurrentAccount } from '../hooks/axiosApis.js';
+import { formatMonthYearWat, watMonthBoundsInput } from '../utils/watDate';
 
 const materialsData = [
 	{ name: 'Cast' },
@@ -64,32 +65,12 @@ const AddSupply = () => {
 	const [month, setMonth] = useState('');
 	useEffect(() => {
 		if (data) {
-			const normalizedMonth = new Date(
-				new Date(data?.account?.month).getFullYear(),
-				new Date(data?.account?.month).getMonth(),
-				1,
-			);
-			// console.log(data);
-			const month = normalizedMonth.toLocaleDateString('en-GB', {
-				month: 'long',
-				year: 'numeric',
-			});
-			setMonth(month);
-			// Set minimum date to the 1st of the month
-			const min = new Date(
-				normalizedMonth.getFullYear(),
-				normalizedMonth.getMonth(),
-				1,
-			);
-			setMinDate(min?.toISOString().split('T')[0]);
-
-			// Set maximum date to the last day of the month
-			const max = new Date(
-				normalizedMonth.getFullYear(),
-				normalizedMonth.getMonth() + 1,
-				1,
-			);
-			setMaxDate(max.toISOString().split('T')[0]);
+			// Month label and bounds are derived in WAT so they stay correct
+			// regardless of the user's device timezone.
+			setMonth(formatMonthYearWat(data?.account?.month));
+			const { min, max } = watMonthBoundsInput(data?.account?.month);
+			setMinDate(min);
+			setMaxDate(max);
 		}
 		if (error) {
 			console.log(error);

@@ -11,7 +11,7 @@ import { IoMdOptions } from 'react-icons/io';
 import { FaPlus, FaMinus } from 'react-icons/fa6';
 import { SiMicrosoftexcel } from 'react-icons/si';
 import { useDownloadExcel } from 'react-export-table-to-excel';
-import moment from 'moment';
+import { formatDateWat } from '../utils/watDate';
 import AdvanceCreditModal from '../components/modals/AdvanceCreditModal.jsx';
 import AdvanceDebitModal from '../components/modals/AdvanceDebitModal.jsx';
 import AdvanceEditModal from '../components/modals/AdvanceEditModal.jsx';
@@ -256,7 +256,7 @@ const Advance = () => {
 									>
 										<td className="px-4 py-3 text-gray-500">{index + 1}</td>
 										<td className="px-4 py-3 whitespace-nowrap">
-											{moment(tx.date).format('DD MMM YYYY')}
+											{formatDateWat(tx.date, 'd MMM yyyy')}
 										</td>
 										<td className="px-4 py-3 whitespace-nowrap font-medium">
 											{customer?.name || '—'}
@@ -325,7 +325,7 @@ const Advance = () => {
 														<span className="text-gray-500 font-medium block">
 															Date
 														</span>
-														<span>{moment(tx.date).format('DD MMM YYYY')}</span>
+														<span>{formatDateWat(tx.date, 'd MMM yyyy')}</span>
 													</div>
 													<div>
 														<span className="text-gray-500 font-medium block">

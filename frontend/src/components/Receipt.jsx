@@ -3,6 +3,7 @@ import React from 'react';
 import logo from '../assets/logo.jpg';
 import Modal from './modals/Modal';
 import { downloadPDF, generateRandomNumber } from './../hooks/downLoadPdf';
+import { formatDateWat, nowWat } from '../utils/watDate';
 
 const Receipt = ({
 	tableData,
@@ -85,7 +86,7 @@ const Receipt = ({
 											</p>
 										)}
 										<p className="text-sm font-normal text-[#637381]">
-											To Date: {new Date().toLocaleDateString()}
+											To Date: {nowWat('PP')}
 										</p>
 									</div>
 								</div>
@@ -118,7 +119,7 @@ const Receipt = ({
 										{tableData && tableData.length > 0
 											? tableData.map((item, index) => (
 													<tr key={index}>
-														<td>{new Date(item.date).toLocaleDateString()}</td>
+														<td>{formatDateWat(item.date, 'PP')}</td>
 														<td className="">{item.description}</td>
 														<td>{item?.debit}</td>
 														<td>{item?.credit}</td>

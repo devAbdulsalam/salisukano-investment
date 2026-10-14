@@ -13,6 +13,7 @@ import {
 	startNewFinancialYearApi,
 } from '../hooks/axiosApis';
 import { useNavigate } from 'react-router-dom';
+import { getWatMonth } from '../utils/watDate';
 
 /* ─── helpers ─────────────────────────────────────────────────────────── */
 
@@ -38,7 +39,7 @@ const AddShareholders = () => {
 	const { user } = useContext(AuthContext);
 	const queryClient = useQueryClient();
 	const navigate = useNavigate();
-	const currentYear = new Date().getFullYear();
+	const currentYear = getWatMonth(new Date()).year;
 	const [year, setYear] = useState(currentYear);
 
 	/* ── rows that will be submitted ── */

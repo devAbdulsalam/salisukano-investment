@@ -12,6 +12,7 @@ import { FaPlus } from 'react-icons/fa6';
 import Loader from '../components/Loader.jsx';
 import CustomersInput from '../components/CustomersInput.jsx';
 import { fetchTransactingCustomers } from '../hooks/axiosApis.js';
+import { todayInputWat } from '../utils/watDate';
 
 const materialsData = [{ name: 'Cast' }, { name: 'Mix' }, { name: 'Special' }, { name: 'Bundle' }];
 
@@ -26,7 +27,7 @@ const AddSupply = () => {
 	const [loading, setIsLoading] = useState(false);
 	const [name, setName] = useState('');
 	const [vehicleNumber, setVehicleNumber] = useState('');
-	const [date, setDate] = useState(new Date());
+	const [date, setDate] = useState(todayInputWat());
 	const [materials, setMaterials] = useState([
 		{
 			product: 'Cast',

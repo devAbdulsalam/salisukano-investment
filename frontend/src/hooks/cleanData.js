@@ -1,4 +1,5 @@
 import { getRandomRGBColor } from './getRandomColor';
+import { formatDateWat } from '../utils/watDate';
 export function cleanData(data) {
 	// Extract unique dates and categories
 	const uniqueDates = [...new Set(data.map((item) => item.date))];
@@ -135,9 +136,9 @@ export const cleanTableData = (transactions) => {
 		return {
 			_id: transaction._id,
 			sn: index + 1,
-			date: new Date(
+			date: formatDateWat(
 				transaction.date || transaction.createdAt,
-			).toLocaleDateString(), // Format date
+			), // WAT formatted date
 			name: transaction.name || '-',
 			vehicleNumber: transaction.vehicleNumber || '-',
 			mixQuantity: mixMaterial.qty || '-', // Mix data
@@ -180,9 +181,9 @@ export const cleanCreditorsData = (transactions) => {
 		return {
 			_id: transaction._id,
 			creditorId: transaction.creditorId,
-			date: new Date(
+			date: formatDateWat(
 				transaction.date || transaction.createdAt,
-			).toLocaleDateString(), // Format date
+			), // WAT formatted date
 			vehicleNumber: transaction.vehicleNumber || '-',
 			mixQuantity: mixMaterial.qty || '-', // Mix data
 			mixPrice: mixMaterial.rate || '-',

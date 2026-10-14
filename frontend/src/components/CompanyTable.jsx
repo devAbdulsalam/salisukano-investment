@@ -5,7 +5,7 @@ import { FiSearch } from 'react-icons/fi';
 import { HiOutlineOfficeBuilding } from 'react-icons/hi';
 import { TbBuildingCommunity } from 'react-icons/tb';
 import { LuArrowUpDown, LuArrowUp, LuArrowDown } from 'react-icons/lu';
-import moment from 'moment';
+import { formatMonthYearWat } from '../utils/watDate';
 
 const SortIcon = ({ column, sortConfig }) => {
 	if (sortConfig.key !== column) return <LuArrowUpDown size={13} className="text-[#C4CDD5] group-hover/th:text-[#637381] transition-colors" />;
@@ -34,7 +34,7 @@ const CompanyTable = ({ tableData }) => {
 			return (
 				item?.company?.name?.toLowerCase().includes(q) ||
 				item?.company?.phone?.toLowerCase().includes(q) ||
-				moment(item?.month?.month).format('MMM YYYY').toLowerCase().includes(q) ||
+				formatMonthYearWat(item?.month?.month, 'MMM yyyy').toLowerCase().includes(q) ||
 				item?.balance?.toString().includes(q)
 			);
 		});
@@ -191,7 +191,7 @@ const CompanyTable = ({ tableData }) => {
 								{/* Month */}
 								<td className="py-3 px-3">
 									<span className="inline-flex items-center gap-1 text-xs font-medium bg-[#F4F6F8] text-[#637381] px-2 py-1 rounded-md">
-										{moment(item?.month?.month).format('MMM YYYY')}
+										{formatMonthYearWat(item?.month?.month, 'MMM yyyy')}
 									</span>
 								</td>
 

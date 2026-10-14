@@ -10,7 +10,7 @@ import { fetchAccount } from '../hooks/axiosApis.js';
 import getError from '../hooks/getError.js';
 import toast from 'react-hot-toast';
 import { FaMinus, FaPlus } from 'react-icons/fa6';
-import moment from 'moment';
+import { formatDateWat, formatMonthYearWat } from '../utils/watDate';
 import OpeningBalanceModal from '../components/modals/OpeningBalance.jsx';
 import { cleanTableData } from '../hooks/cleanData';
 import { IoMdOptions } from 'react-icons/io';
@@ -69,8 +69,9 @@ const Transaction = () => {
 	};
 	const { onDownload } = useDownloadExcel({
 		currentTableRef: tableRef.current,
-		filename: `${data?.customer?.name} ${moment(data?.account?.month).format(
-			'MMM YYYY'
+		filename: `${data?.customer?.name} ${formatMonthYearWat(
+			data?.account?.month,
+			'MMM yyyy'
 		)} transactions`,
 		sheet: 'Users',
 	});
@@ -94,7 +95,7 @@ const Transaction = () => {
 							</li>
 							<li className="breadcrumb-item hover:text-blue-500/60 text-blue-500 cursor-pointer">
 								<Link to={`/accounts/${id}`}>
-									{moment(data?.account?.month).format('ll')}
+									{formatDateWat(data?.account?.month, 'PP')}
 								</Link>
 							</li>
 						</ul>

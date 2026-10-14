@@ -6,7 +6,7 @@ import { AiFillEdit } from 'react-icons/ai';
 import { FiSearch } from 'react-icons/fi';
 import { SiMicrosoftexcel } from 'react-icons/si';
 import { LuArrowUpDown, LuArrowUp, LuArrowDown } from 'react-icons/lu';
-import moment from 'moment';
+import { formatDateWat } from '../utils/watDate';
 
 const SortIcon = ({ column, sortConfig }) => {
 	if (sortConfig.key !== column)
@@ -37,7 +37,7 @@ const DebtorsTable = ({ tableData, handelAddModal, handelEdit, tableRef, handelE
 				data?.name?.toLowerCase().includes(q) ||
 				data?.phone?.toLowerCase().includes(q) ||
 				data?.balance?.toString().includes(q) ||
-				moment(data?.createdAt).format('DD-MM-YYYY').includes(q)
+				formatDateWat(data?.createdAt, 'dd-MM-yyyy').includes(q)
 			);
 		});
 

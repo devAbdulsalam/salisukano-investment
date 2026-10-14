@@ -7,6 +7,7 @@ import getError from '../../hooks/getError';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import Modal from './Modal';
 import { HiXMark } from 'react-icons/hi2';
+import { toInputDateWat } from '../../utils/watDate';
 
 const STATUS_OPTIONS = ['active', 'under_maintenance', 'disposed', 'sold'];
 
@@ -29,9 +30,7 @@ const EditAssetModal = ({ show, setShow, asset }) => {
 			setName(asset.name || '');
 			setDescription(asset.description || '');
 			setPurchasePrice(asset.purchasePrice || '');
-			setPurchaseDate(
-				asset.purchaseDate ? asset.purchaseDate.split('T')[0] : '',
-			);
+			setPurchaseDate(toInputDateWat(asset.purchaseDate));
 			setStatus(asset.status || 'active');
 			setAgentName(asset.agent?.name || '');
 			setAgentPhone(asset.agent?.phone || '');

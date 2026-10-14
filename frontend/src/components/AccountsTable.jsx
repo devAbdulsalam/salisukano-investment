@@ -2,7 +2,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SiMicrosoftexcel } from 'react-icons/si';
-import moment from 'moment';
+import { formatDateWat, formatMonthYearWat } from '../utils/watDate';
 // import { formatPrice } from '../hooks/formatPrice';
 
 const TransactionTable = ({
@@ -29,7 +29,7 @@ const TransactionTable = ({
 				data.vehicleNumber?.toLowerCase().includes(query.toLowerCase()) ||
 				data.quantity?.toString().includes(query) ||
 				data.balance?.toString().includes(query) ||
-				moment(data.createdAt).format('DD-MM-YYYY').includes(query);
+				formatDateWat(data.createdAt, 'dd-MM-yyyy').includes(query);
 
 			return matchesQuery;
 		});
@@ -148,7 +148,7 @@ const TransactionTable = ({
 									onClick={() => handelClick(data._id)}
 									className="py-2 pl-3 text-sm font-normal text-[#637381] rounded-l-lg whitespace-nowrap cursor-pointer"
 								>
-									{moment(data?.month).format('MMMM YY')}
+									{formatMonthYearWat(data?.month, 'MMMM yy')}
 								</td>
 
 								<td
