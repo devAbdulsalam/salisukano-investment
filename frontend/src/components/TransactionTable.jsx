@@ -43,7 +43,9 @@ const Tablle = ({
 			Header: 'Mix Qty (kg)',
 			accessor: 'mixQuantity',
 			Cell: ({ value }) => (
-				<span className={`text-[#637381] `}>{value || ' '}</span>
+				<span className={`text-[#637381] `}>
+					{value?.toLocaleString() || ' '}
+				</span>
 			),
 		},
 		{
@@ -57,7 +59,9 @@ const Tablle = ({
 			Header: 'Mix Total ₦',
 			accessor: 'mixTotal',
 			Cell: ({ value }) => (
-				<span className={` text-[#DD6107]`}>{value || ' '}</span>
+				<span className={` text-[#DD6107]`}>
+					{value?.toLocaleString() || ' '}
+				</span>
 			),
 		},
 		{
@@ -78,14 +82,18 @@ const Tablle = ({
 			Header: 'Cast Total ₦',
 			accessor: 'castTotal',
 			Cell: ({ value }) => (
-				<span className={` text-[#DD6107]`}>{value || ' '}</span>
+				<span className={` text-[#DD6107]`}>
+					{value?.toLocaleString() || ' '}
+				</span>
 			),
 		},
 		{
 			Header: 'S Qty (kg)',
 			accessor: 'specialQuantity',
 			Cell: ({ value }) => (
-				<span className={`text-[#637381] `}>{value || ' '}</span>
+				<span className={`text-[#637381] `}>
+					{value?.toLocaleString() || ' '}
+				</span>
 			),
 		},
 		{
@@ -99,14 +107,18 @@ const Tablle = ({
 			Header: 'Special Total ₦',
 			accessor: 'specialTotal',
 			Cell: ({ value }) => (
-				<span className={` text-[#DD6107]`}>{value || ' '}</span>
+				<span className={` text-[#DD6107]`}>
+					{value?.toLocaleString() || ' '}
+				</span>
 			),
 		},
 		{
 			Header: 'CB Qty (kg)',
 			accessor: 'bundleQuantity',
 			Cell: ({ value }) => (
-				<span className={`text-[#637381] `}>{value || ' '}</span>
+				<span className={`text-[#637381] `}>
+					{value?.toLocaleString() || ' '}
+				</span>
 			),
 		},
 		{
@@ -120,27 +132,37 @@ const Tablle = ({
 			Header: 'Bundle Total ₦',
 			accessor: 'bundleTotal',
 			Cell: ({ value }) => (
-				<span className={` text-[#DD6107]`}>{value || ' '}</span>
+				<span className={` text-[#DD6107]`}>
+					{value?.toLocaleString() || ' '}
+				</span>
 			),
 		},
 		{
 			Header: 'Credit ₦',
 			accessor: 'credit',
 			Cell: ({ value }) => (
-				<span className={`text-[#4F80E1] `}>{value || ' '}</span>
+				<span className={`text-[#4F80E1] `}>
+					{value?.toLocaleString() || ' '}
+				</span>
 			),
 		},
 		{
 			Header: 'Dedit ₦',
 			accessor: 'debit',
 			Cell: ({ value }) => (
-				<span className={`text-[#FB4949] `}>{value || ' '}</span>
+				<span className={`text-[#FB4949] `}>
+					{value?.toLocaleString() || ' '}
+				</span>
 			),
 		},
 		{
 			Header: 'Balance ₦',
 			accessor: 'balance',
-			Cell: ({ value }) => <span className={`text-[#10B860] `}>{value}</span>,
+			Cell: ({ value }) => (
+				<span className={`text-[#10B860] `}>
+					{value?.toLocaleString() || ' '}
+				</span>
+			),
 		},
 	];
 

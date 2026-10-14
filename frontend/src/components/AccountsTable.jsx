@@ -155,25 +155,25 @@ const TransactionTable = ({
 									onClick={() => handelClick(data._id)}
 									className="py-2 px-2.5 text-sm font-normal text-[#DD6107] whitespace-nowrap cursor-pointer"
 								>
-									{data?.openingBalance}
+									{data?.openingBalance?.toLocaleString()}
 								</td>
 								<td
 									onClick={() => handelClick(data._id)}
 									className="py-4 px-1 text-sm font-normal text-[#4F80E1] whitespace-nowrap bg-gray-50 cursor-pointer"
 								>
-									{data?.credit}
+									{data?.credit?.toLocaleString()}
 								</td>
 								<td
 									onClick={() => handelClick(data._id)}
 									className="py-4 px-1 text-sm font-normal text-[#FB4949] whitespace-nowrap cursor-pointer"
 								>
-									{data?.debit}
+									{data?.debit?.toLocaleString()}
 								</td>
 								<td
 									onClick={() => handelClick(data._id)}
 									className="py-2 px-1 text-sm font-normal text-[#10B860] whitespace-nowrap bg-gray-50 cursor-pointer"
 								>
-									{data?.balance}
+									{data?.balance?.toLocaleString()}
 								</td>
 								<td
 									onClick={() => handelChangeActive(data)}

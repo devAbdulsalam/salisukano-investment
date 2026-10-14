@@ -153,12 +153,13 @@ const Transaction = () => {
 				<Cards
 					balance={
 						data?.commission?.balance != 0
-							? (data?.account?.balance || 0) + data?.commission?.balance
-							: data?.account?.balance || 0
+							? (data?.account?.balance?.toLocaleString() || 0) +
+								data?.commission?.balance?.toLocaleString()
+							: data?.account?.balance?.toLocaleString() || 0
 					}
-					credit={data?.account?.credit || 0}
-					debit={data?.account?.debit || 0}
-					openingBalance={data?.account?.openingBalance || 0}
+					credit={data?.account?.credit?.toLocaleString() || 0}
+					debit={data?.account?.debit?.toLocaleString() || 0}
+					openingBalance={data?.account?.openingBalance?.toLocaleString() || 0}
 					handleOpeningBalance={handleOpeningBalance}
 				/>
 				<TransactionTable

@@ -176,7 +176,7 @@ const Advance = () => {
 					</div>
 
 					{/* Quick-action buttons (mobile-friendly shortcut) */}
-					<div className="flex md:flex-col gap-2 mb-4">
+					<div className="flex md:flex-col gap-2 mb-4 md:justify-center">
 						<button
 							onClick={() => setShowCredit(true)}
 							className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded-lg transition-colors"
@@ -194,10 +194,7 @@ const Advance = () => {
 
 				{/* ── Ledger table ── */}
 				<div className="bg-white rounded-xl border border-[#E7E7E7] overflow-x-auto">
-					<table
-						ref={tableRef}
-						className="min-w-full text-sm text-left"
-					>
+					<table ref={tableRef} className="min-w-full text-sm text-left">
 						<thead className="bg-gray-50 border-b border-gray-200">
 							<tr>
 								<th className="px-4 py-3 font-semibold text-gray-600 whitespace-nowrap">
@@ -349,8 +346,7 @@ const Advance = () => {
 															Amount
 														</span>
 														<span>
-															₦{' '}
-															{(tx.credit || tx.debit).toLocaleString()}
+															₦ {(tx.credit || tx.debit).toLocaleString()}
 														</span>
 													</div>
 													<div>
@@ -393,18 +389,17 @@ const Advance = () => {
 						{sorted.length > 0 && (
 							<tfoot className="border-t-2 border-gray-200 bg-gray-50">
 								<tr>
-									<td colSpan={4} className="px-4 py-3 font-semibold text-gray-700">
+									<td
+										colSpan={4}
+										className="px-4 py-3 font-semibold text-gray-700"
+									>
 										Totals
 									</td>
 									<td className="px-4 py-3 text-right font-semibold text-red-500">
-										{sorted
-											.reduce((s, t) => s + t.debit, 0)
-											.toLocaleString()}
+										{sorted.reduce((s, t) => s + t.debit, 0).toLocaleString()}
 									</td>
 									<td className="px-4 py-3 text-right font-semibold text-green-600">
-										{sorted
-											.reduce((s, t) => s + t.credit, 0)
-											.toLocaleString()}
+										{sorted.reduce((s, t) => s + t.credit, 0).toLocaleString()}
 									</td>
 									<td
 										className={`px-4 py-3 text-right font-bold ${

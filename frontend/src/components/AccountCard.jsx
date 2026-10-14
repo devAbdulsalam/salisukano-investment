@@ -25,7 +25,7 @@ const Card = ({ openSideBar, data }) => {
 					}`}
 				>
 					<span className="text-xl font-bold whitespace-nowrap">
-						₦ {data?.totalBalance || 0}
+						₦ {data?.totalBalance?.toLocaleString() || 0}
 					</span>
 					<img
 						src="/assets/admin/dashboard/graph1.svg"
@@ -54,7 +54,7 @@ const Card = ({ openSideBar, data }) => {
 					}`}
 				>
 					<span className="text-xl font-bold whitespace-nowrap">
-						₦ {data?.totalCredit || 0}
+						₦ {data?.totalCredit?.toLocaleString() || 0}
 					</span>
 					<img
 						src="/assets/admin/dashboard/graph1.svg"
@@ -83,7 +83,7 @@ const Card = ({ openSideBar, data }) => {
 					}`}
 				>
 					<span className="text-xl font-bold whitespace-nowrap">
-						₦ {data?.totalDebit || 0}
+						₦ {data?.totalDebit?.toLocaleString() || 0}
 					</span>
 					<img
 						src="/assets/admin/dashboard/graph3.svg"

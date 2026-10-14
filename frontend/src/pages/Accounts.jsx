@@ -100,28 +100,22 @@ const Transaction = () => {
 								className="pl-3 py-2 px-2  flex w-full justify-start items-center gap-1 rounded text-sm  text-gray-700 hover:bg-blue-100 font-normal"
 								onClick={() => navigate(`/pricing/${id}`)}
 							>
-								<TbCurrencyNaira className="text-lg" /> Pricing
+								<TbCurrencyNaira className="text-lg" />
+								Pricing
 							</MenuItem>
 							<MenuItem
 								as="button"
 								className="pl-3 py-2 px-2  flex w-full justify-start items-center gap-1 rounded text-sm  text-gray-700 hover:bg-blue-100 font-normal"
 								onClick={() => navigate(`/advance/${id}`)}
 							>
-								<ChartSpline className="text-md" /> Advance Account
+								<Wallet className="h-4 w-4" /> Advance Account
 							</MenuItem>
 							<MenuItem
 								as="button"
 								className="pl-3 py-2 px-2  flex w-full justify-start items-center gap-1 rounded text-sm  text-gray-700 hover:bg-blue-100 font-normal"
 								onClick={() => navigate(`/analysis/${id}`)}
 							>
-								<ChartSpline className="text-md" /> Analysis
-							</MenuItem>
-							<MenuItem
-								as="button"
-								className="pl-3 py-2 px-2  flex w-full justify-start items-center gap-1 rounded text-sm  text-gray-700 hover:bg-blue-100 font-normal"
-								onClick={() => navigate(`/advance/${id}`)}
-							>
-								<Wallet className="text-md" /> Advance Account
+								<ChartSpline className="h-4 w-4" /> Analysis
 							</MenuItem>
 						</MenuItems>
 					</Menu>
